@@ -1,0 +1,21 @@
+Špecifikácia remoteplayeru, verzia 0 (koncept)
+
+{server}
+player: jednoduchý blokujúci playbin, ktorý bude prehrávať zo zásobníka
+
+library: všetky fajly s adresára
+
+interface: odošle klientovy zoznam medií, umožní klientovy prehrať medium z
+knižnice 
+
+interface bude implementovaný pomocou ZMQ ako clone pattern client/server a
+bude poskytovať nasledujúce funkcie:
+
+	* list_library, ktorá vráti zoznam medií
+	* play_media, ktorá prehrá medium zo zoznamu medií
+
+
+{klient}
+Pripojí sa k serveru a požiada o zoznam medií, zobrazí ich a umoží užívateľovy
+výber pomocou GUI.
+

@@ -1,0 +1,8 @@
+*.o
+/remoteplayer
+/remoteplayer.config
+/remoteplayer.creator
+/remoteplayer.creator.user
+/remoteplayer.files
+/remoteplayer.includes
+/.sconsign.dblite

@@ -1,42 +1,32 @@
-// vlc player with playlist use sample
+// play locally stored file file
 #include <string>
-#include <vector>
-#include <thread>
+#include <iostream>
 #include <cassert>
-#include <vlc/vlc.h>
+#include <unistd.h>
+#include "fs.hpp"
+#include "player.hpp"
 
 using std::string;
-using std::vector;
+using std::cerr;
 
 int main(int argc, char * argv[])
 {
-	libvlc_instance_t * vlc = libvlc_new(0, nullptr);
-	assert(vlc);
-
-	libvlc_media_list_player_t * player = libvlc_media_list_player_new(vlc);
-	assert(player);
-
-	// create playlist
-	vector<string> files{"data/test.mp3"};
-
-	libvlc_media_list_t * playlist = libvlc_media_list_new(vlc);
-	for (string const & file: files)
+	if (argc < 2)
 	{
-		libvlc_media_t * media = libvlc_media_new_path(vlc, file.c_str());
-		libvlc_media_list_add_media(playlist, media);
-		libvlc_media_release(media);
+		cerr << "input file missing, exit\n";
+		return -1;
 	}
 
-	libvlc_media_list_player_set_media_list(player, playlist);
+	player_init(&argc, &argv);
 
-	libvlc_media_list_player_play(player);  // start playing
+	char buf[1024];
+	getcwd(buf, sizeof(buf));
+	fs::path media = fs::path{buf} / fs::path{argv[1]};
 
-	std::this_thread::sleep_for(std::chrono::seconds{45});
-
-	// cleanup
-	libvlc_media_list_release(playlist);
-	libvlc_media_list_player_release(player);
-	libvlc_release(vlc);
+	player p;
+	p.init();
+	p.queue(media);
+	p.join();
 
 	return 0;
 }

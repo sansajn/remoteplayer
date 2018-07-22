@@ -1,5 +1,7 @@
 *.o
+/libzmqu.a
 /rplay
+/rplayc
 /remoteplayer.config
 /remoteplayer.creator
 /remoteplayer.creator.user

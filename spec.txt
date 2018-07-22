@@ -11,7 +11,7 @@ knižnice
 interface bude implementovaný pomocou ZMQ ako clone pattern client/server a
 bude poskytovať nasledujúce funkcie:
 
-	* list_library, ktorá vráti zoznam medií
+	* list_media, ktorá vráti zoznam medií
 	* play_media, ktorá prehrá medium zo zoznamu medií
 
 
@@ -19,3 +19,30 @@ bude poskytovať nasledujúce funkcie:
 Pripojí sa k serveru a požiada o zoznam medií, zobrazí ich a umoží užívateľovy
 výber pomocou GUI.
 
+
+{interface API}
+
+list_media [ask]:
+
+	{"cmd":"list_media"}
+
+Umožnuje klientovy získať zoznam medií, odpoveď klientovy vypadá takto
+
+	{"cmd":"media_library", "content":[
+		"path/to/file1",
+		"path/to/file2",
+		"path/to/file3"
+	]}
+
+play_media [notify]:
+
+Príkaz umožnuje clientovy prehrať obsah
+
+	{"cmd":"play_media", "content":"media-identifier"}
+
+v prípade notify soketu sa neočakáva žiadna odpoveď zo strany serveru.
+
+
+V prípade neznámeho dotazu odpovie server správou
+
+	{"cmd":"error", "what":"unknown <CMD> command"}

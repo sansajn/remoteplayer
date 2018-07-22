@@ -11,8 +11,10 @@
 #include <zmqu/send.hpp>
 #include "player.hpp"
 #include "library.hpp"
+#include "log.hpp"
 
 using std::string;
+using std::to_string;
 using std::vector;
 using std::ostringstream;
 using std::cout;
@@ -24,22 +26,45 @@ class interface
 	: public zmqu::clone_server
 {
 public:
+	using hires_clock = std::chrono::high_resolution_clock;
+
 	interface(library * lib, player * play)
 		: _lib{lib}, _play{play}
-	{}
+	{
+		_tp = hires_clock::now() + std::chrono::seconds{1};
+	}
 
 	void run();
 	void stop();
 	void join();
 
 private:
+	void idle() override;
 	std::string on_question(std::string const & question) override;
 	void on_notify(string const & s) override;
 
 	library * _lib;
 	player * _play;
 	std::thread _t;
+	hires_clock::time_point _tp;
 };
+
+void interface::idle()
+{
+	static unsigned ping_counter = 1;
+
+	auto now = hires_clock::now();
+	if (now > _tp)
+	{
+		_tp = now + std::chrono::seconds{1};
+
+		jtree ping;
+		ping.put("ping", to_string(ping_counter));
+		++ping_counter;
+
+		publish(to_string(ping));
+	}
+}
 
 void interface::run()
 {
@@ -106,10 +131,15 @@ string interface::on_question(string const & question)
 
 	if (cmd == "list_media")
 	{
+		LOG(trace) << "RPLAYC >> list_media";
+
 		vector<fs::path> content = _lib->list_media();
 		jtree a;
 		a.put("cmd", "media_library");
 		vector_put(a, "content", content);
+
+		LOG(trace) << "RPLAYC << media_library(" << content.size() << " files)";
+
 		return to_string(a);
 	}
 	else  // unknown command

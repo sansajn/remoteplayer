@@ -4,8 +4,13 @@
 
 env = Environment(
 	CCFLAGS=['-std=c++14', '-Wall', '-g', '-O0'],
-	LIBS=['pthread', 'boost_filesystem', 'boost_system', 'boost_thread'],
-	CPPDEFINES=['BOOST_SPIRIT_THREADSAFE'],  # json support
+	LIBS=[
+		'pthread',
+		'boost_filesystem',
+		'boost_system',
+		'boost_thread',
+		'boost_log'],
+	CPPDEFINES=['BOOST_SPIRIT_THREADSAFE', 'BOOST_LOG_DYN_LINK'],  # json support
 	CPPPATH=['libs/']
 )
 

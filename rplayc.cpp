@@ -27,6 +27,7 @@ public:
 	void play(fs::path const & media);
 
 private:
+	void on_news(std::string const & news) override;
 	void on_answer(std::string const & answer) override;
 
 	std::thread _t;
@@ -35,10 +36,18 @@ private:
 	mutex _mtx;
 };
 
+void player::on_news(std::string const & news)
+{
+//	cout << news << std::endl;
+}
+
+
 void player::connect(std::string const & host)
 {
 	zmqu::clone_client::connect(host, 13333, 13334, 13335);
 	_t = std::thread{&zmqu::clone_client::start, this};
+
+	std::this_thread::sleep_for(std::chrono::milliseconds{200});  // wait for thread
 
 	// ask for media_library
 	jtree req;

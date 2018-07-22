@@ -40,7 +40,9 @@ Príkaz umožnuje clientovy prehrať obsah
 
 	{"cmd":"play_media", "content":"media-identifier"}
 
-v prípade notify soketu sa neočakáva žiadna odpoveď zo strany serveru.
+kde media-identifier je identifikátor obsahu získaný z odpovedi na príkaz
+media_library. V prípade notify soketu sa neočakáva žiadna odpoveď zo strany
+serveru.
 
 
 V prípade neznámeho dotazu odpovie server správou

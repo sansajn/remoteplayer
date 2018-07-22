@@ -1,27 +1,31 @@
 // play locally stored file file
 #include <string>
+#include <vector>
 #include <iostream>
 #include <cassert>
 #include <unistd.h>
+
 #include "fs.hpp"
 #include "player.hpp"
+#include "library.hpp"
 
 using std::string;
+using std::vector;
+using std::cout;
 using std::cerr;
 
 int main(int argc, char * argv[])
 {
-	if (argc < 2)
-	{
-		cerr << "input file missing, exit\n";
-		return -1;
-	}
-
 	player_init(&argc, &argv);
 
-	char buf[1024];
-	getcwd(buf, sizeof(buf));
-	fs::path media = fs::path{buf} / fs::path{argv[1]};
+	library lib{"/home/adam/Music"};
+	vector<fs::path> content = lib.list_media();
+
+	cout << "media library:\n";
+	for (size_t i = 0; i < content.size(); ++i)
+		cout << "  #" << i << ". " << content[i] << "\n";
+
+	fs::path const & media = content[10];
 
 	player p;
 	p.init();

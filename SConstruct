@@ -8,5 +8,6 @@ env.ParseConfig('pkg-config --cflags --libs gstreamer-1.0')
 
 env.Program('rplay', [
 	'main.cpp',
-	'player.cpp'
+	'player.cpp',
+	'library.cpp'
 ])

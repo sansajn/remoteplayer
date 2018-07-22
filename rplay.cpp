@@ -139,7 +139,9 @@ int main(int argc, char * argv[])
 {
 	player_init(&argc, &argv);
 
-	library lib{"/home/adam/Music"};
+	string const media_home = (argc > 1) ? argv[1] : "/home/adam/Music";
+
+	library lib{media_home};
 	player play;
 	play.init();
 

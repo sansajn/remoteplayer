@@ -21,7 +21,7 @@ class player
 	: public zmqu::clone_client
 {
 public:
-	void connect();
+	void connect(std::string const & host);
 	void disconnect();
 	vector<fs::path> const & list_media();
 	void play(fs::path const & media);
@@ -35,9 +35,9 @@ private:
 	mutex _mtx;
 };
 
-void player::connect()
+void player::connect(std::string const & host)
 {
-	zmqu::clone_client::connect("localhost", 13333, 13334, 13335);
+	zmqu::clone_client::connect(host, 13333, 13334, 13335);
 	_t = std::thread{&zmqu::clone_client::start, this};
 
 	// ask for media_library
@@ -82,8 +82,10 @@ void player::play(fs::path const & media)
 
 int main(int argc, char * argv[])
 {
+	string const host = (argc > 1) ? argv[1] : "localhost";
+
 	player p;
-	p.connect();
+	p.connect(host);
 
 	vector<fs::path> content = p.list_media();
 	cout << "media library:\n";

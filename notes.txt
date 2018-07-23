@@ -1,0 +1,11 @@
+TODO:
+* playback progress
+* android app
+* playlist
+* media meta-data
+
+(?) Ako hladať v knižnici ?
+
+zatiľ pomocou regex searchu s názvu súboru, uvidím ako to bude
+fungovať
+

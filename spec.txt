@@ -1,4 +1,4 @@
-Špecifikácia remoteplayeru, verzia 0 (koncept)
+Špecifikácia remoteplayeru, verzia 0.1 (koncept)
 
 {server}
 player: jednoduchý blokujúci playbin, ktorý bude prehrávať zo zásobníka
@@ -14,10 +14,13 @@ bude poskytovať nasledujúce funkcie:
 	* list_media, ktorá vráti zoznam medií
 	* play_media, ktorá prehrá medium zo zoznamu medií
 
+configuration: umožnuje konfigurovať voľby ako port a media home
 
 {klient}
-Pripojí sa k serveru a požiada o zoznam medií, zobrazí ich a umoží užívateľovy
-výber pomocou GUI.
+Pripojí sa k serveru a požiada o zoznam medií, zobrazí ich a umoží
+užívateľovy výber pomocou GUI. GUI bude obsahovať list-box a regex
+search entry s listboxu bude možné vybrať skladbu a pomocou tlačítka
+požiadať o prehratie.
 
 
 {interface API}

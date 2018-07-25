@@ -3,6 +3,7 @@ TODO:
 * android app
 * playlist
 * media meta-data
+* media library stats
 
 (?) Ako hladať v knižnici ?
 

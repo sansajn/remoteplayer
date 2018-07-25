@@ -16,10 +16,10 @@ env = Environment(
 
 env.ParseConfig('pkg-config --cflags --libs gstreamer-1.0 libzmq')
 
-zmqu_objs = env.Object(Glob('libs/zmqu/*.cpp'))
-
 # static libzmqu library
-zmqu_lib = env.StaticLibrary('zmqu', [zmqu_objs])
+zmqu_lib = env.StaticLibrary('zmqu', Glob('libs/zmqu/*.cpp'))
+
+objs = env.Object(['helpers.cpp']);
 
 env.Program('rplay', [
 	'rplay.cpp',
@@ -28,5 +28,16 @@ env.Program('rplay', [
 	zmqu_lib
 ])
 
-# client
-env.Program('rplayc', ['rplayc.cpp', zmqu_lib])
+# console client
+env.Program('rplayc', ['rplayc.cpp', objs, zmqu_lib])
+
+# graphics client
+genv = env.Clone()
+genv.ParseConfig('pkg-config gtkmm-3.0 --cflags --libs')
+
+genv.Program('grplay', [
+	'grplay.cpp',
+	'player_client.cpp',
+	objs,
+	zmqu_lib
+])

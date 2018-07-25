@@ -1,17 +1,11 @@
-How to install remoteplayer, server part
+{How to install remoteplayer}
 
-* compile with 
+Server part
 
-	$ scons -j8 
+* compile with '$ scons -j8' command
+* run remoteplayer with '$ ./rplay /path/to/media/library' command
 
-command
-
-* run with 
-
-	$ ./rplay /path/to/media/library
-
-
-That is it, rplay is now listenning on 'tcp://*:5557'.
+That is it, remoteplayer (rplay) is now listenning on 'tcp://*:5557' address.
 
 
 Client part

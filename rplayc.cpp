@@ -8,6 +8,7 @@
 #include <zmqu/clone_client.hpp>
 #include <zmqu/json.hpp>
 #include "fs.hpp"
+#include "helpers.hpp"
 
 using std::vector;
 using std::string;
@@ -69,6 +70,14 @@ void player::on_answer(std::string const & answer)
 		_media_library.clear();
 		for (jtree::value_type & obj : json.get_child("content"))
 			_media_library.push_back(fs::path{obj.second.data()});
+
+		// \debug
+//		string content{"{\"content\":[\n"};
+//		for (jtree::value_type & obj : json.get_child("content"))
+//			content += "  \"" + obj.second.data() + "\",\n";
+//		content += "  \"\"\n]}";
+//		save_to_file("content.json", content);
+		// \enddebug
 
 		_connected.notify_all();
 	}

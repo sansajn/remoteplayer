@@ -19,8 +19,8 @@ configuration: umožnuje konfigurovať voľby ako port a media home
 {klient}
 Pripojí sa k serveru a požiada o zoznam medií, zobrazí ich a umoží
 užívateľovy výber pomocou GUI. GUI bude obsahovať list-box a regex
-search entry s listboxu bude možné vybrať skladbu a pomocou tlačítka
-požiadať o prehratie.
+search entry z listboxu bude možné vybrať skladbu a pomocou tlačítka
+požiadať o jej prehratie.
 
 
 {interface API}

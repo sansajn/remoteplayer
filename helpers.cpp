@@ -1,31 +1,46 @@
 #include <fstream>
 #include <sstream>
+#include <boost/property_tree/json_parser.hpp>
 #include "helpers.hpp"
 
+using std::string;
 using std::ofstream;
 using std::ifstream;
 using std::ostringstream;
+using std::stringstream;
 
-bool save_to_file(std::string const & fname, std::string const & content)
+string read_file(string const & fname)
 {
-	ofstream fout{fname};
-	if (!fout.is_open())
-		return false;
-
-	fout.write(content.c_str(), content.size());  // save content
-
-	return true;
-}
-
-bool load_from_file(std::string const & fname, std::string & content)
-{
-	ifstream fin{fname};
-	if (!fin.is_open())
-		return false;
+	ifstream in{fname};
+	if (!in.is_open())
+		throw std::runtime_error{string{"unable to open '"} + fname + "' file"};
 
 	ostringstream ss;
-	ss << fin.rdbuf();
-	content = ss.str();
+	ss << in.rdbuf();
 
-	return true;
+	return ss.str();
+}
+
+void save_file(string const & fname, string const & data)
+{
+	ofstream out(fname);
+	if (!out.is_open())
+		throw std::runtime_error{string{"unable to create '"} + fname + "' file"};
+
+	out << data;
+
+	out.close();
+}
+
+jtree read_json_file(std::string const & fname)
+{
+	jtree result;
+	stringstream ss{read_file(fname)};
+	boost::property_tree::read_json(ss, result);
+	return result;
+}
+
+void save_json_file(std::string const & fname, jtree const & root)
+{
+	boost::property_tree::write_json(fname, root);
 }

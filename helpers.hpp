@@ -1,5 +1,9 @@
 #pragma once
 #include <string>
+#include "json.hpp"
 
-bool save_to_file(std::string const & fname, std::string const & content);
-bool load_from_file(std::string const & fname, std::string & content);
+std::string read_file(std::string const & fname);
+void save_file(std::string const & fname, std::string const & data);
+
+jtree read_json_file(std::string const & fname);
+void save_json_file(std::string const & fname, jtree const & root);

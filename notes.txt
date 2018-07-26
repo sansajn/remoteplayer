@@ -1,9 +1,24 @@
 TODO:
-* playback progress
-* android app
-* playlist
-* media meta-data
-* media library stats
+	* playback progress
+	* android app
+	* playlist
+	* media meta-data
+	* media library stats
+	* volume control
+	* queue state
+	* stop command
+	* pause command
+	* next command
+
+čo treba implementovať vo verzii 0.2:
+	* playback progress
+	* queue state
+	* version (rplay)
+	* media library as tree
+	* non blocking player connect
+	* rplay queue
+
+
 
 (?) Ako hladať v knižnici ?
 

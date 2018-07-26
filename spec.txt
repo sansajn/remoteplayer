@@ -1,6 +1,8 @@
-Špecifikácia remoteplayeru, verzia 0.1 (koncept)
+Špecifikácia remoteplayeru, verzia 0.2 (koncept)
 
 {server}
+Umožnuje klientom spúštať média s knižnice medií.
+
 player: jednoduchý blokujúci playbin, ktorý bude prehrávať zo zásobníka
 
 library: všetky fajly s adresára
@@ -13,14 +15,26 @@ bude poskytovať nasledujúce funkcie:
 
 	* list_media, ktorá vráti zoznam medií
 	* play_media, ktorá prehrá medium zo zoznamu medií
+	* queue_content, aktuálny obsah prehrávacej queue
+	* play, oznam o začaťí prehrávania skladby
+	* play_progress, update priebehu prehrávania (každých 10s)
 
 configuration: umožnuje konfigurovať voľby ako port a media home
 
+Build bude označený verziou a dostupný bude aj commit number, server bude tiež
+zobrazovať aktuálnu prehrávaciu frontu.
+
 {klient}
-Pripojí sa k serveru a požiada o zoznam medií, zobrazí ich a umoží
-užívateľovy výber pomocou GUI. GUI bude obsahovať list-box a regex
-search entry z listboxu bude možné vybrať skladbu a pomocou tlačítka
-požiadať o jej prehratie.
+Pripojí sa k serveru a požiada o zoznam medií, zobrazí ich a umoží užívateľovy
+výber pomocou GUI. GUI bude obsahovať list-box a regex search entry z listboxu
+bude možné vybrať skladbu a pomocou tlačítka požiadať o jej prehratie. Skladby
+budú v list-boxe zobrazené ako strom.
+
+Ďalej klient zobrazí aktuálne prehrávanú skladbu a jej priebeh (časovú
+os s označenou pozíciou prehrávania).
+
+Zo serveru získa obsah prehrávacej fronty a jednotlivé skladby označí
+poradovým číslom (1, 2, ..., N) v zozname skladieb (list-boxe).
 
 
 {interface API}
@@ -46,6 +60,40 @@ Príkaz umožnuje clientovy prehrať obsah
 kde media-identifier je identifikátor obsahu získaný z odpovedi na príkaz
 media_library. V prípade notify soketu sa neočakáva žiadna odpoveď zo strany
 serveru.
+
+queue_content [news]:
+
+Správu posiela server vždi pri zmene obsahu prehrávacej fronty.
+
+	{"cmd":"queue_content", "content":[
+		"path/to/file1",
+		"path/to/file2",
+		"path/to/file3
+	]}
+
+
+play [news]:
+
+Správu posiela server vždi pri zmene aktuálne prehrávanej skladby.
+
+	{"cmd":"play", "media":"path/to/file", "duration":D}
+
+kde D je dĺžka skladby v sekundách.
+
+
+play_progress [news]:
+
+Správu posiela server v pravidelných intervaloch (10s) počas prehrávania
+skladby.
+
+	{
+		"cmd":"play_progress", 
+		"media":"path/to/file", 
+		"position":P,
+		"duration":D
+	}
+
+kde P je aktuálna pozícia v sekundách a D je dĺžka skladby v sekundách.
 
 
 V prípade neznámeho dotazu odpovie server správou

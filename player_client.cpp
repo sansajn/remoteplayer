@@ -13,9 +13,9 @@ void player_client::on_news(std::string const & news)
 //	cout << news << std::endl;
 }
 
-void player_client::connect(std::string const & host)
+void player_client::connect(std::string const & host, unsigned short port)
 {
-	zmqu::clone_client::connect(host, 13333, 13334, 13335);
+	zmqu::clone_client::connect(host, port, port+1, port+2);
 	_t = std::thread{&zmqu::clone_client::start, this};
 
 	std::this_thread::sleep_for(std::chrono::milliseconds{200});  // wait for thread

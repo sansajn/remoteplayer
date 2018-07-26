@@ -3,6 +3,7 @@
 #include <regex>
 #include <iostream>
 #include <cassert>
+#include <boost/lexical_cast.hpp>
 #include <gtkmm/box.h>
 #include <gtkmm/window.h>
 #include <gtkmm/button.h>
@@ -21,6 +22,7 @@ using std::regex_search;
 using std::smatch;
 using std::regex;
 using std::cout;
+using boost::lexical_cast;
 using Glib::RefPtr;
 using Glib::ustring;
 
@@ -28,7 +30,7 @@ using Glib::ustring;
 class rplay_window : public Gtk::Window
 {
 public:
-	rplay_window();
+	rplay_window(string const & host, unsigned short port);
 
 protected:
 	void on_queue_button();
@@ -52,16 +54,14 @@ protected:
 	Gtk::Button _queue_button;
 };
 
-rplay_window::rplay_window()
+rplay_window::rplay_window(string const & host, unsigned short port)
 	: _filtered{false}
 	,  _vbox{Gtk::Orientation::ORIENTATION_VERTICAL}
 	, _filtered_media_list_view{1}
 	, _media_list_view{1}
 	, _queue_button{">"}
 {
-	string const & host = "localhost";
-
-	_play.connect(host);  // TODO: blocking
+	_play.connect(host, port);  // TODO: blocking
 
 	set_title("Remote Player Client");
 	set_default_size(600, 700);
@@ -180,7 +180,14 @@ fs::path const & rplay_window::get_media(int sel_idx) const
 
 int main(int argc, char * argv[])
 {
+	// config
+	string const host = argc > 1 ? argv[1] : "localhost";
+	unsigned short const port = argc > 2 ? lexical_cast<unsigned short>(argv[2]) : 13333;
+
 	auto app = Gtk::Application::create("org.gtkmm.example");
-	rplay_window w;
-	return app->run(w, argc, argv);
+
+	rplay_window w{host, port};
+
+//	return app->run(w, argc, argv);
+	return app->run(w, 0, nullptr);
 }

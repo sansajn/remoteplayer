@@ -9,7 +9,7 @@ class player_client
 	: public zmqu::clone_client
 {
 public:
-	void connect(std::string const & host);
+	void connect(std::string const & host, unsigned short port);
 	void disconnect();
 	std::vector<fs::path> const & list_media() const;
 	void play(fs::path const & media);

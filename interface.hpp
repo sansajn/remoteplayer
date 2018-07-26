@@ -7,6 +7,7 @@
 //! zmq based interface implementation
 class interface
 	: public zmqu::clone_server
+	, public player_listener
 {
 public:
 	using hires_clock = std::chrono::high_resolution_clock;
@@ -15,6 +16,8 @@ public:
 	void run();
 	void stop();
 	void join();
+
+	void on_queue_changed(player_listener::queue_operation op, fs::path item) override;
 
 private:
 	void idle() override;

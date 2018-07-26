@@ -43,6 +43,7 @@ interface::interface(unsigned short port, library * lib, player * play)
 	, _play{play}
 {
 	_tp = hires_clock::now() + std::chrono::seconds{1};
+	_play->register_listener(this);
 }
 
 void interface::idle()
@@ -78,6 +79,20 @@ void interface::stop()
 void interface::join()
 {
 	_t.join();
+}
+
+void interface::on_queue_changed(player_listener::queue_operation op, fs::path item)
+{
+	jtree news;
+	news.put("cmd", "queue_changed");
+	news.put("operation", (op == player_listener::queue_operation::push) ? "push" : "pop");
+	news.put("media", item.string());
+
+	publish(to_string(news));
+
+	LOG(trace) << "RPLAYC << queue_changed(op="
+		<< ((op == player_listener::queue_operation::push) ? "push" : "pop")
+		<< ", media=" << item << ")";
 }
 
 string interface::on_question(string const & question)

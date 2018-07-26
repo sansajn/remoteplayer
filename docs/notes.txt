@@ -13,14 +13,16 @@ TODO:
 čo treba implementovať vo verzii 0.2:
 	* playback progress
 	* queue state
-	* version (rplay)
+	done - * version (rplay)
 	* media library as tree
 	* non blocking player connect
 	* rplay queue
 
 
-* rplay: version
-* rplay: implementuj queue_content, play a play_progress
+done - * rplay: version
+* rplay: implementuj queue_content
+* rplay: implementuj play a 
+* rplay:	implementuj play_progress
 
 
 (?) Ako hladať v knižnici ?

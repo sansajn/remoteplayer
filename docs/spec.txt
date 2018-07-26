@@ -15,7 +15,7 @@ bude poskytovať nasledujúce funkcie:
 
 	* list_media, ktorá vráti zoznam medií
 	* play_media, ktorá prehrá medium zo zoznamu medií
-	* queue_content, aktuálny obsah prehrávacej queue
+	* queue_changed, aktuálny obsah prehrávacej queue
 	* play, oznam o začaťí prehrávania skladby
 	* play_progress, update priebehu prehrávania (každých 10s)
 
@@ -61,15 +61,15 @@ kde media-identifier je identifikátor obsahu získaný z odpovedi na príkaz
 media_library. V prípade notify soketu sa neočakáva žiadna odpoveď zo strany
 serveru.
 
-queue_content [news]:
+queue_changed [news]:
 
 Správu posiela server vždi pri zmene obsahu prehrávacej fronty.
 
-	{"cmd":"queue_content", "content":[
-		"path/to/file1",
-		"path/to/file2",
-		"path/to/file3"
-	]}
+	{
+		"cmd":"queue_changed", 
+		"operation":"push|pop", 
+		"media":"path/to/file"
+	}
 
 
 play [news]:

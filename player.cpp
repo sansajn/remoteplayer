@@ -1,8 +1,11 @@
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <gst/gst.h>
 #include "player.hpp"
 
+using std::find;
+using std::remove;
 using std::string;
 using std::cerr;
 
@@ -28,6 +31,20 @@ void player::join()
 void player::queue(fs::path const & media)
 {
 	_items.push(media);
+
+	for (player_listener * l : _listeners)
+		l->on_queue_changed(player_listener::queue_operation::push, media);
+}
+
+void player::register_listener(player_listener * l)
+{
+	if (find(_listeners.begin(), _listeners.end(), l) == _listeners.end())
+		_listeners.push_back(l);
+}
+
+void player::forget_listener(player_listener * l)
+{
+	remove(_listeners.begin(), _listeners.end(), l);  // TODO: slow implementation
 }
 
 void player::loop()
@@ -38,6 +55,10 @@ void player::loop()
 		_items.wait_and_pop(item);
 		if (item.empty())
 			break;
+
+		for (player_listener * l : _listeners)
+			l->on_queue_changed(player_listener::queue_operation::pop, item);
+
 		play(item);
 	}
 }

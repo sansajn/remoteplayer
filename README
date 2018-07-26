@@ -10,7 +10,26 @@ That is it, remoteplayer (rplay) is now listenning on 'tcp://*:5557' address.
 
 Client part
 
-Run rplayc with rplay IP address, like
+Run grplay (graphics remote player client) with rplay IP address and port number
+
+	$ ./grplay 192.168.0.111 3333
+
+or run rplayc (console remote player client) with rplay IP address, like
 
 	$ ./rplayc 192.168.0.111
 
+	
+{Configure remoteplayer}
+
+Remote Player Server (rplay) can be configured with
+
+[Sample: rplay.conf
+
+	{
+		"rplay":{
+			"media_home":"/home/ja/Music",
+			"port":13333
+		}
+	}
+
+--- end of sample] JSON like file stored as 'rplay.conf' in remoteplayer directory.

@@ -68,7 +68,7 @@ Správu posiela server vždi pri zmene obsahu prehrávacej fronty.
 	{"cmd":"queue_content", "content":[
 		"path/to/file1",
 		"path/to/file2",
-		"path/to/file3
+		"path/to/file3"
 	]}
 
 

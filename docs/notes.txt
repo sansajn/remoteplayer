@@ -19,6 +19,9 @@ TODO:
 	* rplay queue
 
 
+* rplay: version
+* rplay: implementuj queue_content, play a play_progress
+
 
 (?) Ako hladať v knižnici ?
 

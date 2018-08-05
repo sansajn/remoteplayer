@@ -20,13 +20,18 @@ TODO:
 
 
 done - * rplay: version
-* rplay: implementuj queue_content
+done - * rplay: implementuj queue_change
 * rplay: implementuj play a 
 * rplay:	implementuj play_progress
 
+
+(?) čo keby som zaviedol eventový systém založený na boost asio ?
 
 (?) Ako hladať v knižnici ?
 
 zatiľ pomocou regex searchu s názvu súboru, uvidím ako to bude
 fungovať
 
+audio, video, media, content
+
+rplay

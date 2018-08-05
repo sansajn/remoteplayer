@@ -15,9 +15,12 @@ bude poskytovať nasledujúce funkcie:
 
 	* list_media, ktorá vráti zoznam medií
 	* play_media, ktorá prehrá medium zo zoznamu medií
-	* queue_changed, aktuálny obsah prehrávacej queue
-	* play, oznam o začaťí prehrávania skladby
+	!* queue_changed, aktuálny obsah prehrávacej queue
 	* play_progress, update priebehu prehrávania (každých 10s)
+
+Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
+obsahu.
+
 
 configuration: umožnuje konfigurovať voľby ako port a media home
 
@@ -70,15 +73,6 @@ Správu posiela server vždi pri zmene obsahu prehrávacej fronty.
 		"operation":"push|pop", 
 		"media":"path/to/file"
 	}
-
-
-play [news]:
-
-Správu posiela server vždi pri zmene aktuálne prehrávanej skladby.
-
-	{"cmd":"play", "media":"path/to/file", "duration":D}
-
-kde D je dĺžka skladby v sekundách.
 
 
 play_progress [news]:

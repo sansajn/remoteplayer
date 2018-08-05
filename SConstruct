@@ -99,14 +99,17 @@ env.Append(LINKFLAGS=str(version_obj[0]))
 # static libzmqu library
 zmqu_lib = env.StaticLibrary('zmqu', Glob('libs/zmqu/*.cpp'))
 
-common_objs = env.Object(['helpers.cpp']);
+common_objs = env.Object([
+	'player.cpp',
+	'helpers.cpp',
+	'gst_audio_player.cpp'
+]);
 
 Requires(common_objs, version_obj)
 
 
 env.Program('rplay', [
 	'rplay.cpp',
-	'player.cpp',
 	'library.cpp',
 	'interface.cpp',
 	'config.cpp',
@@ -127,3 +130,9 @@ genv.Program('grplay', [
 	common_objs,
 	zmqu_lib
 ])
+
+# test
+env.Program('test/player_with_playback_info.cpp')
+env.Program(['test/exp_player.cpp', common_objs])
+env.Program(['test/test_player.cpp', common_objs])
+env.Program(['test/test_watch_alert.cpp', common_objs])

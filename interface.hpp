@@ -3,6 +3,7 @@
 #include <zmqu/clone_server.hpp>
 #include "library.hpp"
 #include "player.hpp"
+#include "helpers.hpp"
 
 //! zmq based interface implementation
 class interface
@@ -13,11 +14,14 @@ public:
 	using hires_clock = std::chrono::high_resolution_clock;
 
 	interface(unsigned short port, library * lib, player * play);
+	~interface();
 	void run();
 	void stop();
 	void join();
 
-	void on_queue_changed(player_listener::queue_operation op, fs::path item) override;
+//	void on_queue_changed(player_listener::queue_operation op, fs::path item) override;
+	void on_play(fs::path item, int duration) override;
+	void on_position_changed(fs::path item, long position) override;
 
 private:
 	void idle() override;
@@ -29,4 +33,6 @@ private:
 	player * _play;
 	std::thread _t;
 	hires_clock::time_point _tp;
+	long _cur_audio_duration;
+	watch_alert _pos_change_alert;
 };

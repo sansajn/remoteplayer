@@ -41,9 +41,16 @@ interface::interface(unsigned short port, library * lib, player * play)
 	: _port{port}
 	, _lib{lib}
 	, _play{play}
+	, _cur_audio_duration{0}
+	, _pos_change_alert{10}
 {
 	_tp = hires_clock::now() + std::chrono::seconds{1};
 	_play->register_listener(this);
+}
+
+interface::~interface()
+{
+	_play->forget_listener(this);
 }
 
 void interface::idle()
@@ -81,19 +88,53 @@ void interface::join()
 	_t.join();
 }
 
-void interface::on_queue_changed(player_listener::queue_operation op, fs::path item)
+//void interface::on_queue_changed(player_listener::queue_operation op, fs::path item)
+//{
+//	jtree news;
+//	news.put("cmd", "queue_changed");
+//	news.put("operation", (op == player_listener::queue_operation::push) ? "push" : "pop");
+//	news.put("media", item.string());
+
+//	publish(to_string(news));
+
+//	LOG(trace) << "RPLAYC << queue_changed(op="
+//		<< ((op == player_listener::queue_operation::push) ? "push" : "pop")
+//		<< ", media=" << item << ")";
+//}
+
+void interface::on_play(fs::path item, int duration)
 {
+	_cur_audio_duration = (long)duration;
+
 	jtree news;
-	news.put("cmd", "queue_changed");
-	news.put("operation", (op == player_listener::queue_operation::push) ? "push" : "pop");
+	news.put("cmd", "play");
 	news.put("media", item.string());
+	news.put<int>("duration", duration);
 
 	publish(to_string(news));
 
-	LOG(trace) << "RPLAYC << queue_changed(op="
-		<< ((op == player_listener::queue_operation::push) ? "push" : "pop")
-		<< ", media=" << item << ")";
+	LOG(trace) << "RPLAYC << play(media=" << item.string()
+		<< ", duration=" << duration << ")";
 }
+
+
+
+void interface::on_position_changed(fs::path item, long position)
+{
+	if (!_pos_change_alert.update(position))
+		return;
+
+	jtree news;
+	news.put("cmd", "play_progress");
+	news.put("media", item.string());
+	news.put<long>("position", position);
+	news.put<long>("duration", _cur_audio_duration);
+
+	publish(to_string(news));
+
+	LOG(trace) << "on_position_changed(item=" << item << ", position=" << position << "ns)";
+}
+
 
 string interface::on_question(string const & question)
 {

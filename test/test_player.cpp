@@ -13,7 +13,7 @@ public:
 		p->register_listener(this);
 	}
 
-	void on_play(fs::path item, int duration) override
+	void on_play(fs::path item, long duration) override
 	{
 		cout << "on_play(item=" << item << ", duration=" << duration << std::endl;
 	}

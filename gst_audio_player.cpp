@@ -147,6 +147,7 @@ bool gst_audio_player::handle_message(GstMessage * msg)
 						_playing = true;
 						_position = _playbin.position();
 						_duration = _playbin.duration();
+						assert(_duration > 0);
 					}
 
 					on_play(_media, _duration);

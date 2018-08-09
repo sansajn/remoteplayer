@@ -10,13 +10,13 @@ using std::string;
 using std::remove;
 using std::cerr;
 
-void observable_audio_player_adapter::register_listenner(player_listener * l)
+void observable_audio_player_adapter::register_listener(player_listener * l)
 {
 	if (find(_listeners.begin(), _listeners.end(), l) == _listeners.end())
 		_listeners.push_back(l);
 }
 
-void observable_audio_player_adapter::forget_listenner(player_listener * l)
+void observable_audio_player_adapter::forget_listener(player_listener * l)
 {
 	remove(_listeners.begin(), _listeners.end(), l);
 }
@@ -25,7 +25,7 @@ void observable_audio_player_adapter::forget_listenner(player_listener * l)
 void observable_audio_player_adapter::on_play(string media, long duration)
 {
 	for (auto * l : _listeners)
-		l->on_play(fs::path{media}, (int)duration);
+		l->on_play(fs::path{media}, duration);
 }
 
 void observable_audio_player_adapter::on_position_changed(std::string media, long position)
@@ -64,14 +64,14 @@ void player::queue(fs::path const & media)
 
 void player::register_listener(player_listener * l)
 {
-	_ap.register_listenner(l);
+	_ap.register_listener(l);
 	if (find(_listeners.begin(), _listeners.end(), l) == _listeners.end())
 		_listeners.push_back(l);
 }
 
 void player::forget_listener(player_listener * l)
 {
-	_ap.forget_listenner(l);
+	_ap.forget_listener(l);
 	remove(_listeners.begin(), _listeners.end(), l);
 }
 

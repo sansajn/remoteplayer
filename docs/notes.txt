@@ -17,12 +17,13 @@ TODO:
 	* media library as tree
 	* non blocking player connect
 	* rplay queue
+	* stop button
 
 
 done - * rplay: version
-done - * rplay: implementuj queue_change
-* rplay: implementuj play a 
-* rplay:	implementuj play_progress
+* rplay: implementuj queue_change
+done - * rplay:	implementuj play_progress
+* grplay: play_progress
 
 
 (?) čo keby som zaviedol eventový systém založený na boost asio ?

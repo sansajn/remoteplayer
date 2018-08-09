@@ -5,7 +5,8 @@
 #include "player.hpp"
 #include "helpers.hpp"
 
-//! zmq based interface implementation
+/*! zmq based interface implementation
+TODO: define durations as sizeed integer (int64_t) */
 class interface
 	: public zmqu::clone_server
 	, public player_listener
@@ -20,7 +21,7 @@ public:
 	void join();
 
 //	void on_queue_changed(player_listener::queue_operation op, fs::path item) override;
-	void on_play(fs::path item, int duration) override;
+	void on_play(fs::path item, long duration) override;
 	void on_position_changed(fs::path item, long position) override;
 
 private:

@@ -15,23 +15,28 @@ bude poskytovať nasledujúce funkcie:
 
 	* list_media, ktorá vráti zoznam medií
 	* play_media, ktorá prehrá medium zo zoznamu medií
+	* stop, zastavenie prehrávania
 	!* queue_changed, aktuálny obsah prehrávacej queue
 	* play_progress, update priebehu prehrávania (každých 10s)
 
 Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
 obsahu.
 
-
 configuration: umožnuje konfigurovať voľby ako port a media home
+
+{{version}}
 
 Build bude označený verziou a dostupný bude aj commit number, server bude tiež
 zobrazovať aktuálnu prehrávaciu frontu.
 
+
 {klient}
-Pripojí sa k serveru a požiada o zoznam medií, zobrazí ich a umoží užívateľovy
-výber pomocou GUI. GUI bude obsahovať list-box a regex search entry z listboxu
-bude možné vybrať skladbu a pomocou tlačítka požiadať o jej prehratie. Skladby
-budú v list-boxe zobrazené ako strom.
+Pripojí sa k serveru a požiada o zoznam medií, zobrazí ich a umoží
+užívateľovy výber pomocou GUI. GUI bude obsahovať list-box a regex
+search entry, z listboxu bude možné vybrať skladbu a pomocou tlačítka
+požiadať o jej prehratie. GUI bude tiež obsahovať tlačítko pre
+zastavenie prehrávania skladby. Skladby budú v list-boxe zobrazené ako
+strom.
 
 Ďalej klient zobrazí aktuálne prehrávanú skladbu a jej priebeh (časovú
 os s označenou pozíciou prehrávania).
@@ -81,10 +86,10 @@ Správu posiela server v pravidelných intervaloch (10s) počas prehrávania
 skladby.
 
 	{
-		"cmd":"play_progress", 
-		"media":"path/to/file", 
-		"position":P,
-		"duration":D
+		"cmd":"play_progress",   // string
+		"media":"path/to/file",  // string
+		"position":P,            // long
+		"duration":D             // long
 	}
 
 kde P je aktuálna pozícia v sekundách a D je dĺžka skladby v sekundách.

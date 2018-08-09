@@ -102,19 +102,20 @@ void interface::join()
 //		<< ", media=" << item << ")";
 //}
 
-void interface::on_play(fs::path item, int duration)
+void interface::on_play(fs::path item, long duration)
 {
-	_cur_audio_duration = (long)duration;
+	_cur_audio_duration = duration;
 
-	jtree news;
-	news.put("cmd", "play");
-	news.put("media", item.string());
-	news.put<int>("duration", duration);
+// TODO: remove (play command removed from spec)
+//	jtree news;
+//	news.put("cmd", "play");
+//	news.put("media", item.string());
+//	news.put<long>("duration", duration);
 
-	publish(to_string(news));
+//	publish(to_string(news));
 
-	LOG(trace) << "RPLAYC << play(media=" << item.string()
-		<< ", duration=" << duration << ")";
+//	LOG(trace) << "RPLAYC << play(media=" << item.string() << ", duration="
+//		<< duration << ")";
 }
 
 
@@ -132,7 +133,8 @@ void interface::on_position_changed(fs::path item, long position)
 
 	publish(to_string(news));
 
-	LOG(trace) << "on_position_changed(item=" << item << ", position=" << position << "ns)";
+	LOG(trace) << "on_position_changed(item=" << item << ", position=" << position
+		<< "ns, duration=" << _cur_audio_duration << "ns)";
 }
 
 

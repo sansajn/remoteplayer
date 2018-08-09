@@ -1,6 +1,7 @@
 #include <iostream>
 #include <zmqu/json.hpp>
 #include "player_client.hpp"
+#include "log.hpp"
 
 using std::vector;
 using std::unique_lock;
@@ -10,7 +11,24 @@ using std::cout;
 
 void player_client::on_news(std::string const & news)
 {
-//	cout << news << std::endl;
+	jtree json;
+	to_json(news, json);
+	string const cmd = json.get("cmd", string{});
+
+	if (cmd == "play_progress")
+	{
+		string const media = json.get("media", string{});
+		long position = json.get<long>("position", 0L);
+		long duration = json.get<long>("duration", 0L);
+
+		assert(duration > 0);
+
+		LOG(info) << "RPLAY >> play_progress(media='" << media << "', posiiton=" << position
+			<< ", duration=" << duration;
+
+		for (auto * l : listeners())
+			l->on_play_progress(media, position, duration);
+	}
 }
 
 void player_client::connect(std::string const & host, unsigned short port)

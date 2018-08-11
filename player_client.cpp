@@ -43,6 +43,10 @@ void player_client::connect(std::string const & host, unsigned short port)
 	req.put("cmd", "list_media");
 	ask(to_string(req));
 
+	jtree req2;
+	req2.put("cmd", "identify");
+	ask(to_string(req2));
+
 	unique_lock<mutex> lock{_mtx};
 	_connected.wait(lock);  // wait for media_library content
 }
@@ -68,6 +72,12 @@ void player_client::on_answer(std::string const & answer)
 		// \enddebug
 
 		_connected.notify_all();
+	}
+	else if (cmd == "server_desc")
+	{
+		string version = json.get("version", "0");
+		string build = json.get("build", "0");
+		LOG(debug) << "server=(" << version << ", " << build << ")";
 	}
 	else
 		cout << "unknown answer: " << answer << std::endl;

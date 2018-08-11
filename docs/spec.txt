@@ -18,6 +18,7 @@ bude poskytovať nasledujúce funkcie:
 	* stop, zastavenie prehrávania
 	!* queue_changed, aktuálny obsah prehrávacej queue
 	* play_progress, update priebehu prehrávania (každých 10s)
+	* identify, vráti informácie o serveru
 
 Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
 obsahu.
@@ -93,6 +94,18 @@ skladby.
 	}
 
 kde P je aktuálna pozícia v sekundách a D je dĺžka skladby v sekundách.
+
+identify [ask]:
+
+Správa/dotaz identify umožnuje klientovi získať informácie o serveru ako napr.
+verziu
+
+	{'cmd':'identify'}
+
+server na dotaz odpovie takto
+
+	{'cmd':'server_desc', 'version':'0.2.0', 'build':'417a36c'}
+
 
 
 V prípade neznámeho dotazu odpovie server správou

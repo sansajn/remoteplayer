@@ -4,6 +4,7 @@
 #include <zmqu/json.hpp>
 #include "interface.hpp"
 #include "log.hpp"
+#include "version.hpp"
 
 using std::string;
 using std::to_string;
@@ -154,6 +155,19 @@ string interface::on_question(string const & question)
 		vector_put(a, "content", content);
 
 		LOG(trace) << "RPLAYC << media_library(" << content.size() << " files)";
+
+		return to_string(a);
+	}
+	else if (cmd == "identify")
+	{
+		LOG(trace) << "RPLAYC >> identify";
+
+		jtree a;
+		a.put("cmd", "server_desc");
+		a.put("version", software_version());
+		a.put("build", software_build());
+
+		LOG(trace) << "RPLAYC << server_desc(" << software_version() << ", " << software_build();
 
 		return to_string(a);
 	}

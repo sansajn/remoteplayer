@@ -105,6 +105,7 @@ void interface::join()
 
 void interface::on_play(fs::path item, long duration)
 {
+	_pos_change_alert.reset();
 	_cur_audio_duration = duration;
 
 // TODO: remove (play command removed from spec)

@@ -77,3 +77,8 @@ bool watch_alert::update(long position)
 
 	return false;
 }
+
+void watch_alert::reset()
+{
+	_t0 = 0;
+}

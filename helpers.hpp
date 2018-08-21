@@ -23,6 +23,7 @@ class watch_alert
 public:
 	watch_alert(int trigger);  //! \param trigger in s
 	bool update(long position);  //!< \param dur in ns
+	void reset();
 
 private:
 	long const _trigger;  //!< in ns

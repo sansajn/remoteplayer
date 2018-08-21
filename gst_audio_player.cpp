@@ -71,7 +71,7 @@ gst_audio_player::gst_audio_player()
 	:  _position{0}
 	, _duration{0}
 	, _playing{false}
-	, _position_changed_alert{1}
+	, _position_changed_alert{1}  // alert every 1s
 {}
 
 gst_audio_player::~gst_audio_player()
@@ -192,6 +192,8 @@ void gst_audio_player::loop()
 {
 	assert(!_playing);
 
+	_position_changed_alert.reset();
+
 	GstBus * bus = gst_element_get_bus(_playbin.to_gst());
 	GstMessage * msg;
 	do
@@ -209,7 +211,9 @@ void gst_audio_player::loop()
 				}
 
 				if (_position_changed_alert.update(_position))
+				{
 					on_position_changed(_media, _position);
+				}
 			}
 		}
 	}

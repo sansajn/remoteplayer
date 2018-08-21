@@ -1,4 +1,5 @@
 // gst audio player unit test module
+#include <iostream>
 #include <catch.hpp>
 #include "../gst_audio_player.hpp"
 
@@ -19,22 +20,35 @@ static void gst_init_once()
 	}
 }
 
-class foo_player : public gst_audio_player
+class counted_player_impl : public gst_audio_player
 {
 public:
 	int counter = 0;
 
 private:
-	void on_eos(string media)
+	void on_eos(string media) override
 	{
 		++counter;
 	}
 };
 
+class position_change_player_impl : public gst_audio_player
+{
+public:
+	int counter = 0;
+
+private:
+	void on_position_changed(std::string media, long position) override
+	{
+		++counter;
+	}
+};
+
+
 TEST_CASE("we cam play media", "[gst_audio_player]")
 {
 	gst_init_once();
-	foo_player p;
+	counted_player_impl p;
 	p.play("file://" + pwd() + MEDIA_1s);
 	REQUIRE(p.counter == 1);
 }
@@ -42,7 +56,25 @@ TEST_CASE("we cam play media", "[gst_audio_player]")
 TEST_CASE("we cam play multiple media", "[gst_audio_player]")
 {
 	gst_init_once();
-	foo_player p;
+	counted_player_impl p;
+	p.play("file://" + pwd() + MEDIA_1s);
+	REQUIRE(p.counter == 1);
+	p.play("file://" + pwd() + MEDIA_1s);
+	REQUIRE(p.counter == 2);
+}
+
+TEST_CASE("position is changeing while playing", "[gst_audio_player]")
+{
+	gst_init_once();
+	position_change_player_impl p;
+	p.play("file://" + pwd() + MEDIA_1s);
+	REQUIRE(p.counter == 1);
+}
+
+TEST_CASE("position is changeing while playing multiple media", "[gst_audio_player]")
+{
+	gst_init_once();
+	position_change_player_impl p;
 	p.play("file://" + pwd() + MEDIA_1s);
 	REQUIRE(p.counter == 1);
 	p.play("file://" + pwd() + MEDIA_1s);

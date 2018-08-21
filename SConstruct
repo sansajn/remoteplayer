@@ -136,3 +136,12 @@ env.Program('test/player_with_playback_info.cpp')
 env.Program(['test/exp_player.cpp', common_objs])
 env.Program(['test/test_player.cpp', common_objs])
 env.Program(['test/test_watch_alert.cpp', common_objs])
+
+# unit tests
+utest_env = env.Clone()
+
+utest_env.Program('test/utest', [
+	'test/utest.cpp',
+	'test/utest_gst_player.cpp',
+	common_objs
+])

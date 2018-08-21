@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <gst/gst.h>
+#include "log.hpp"
 #include "player.hpp"
 
 using std::find;
@@ -85,6 +86,8 @@ void player::loop()
 			break;
 		_ap.play("file://" + item.string());
 	}
+
+	LOG(trace) << "player shutdown";
 }
 
 void player_init(int * argc, char ** argv[])

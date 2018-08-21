@@ -14,6 +14,7 @@ version.cpp
 /test/player_with_playback_info
 /test/test_player
 /test/test_watch_alert
+/test/utest
 /data/test.opus
 /docs/*.swp
 /docs/*.swo

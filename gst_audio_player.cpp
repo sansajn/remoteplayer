@@ -161,9 +161,15 @@ bool gst_audio_player::handle_message(GstMessage * msg)
 			return true;
 		}
 
-		case GST_MESSAGE_EOS:
+		case GST_MESSAGE_EOS: {
+			{
+				lock_guard<mutex> lock{_pline_locker};
+				_playing = false;
+			}
+
 			on_eos(_media);
 			return false;
+		}
 
 		case GST_MESSAGE_ERROR: {
 			GError * err;
@@ -184,7 +190,7 @@ bool gst_audio_player::handle_message(GstMessage * msg)
 
 void gst_audio_player::loop()
 {
-	long prev_pos = 0;
+	assert(!_playing);
 
 	GstBus * bus = gst_element_get_bus(_playbin.to_gst());
 	GstMessage * msg;
@@ -203,10 +209,7 @@ void gst_audio_player::loop()
 				}
 
 				if (_position_changed_alert.update(_position))
-				{
 					on_position_changed(_media, _position);
-					prev_pos = _position;
-				}
 			}
 		}
 	}
@@ -216,6 +219,7 @@ void gst_audio_player::loop()
 	if (msg)
 		gst_message_unref(msg);
 
+	_playbin.stop();
+
 	gst_object_unref(bus);
 }
-

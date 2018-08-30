@@ -60,6 +60,7 @@ public:
 	void disconnect();
 	std::vector<fs::path> const & list_media() const;
 	void play(fs::path const & media);
+	void stop();
 
 private:
 	void on_news(std::string const & news) override;

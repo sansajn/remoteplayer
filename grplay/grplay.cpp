@@ -18,7 +18,6 @@
 #include <gtkmm/searchentry.h>
 #include <gtkmm/scale.h>
 #include "log.hpp"
-//#include "helpers.hpp"
 #include "player_client.hpp"
 #include "json.hpp"
 #include "fs.hpp"
@@ -51,6 +50,7 @@ public:
 private:
 	void update_ui();
 	void on_queue_button();
+	void on_stop_button();
 	void on_search();
 	void repack_ui();
 	void filter_media_library(string const & filter);
@@ -88,7 +88,7 @@ private:
 	Gtk::ButtonBox _button_box;
 	Gtk::Button _queue_button;
 //	Gtk::Button _pause_button;
-//	Gtk::Button _stop_button;
+	Gtk::Button _stop_button;
 };
 
 int rplay_window::update_cb(gpointer user_data)
@@ -143,8 +143,9 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_button_box.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
 	_button_box.pack_start(_queue_button, Gtk::PackOptions::PACK_SHRINK);
 //	_button_box.pack_start(_pause_button, Gtk::PackOptions::PACK_SHRINK);
-//	_button_box.pack_start(_stop_button, Gtk::PackOptions::PACK_SHRINK);
+	_button_box.pack_start(_stop_button, Gtk::PackOptions::PACK_SHRINK);
 	_queue_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_queue_button));
+	_stop_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_stop_button));
 
 	_filtered_media_list_view.set_column_title(0, "Media");
 	_media_list_view.set_column_title(0, "Media");
@@ -154,7 +155,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 
 	_queue_button.set_image_from_icon_name("media-playback-start");
 //	_pause_button.set_image_from_icon_name("media-playback-pause");
-//	_stop_button.set_image_from_icon_name("media-playback-stop");
+	_stop_button.set_image_from_icon_name("media-playback-stop");
 
 	// pack
 	_vbox.pack_start(_player_media, Gtk::PackOptions::PACK_SHRINK);
@@ -265,6 +266,11 @@ void rplay_window::on_queue_button()
 
 	fs::path const & media = get_media(selection[0]);
 	_play.play(media.string());
+}
+
+void rplay_window::on_stop_button()
+{
+	_play.stop();
 }
 
 void rplay_window::on_search()

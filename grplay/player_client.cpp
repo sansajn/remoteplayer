@@ -94,4 +94,15 @@ void player_client::play(fs::path const & media)
 	req.put("cmd", "play_media");
 	req.put("content", media.string());
 	notify(to_string(req));
+
+	LOG(trace) << "RPLAY << play_media(content='" << media.string() << "')";
+}
+
+void player_client::stop()
+{
+	jtree req;
+	req.put("cmd", "stop");
+	notify(to_string(req));
+
+	LOG(trace) << "RPLAY << stop";
 }

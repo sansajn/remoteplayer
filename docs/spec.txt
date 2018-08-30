@@ -71,6 +71,14 @@ media_library. V prípade notify soketu sa neočakáva žiadna odpoveď zo stran
 serveru.
 
 
+stop [notify]:
+
+Príkaz umožnuje klientovy zastaviť prehrávanie, príkaz je definovaný
+ako
+
+	{"cmd":"stop"}
+
+
 play_progress [news]:
 
 Správu posiela server v pravidelných intervaloch (10s) počas prehrávania

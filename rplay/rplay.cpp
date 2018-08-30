@@ -25,7 +25,6 @@ int main(int argc, char * argv[])
 
 	iface.run();
 	play.start();
-	play.play();  // play queue
 
 	iface.join();
 

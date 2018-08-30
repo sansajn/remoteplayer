@@ -27,6 +27,11 @@ void player::stop()
 	_p.stop();
 }
 
+bool player::playing() const
+{
+	return _play_flag;
+}
+
 void player::quit()
 {
 	_quit_flag = true;

@@ -183,12 +183,18 @@ void zmq_interface::on_notify(string const & s)
 	{
 		string const content = json.get("content", string{});
 		if (!content.empty())
+		{
 			_play->queue(content);
+			if (!_play->playing())
+				_play->play();
+		}
 
 		LOG(trace) << "RPLAYC >> play_media(content='" << content << "')";
 	}
+	else if (cmd == "stop")
+		_play->stop();
 	else
-		cerr << "warning: unknown command (" << s << ")";
+		LOG(warning) << "unknown command (" << s << ")";
 }
 
 string unknown_command_answer(string const & cmd)

@@ -14,6 +14,7 @@ public:
 	void queue(std::string const & media);
 	void play();
 	void stop();
+	bool playing() const;
 	void quit();
 	void join();
 

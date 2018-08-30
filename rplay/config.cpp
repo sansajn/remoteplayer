@@ -2,6 +2,7 @@
 #include "config.hpp"
 #include "json.hpp"
 #include "log.hpp"
+#include "fs.hpp"
 
 using std::string;
 using boost::lexical_cast;
@@ -9,7 +10,7 @@ using boost::lexical_cast;
 string const DEFAULT_CONFIG_FILE_NAME = "rplay.conf";
 
 config::config()
-	: media_home{"/home/adam/Music"}
+	: media_home{home_dir() + "/Music"}
 	, port{13333}
 {}
 

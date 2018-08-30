@@ -101,6 +101,7 @@ common_objs = env.Object([
 	'config.cpp',
 	'io.cpp',
 	'json.cpp',
+	'fs.cpp',
 	'zmq_interface.cpp'
 ]);
 

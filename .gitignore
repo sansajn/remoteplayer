@@ -1,15 +1,4 @@
 *.o
-/*.glade~
-/libzmqu.a
-/rplay
-/rplayc
-/grplay
-/remoteplayer.config
-/remoteplayer.creator
-/remoteplayer.creator.user
-/remoteplayer.files
-/.sconsign.dblite
-version.cpp
 /test/exp_player
 /test/player_with_playback_info
 /test/test_player

@@ -27,7 +27,7 @@ Remote Player Server (rplay) can be configured with
 
 	{
 		"rplay":{
-			"media_home":"/home/ja/Music",
+			"media_home":"/home/me/Music",
 			"port":13333
 		}
 	}

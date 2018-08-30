@@ -16,9 +16,9 @@ bude poskytovať nasledujúce funkcie:
 	* list_media, ktorá vráti zoznam medií
 	* play_media, ktorá prehrá medium zo zoznamu medií
 	* stop, zastavenie prehrávania
-	!* queue_changed, aktuálny obsah prehrávacej queue
 	* play_progress, update priebehu prehrávania (každých 10s)
 	* identify, vráti informácie o serveru
+	* ping, posiela klientom kazdu 1s
 
 Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
 obsahu.
@@ -70,16 +70,6 @@ kde media-identifier je identifikátor obsahu získaný z odpovedi na príkaz
 media_library. V prípade notify soketu sa neočakáva žiadna odpoveď zo strany
 serveru.
 
-queue_changed [news]:
-
-Správu posiela server vždi pri zmene obsahu prehrávacej fronty.
-
-	{
-		"cmd":"queue_changed", 
-		"operation":"push|pop", 
-		"media":"path/to/file"
-	}
-
 
 play_progress [news]:
 
@@ -95,6 +85,7 @@ skladby.
 
 kde P je aktuálna pozícia v sekundách a D je dĺžka skladby v sekundách.
 
+
 identify [ask]:
 
 Správa/dotaz identify umožnuje klientovi získať informácie o serveru ako napr.
@@ -106,6 +97,14 @@ server na dotaz odpovie takto
 
 	{'cmd':'server_desc', 'version':'0.2.0', 'build':'417a36c'}
 
+
+ping [news]:
+
+remoteplayer posiela príkaz každú 1s v tvare
+
+	{'ping':N}
+
+kde N je čítač.
 
 
 V prípade neznámeho dotazu odpovie server správou

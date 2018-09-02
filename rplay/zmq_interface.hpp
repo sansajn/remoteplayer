@@ -21,7 +21,7 @@ public:
 
 private:
 	void send_play_progress();
-	void send_playlist_content(size_t playlist_id, std::vector<std::string> const & items);
+	void send_playlist_content();
 
 	//! \note called from player thread
 	void on_play(std::string media);
@@ -31,6 +31,7 @@ private:
 	void idle() override;
 	std::string on_question(std::string const & question) override;
 	void on_notify(std::string const & s) override;
+	void on_accepted(socket_id sid, std::string const & addr) override;
 
 	unsigned short _port;
 	library * _lib;
@@ -45,5 +46,7 @@ private:
 	std::string _media;
 	int64_t _position;
 	int64_t _duration;
-	std::mutex _media_info_locker;
+	size_t _playlist_id;
+	std::vector<std::string> _playlist;
+	std::mutex _media_info_locker;  // TODO: rename to player_info_locker
 };

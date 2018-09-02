@@ -10,6 +10,8 @@
 using std::string;
 using std::to_string;
 using std::vector;
+using std::lock_guard;
+using std::mutex;
 using std::cout;
 using std::cerr;
 
@@ -46,6 +48,7 @@ zmq_interface::zmq_interface(unsigned short port, library * lib, player * play)
 	, _position_change_count{0}
 	, _position{0}
 	, _duration{0}
+	, _playlist_id{0}
 {
 	_tp = hires_clock::now() + std::chrono::seconds{1};
 
@@ -107,34 +110,45 @@ void zmq_interface::on_play(std::string media)
 
 	_position_change_count = 0;
 
-	std::lock_guard<std::mutex> lock{_media_info_locker};
+	lock_guard<mutex> lock{_media_info_locker};
 	_media = media;
 }
 
 void zmq_interface::send_play_progress()
 {
 	jtree msg;
-	msg.put("cmd", "play_progress");
-	msg.put("media", _media);
-	msg.put<long>("position", (long)_position);
-	msg.put<long>("duration", (long)_duration);
+
+	{
+		lock_guard<mutex> lock{_media_info_locker};
+
+		msg.put("cmd", "play_progress");
+		msg.put("media", _media);
+		msg.put<long>("position", (long)_position);
+		msg.put<long>("duration", (long)_duration);
+
+		LOG(trace) << "RPLAYC << play_progress(media=" << _media << ", position="
+			<< _position << ", duration=" << _duration << ")";
+	}
 
 	publish(to_string(msg));
-
-	LOG(trace) << "RPLAYC << play_progress(media=" << _media << ", position="
-		<< _position << ", duration=" << _duration << ")";
 }
 
-void zmq_interface::send_playlist_content(size_t playlist_id, std::vector<std::string> const & items)
+void zmq_interface::send_playlist_content()
 {
 	jtree msg;
-	msg.put("cmd", "playlist_content");
-	msg.put<size_t>("id", playlist_id);
-	vector_put(msg, "items", items);
+
+	{
+		lock_guard<mutex> lock{_media_info_locker};
+
+		msg.put("cmd", "playlist_content");
+		msg.put<size_t>("id", _playlist_id);
+		vector_put(msg, "items", _playlist);
+
+		LOG(trace) << "RPLAYC << playlist_content(id=" << _playlist_id << ", "
+			<< _playlist.size() << " items)";
+	}
 
 	publish(to_string(msg));
-
-	LOG(trace) << "RPLAYC << playlist_content(id=" << playlist_id << ", " << items.size() << " items)";
 }
 
 void zmq_interface::on_position_change(int64_t position, int64_t duration)
@@ -142,7 +156,7 @@ void zmq_interface::on_position_change(int64_t position, int64_t duration)
 //	cout << "progress=" << position << "/" << duration << std::endl;
 
 	{
-		std::lock_guard<std::mutex> lock{_media_info_locker};
+		lock_guard<mutex> lock{_media_info_locker};
 		_position = position;
 		_duration = duration;
 	}
@@ -153,10 +167,15 @@ void zmq_interface::on_position_change(int64_t position, int64_t duration)
 		send_play_progress();
 }
 
-void zmq_interface::on_playlist_change(size_t playlist_id,
-	std::vector<std::string> items)
+void zmq_interface::on_playlist_change(size_t playlist_id, vector<string> items)
 {
-	send_playlist_content(playlist_id, items);
+	{
+		lock_guard<mutex> lock{_media_info_locker};
+		_playlist_id = playlist_id;
+		_playlist = items;
+	}
+
+	send_playlist_content();
 }
 
 string zmq_interface::on_question(string const & question)
@@ -217,6 +236,22 @@ void zmq_interface::on_notify(string const & s)
 		_play->stop();
 	else
 		LOG(warning) << "unknown command (" << s << ")";
+}
+
+void zmq_interface::on_accepted(socket_id sid, std::string const & addr)
+{
+	zmqu::clone_server::on_accepted(sid, addr);
+
+	if (sid != socket_id::PUBLISHER)
+		return;
+
+	LOG(trace) << "client connected";
+
+	if (!_playlist.empty())
+		send_playlist_content();
+
+	if (_play->playing())
+		send_play_progress();
 }
 
 string unknown_command_answer(string const & cmd)

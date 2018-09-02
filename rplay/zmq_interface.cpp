@@ -54,12 +54,16 @@ zmq_interface::zmq_interface(unsigned short port, library * lib, player * play)
 
 	_event_handler_id.push_back(
 		_play->position_change_signal.add(std::bind(&zmq_interface::on_position_change, this, std::placeholders::_1, std::placeholders::_2)));
+
+	_event_handler_id.push_back(
+		_play->playlist_change_signal.add(std::bind(&zmq_interface::on_playlist_change, this, std::placeholders::_1, std::placeholders::_2)));
 }
 
 zmq_interface::~zmq_interface()
 {
 	_play->play_signal.remove_id(_event_handler_id[0]);
 	_play->position_change_signal.remove_id(_event_handler_id[1]);
+	_play->playlist_change_signal.remove_id(_event_handler_id[2]);
 }
 
 void zmq_interface::idle()
@@ -121,9 +125,21 @@ void zmq_interface::send_play_progress()
 		<< _position << ", duration=" << _duration << ")";
 }
 
+void zmq_interface::send_playlist_content(size_t playlist_id, std::vector<std::string> const & items)
+{
+	jtree msg;
+	msg.put("cmd", "playlist_content");
+	msg.put<size_t>("id", playlist_id);
+	vector_put(msg, "items", items);
+
+	publish(to_string(msg));
+
+	LOG(trace) << "RPLAYC << playlist_content(id=" << playlist_id << ", " << items.size() << " items)";
+}
+
 void zmq_interface::on_position_change(int64_t position, int64_t duration)
 {
-	cout << "progress=" << position << "/" << duration << std::endl;
+//	cout << "progress=" << position << "/" << duration << std::endl;
 
 	{
 		std::lock_guard<std::mutex> lock{_media_info_locker};
@@ -135,6 +151,12 @@ void zmq_interface::on_position_change(int64_t position, int64_t duration)
 
 	if ((_position_change_count++ % 100) == 0)
 		send_play_progress();
+}
+
+void zmq_interface::on_playlist_change(size_t playlist_id,
+	std::vector<std::string> items)
+{
+	send_playlist_content(playlist_id, items);
 }
 
 string zmq_interface::on_question(string const & question)
@@ -150,7 +172,7 @@ string zmq_interface::on_question(string const & question)
 		vector<string> content = _lib->list_media();
 		jtree a;
 		a.put("cmd", "media_library");
-		vector_put(a, "content", content);
+		vector_put(a, "content", content);  // TODO: rename to items
 
 		LOG(trace) << "RPLAYC << media_library(" << content.size() << " files)";
 

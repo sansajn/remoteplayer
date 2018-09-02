@@ -18,6 +18,7 @@ bude poskytovať nasledujúce funkcie:
 	* stop, zastavenie prehrávania
 	* play_progress, update priebehu prehrávania (každých 10s)
 	* identify, vráti informácie o serveru
+	* playlist_content, update obsahu playlistu
 	* ping, posiela klientom kazdu 1s
 
 Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
@@ -59,6 +60,8 @@ Umožnuje klientovy získať zoznam medií, odpoveď klientovy vypadá takto
 		"path/to/file2",
 		"path/to/file3"
 	]}
+
+TODO: premenuj content na items
 
 play_media [notify]:
 
@@ -104,6 +107,21 @@ verziu
 server na dotaz odpovie takto
 
 	{'cmd':'server_desc', 'version':'0.2.0', 'build':'417a36c'}
+
+
+playlist_content [news]:
+
+Správou informuje server klientou o zmene obsahu playlistu. Správa/príkaz je
+definovaná takto:
+
+	{
+		'cmd':'playlist_content',
+		'id':N,
+		'items':[item1, item2, ...]
+	}
+
+kde N identyfikátor playlistu je celé kladné číslo a items obsahuje pole
+reťazcou, kde jednotlivý reťazec popisuje položku pleylistu.
 
 
 ping [news]:

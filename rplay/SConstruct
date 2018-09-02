@@ -97,6 +97,7 @@ zmqu_lib = env.StaticLibrary('zmqu', Glob('libs/zmqu/*.cpp'))
 common_objs = env.Object([
 	'gst_audio_player.cpp',
 	'player.cpp',
+	'playlist.cpp',
 	'library.cpp',
 	'config.cpp',
 	'io.cpp',

@@ -21,10 +21,12 @@ public:
 
 private:
 	void send_play_progress();
+	void send_playlist_content(size_t playlist_id, std::vector<std::string> const & items);
 
 	//! \note called from player thread
 	void on_play(std::string media);
 	void on_position_change(int64_t position, int64_t duration);
+	void on_playlist_change(size_t playlist_id, std::vector<std::string> items);
 
 	void idle() override;
 	std::string on_question(std::string const & question) override;

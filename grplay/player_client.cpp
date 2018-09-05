@@ -23,12 +23,28 @@ void player_client::on_news(std::string const & news)
 
 		assert(duration > 0);
 
-		LOG(info) << "RPLAY >> play_progress(media='" << media << "', posiiton=" << position
+		LOG(trace) << "RPLAY >> play_progress(media='" << media << "', posiiton=" << position
 			<< ", duration=" << duration;
 
 		for (auto * l : listeners())
 			l->on_play_progress(media, position, duration);
 	}
+	else if (cmd == "playlist_content")
+	{
+		size_t const id = json.get<size_t>("id", 0);
+		assert(id != 0 && "invalid playlist ID");
+
+		_media_playlist.clear();
+		for (jtree::value_type & obj : json.get_child("items"))
+			_media_playlist.push_back(obj.second.data());
+
+		LOG(trace) << "RPLAY >> playlist_change(id=" << id << ", items=(" << _media_playlist.size() << " items)";
+
+		for (auto * l : listeners())
+			l->on_playlist_change(id, _media_playlist);
+	}
+	else
+		LOG(warning) << "unknown command '" << cmd << "'";
 }
 
 void player_client::connect(std::string const & host, unsigned short port)
@@ -86,6 +102,11 @@ void player_client::on_answer(std::string const & answer)
 vector<fs::path> const & player_client::list_media() const
 {
 	return _media_library;
+}
+
+vector<string> const & player_client::list_playlist() const
+{
+	return _media_playlist;
 }
 
 void player_client::play(fs::path const & media)

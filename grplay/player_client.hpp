@@ -8,6 +8,7 @@
 struct player_client_listener
 {
 	virtual void on_play_progress(std::string const & media, long position, long duration) {}
+	virtual void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) {}
 };
 
 // TODO: implement notify function
@@ -23,6 +24,32 @@ public:
 private:
 	std::vector<Listener *> _listeners;
 };
+
+
+class player_client
+	: public zmqu::clone_client
+	, public observable_with<player_client_listener>
+{
+public:
+	void connect(std::string const & host, unsigned short port);
+	void disconnect();
+	std::vector<fs::path> const & list_media() const;
+	std::vector<std::string> const & list_playlist() const;
+	void play(fs::path const & media);
+	void stop();
+
+private:
+	void on_news(std::string const & news) override;
+	void on_answer(std::string const & answer) override;
+
+	std::vector<fs::path> _media_library;
+	std::vector<std::string> _media_playlist;
+
+	std::thread _t;
+	std::mutex _mtx;
+	std::condition_variable _connected;
+};
+
 
 template <typename Listener>
 void observable_with<Listener>::register_listener(Listener * l)
@@ -48,26 +75,3 @@ std::vector<Listener *> const & observable_with<Listener>::listeners() const
 {
 	return _listeners;
 }
-
-
-
-class player_client
-	: public zmqu::clone_client
-	, public observable_with<player_client_listener>
-{
-public:
-	void connect(std::string const & host, unsigned short port);
-	void disconnect();
-	std::vector<fs::path> const & list_media() const;
-	void play(fs::path const & media);
-	void stop();
-
-private:
-	void on_news(std::string const & news) override;
-	void on_answer(std::string const & answer) override;
-
-	std::thread _t;
-	std::vector<fs::path> _media_library;
-	std::condition_variable _connected;
-	std::mutex _mtx;
-};

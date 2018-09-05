@@ -58,6 +58,7 @@ private:
 
 	// player_client events, note: called from player_client's thread
 	void on_play_progress(string const & media, long position, long duration) override;
+	void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) override;
 
 	static int update_cb(gpointer user_data);
 
@@ -70,7 +71,11 @@ private:
 	long _position;
 	long _duration;
 	std::chrono::high_resolution_clock::time_point _last_progress_update;
+	std::vector<std::string> _playlist;
+	size_t _playlist_id;
 	std::mutex _player_data_locker;
+
+	size_t _last_used_playlist_id;
 
 	// gui
 	Gtk::Box _vbox;
@@ -80,6 +85,8 @@ private:
 	Gtk::Scale _player_progress;
 	RefPtr<Gtk::Adjustment> _progress_adj;
 	Gtk::Label _player_duration;
+	Gtk::ScrolledWindow _playlist_scroll;
+	Gtk::ListViewText _playlist_view;
 	Gtk::SearchEntry _search;
 	Gtk::ScrolledWindow _filtered_scroll;
 	Gtk::ListViewText _filtered_media_list_view;
@@ -100,7 +107,10 @@ int rplay_window::update_cb(gpointer user_data)
 
 rplay_window::rplay_window(string const & host, unsigned short port)
 	: _filtered{false}
+	, _playlist_id{0}
+	, _last_used_playlist_id{0}
 	,  _vbox{Gtk::Orientation::ORIENTATION_VERTICAL}
+	, _playlist_view{1}
 	, _filtered_media_list_view{1}
 	, _media_list_view{1}
 {
@@ -130,6 +140,12 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_progress_hbox.pack_start(_player_progress, Gtk::PackOptions::PACK_EXPAND_WIDGET);
 	_progress_hbox.add(_player_duration);
 
+	_playlist_scroll.set_size_request(-1, 150);
+	_playlist_scroll.add(_playlist_view);
+	_playlist_scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
+	_playlist_scroll.set_min_content_height(30);
+	_playlist_scroll.set_max_content_height(80);
+
 	_search.set_placeholder_text("<Enter search terms there>");
 	_search.signal_changed().connect(sigc::mem_fun(*this, &rplay_window::on_search));
 
@@ -147,6 +163,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_queue_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_queue_button));
 	_stop_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_stop_button));
 
+	_playlist_view.set_column_title(0, "Playlist:");
 	_filtered_media_list_view.set_column_title(0, "Media");
 	_media_list_view.set_column_title(0, "Media");
 
@@ -160,6 +177,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	// pack
 	_vbox.pack_start(_player_media, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_progress_hbox, Gtk::PackOptions::PACK_SHRINK);
+	_vbox.pack_start(_playlist_scroll, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_search, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_scroll, Gtk::PackOptions::PACK_EXPAND_WIDGET);
 	_vbox.pack_start(_button_box, Gtk::PackOptions::PACK_SHRINK);
@@ -220,6 +238,16 @@ void rplay_window::update_ui()
 
 	if (_media.empty())
 		return;
+
+	// playlist
+	if (_playlist_id != _last_used_playlist_id)
+	{
+		_playlist_view.clear_items();
+		for (string const & media : _playlist)
+			_playlist_view.append(media);
+
+		_last_used_playlist_id = _playlist_id;
+	}
 
 	// media
 	_player_media.set_text(format_media(_media));
@@ -329,6 +357,13 @@ void rplay_window::on_play_progress(string const & media, long position, long du
 	_duration = duration;
 	_media = media;
 	_last_progress_update = std::chrono::high_resolution_clock::now();
+}
+
+void rplay_window::on_playlist_change(size_t playlist_id, vector<string> const & items)
+{
+	lock_guard<mutex> lock{_player_data_locker};
+	_playlist_id = playlist_id;
+	_playlist = items;
 }
 
 int main(int argc, char * argv[])

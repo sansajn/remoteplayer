@@ -20,6 +20,7 @@ public:
 	void stop();
 	bool playing() const;
 	playlist const & media_playlist() const;
+	void clear_media_playlist();
 	void quit();
 	void join();
 

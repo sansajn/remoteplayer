@@ -233,7 +233,10 @@ void zmq_interface::on_notify(string const & s)
 		LOG(trace) << "RPLAYC >> play_media(content='" << content << "')";
 	}
 	else if (cmd == "stop")
+	{
 		_play->stop();
+		_play->clear_media_playlist();
+	}
 	else
 		LOG(warning) << "unknown command (" << s << ")";
 }

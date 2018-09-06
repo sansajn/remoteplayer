@@ -13,8 +13,8 @@ using std::string;
 using namespace std::placeholders;
 
 player::player()
-	: _play_flag{0}
-	, _playlist_id{1}
+	: _playlist_id{1}
+	, _play_flag{0}
 {}
 
 void player::start()
@@ -48,6 +48,13 @@ bool player::playing() const
 playlist const & player::media_playlist() const
 {
 	return _items;
+}
+
+void player::clear_media_playlist()
+{
+	_items.clear();
+	++_playlist_id;
+	playlist_change_signal.call(_playlist_id, _items.items());
 }
 
 void player::quit()

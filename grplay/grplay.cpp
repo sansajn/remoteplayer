@@ -165,7 +165,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 
 	_playlist_view.set_column_title(0, "Playlist:");
 	_filtered_media_list_view.set_column_title(0, "Media");
-	_media_list_view.set_column_title(0, "Media");
+	_media_list_view.set_column_title(0, "Library");
 
 	for (fs::path const & media : _play.list_media())
 		_media_list_view.append(media.string());
@@ -178,8 +178,8 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_vbox.pack_start(_player_media, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_progress_hbox, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_playlist_scroll, Gtk::PackOptions::PACK_SHRINK);
-	_vbox.pack_start(_search, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_scroll, Gtk::PackOptions::PACK_EXPAND_WIDGET);
+	_vbox.pack_start(_search, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_button_box, Gtk::PackOptions::PACK_SHRINK);
 
 	show_all();

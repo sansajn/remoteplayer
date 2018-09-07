@@ -5,6 +5,7 @@
 
 using std::vector;
 using std::unique_lock;
+using std::lock_guard;
 using std::mutex;
 using std::string;
 using std::cout;
@@ -34,14 +35,22 @@ void player_client::on_news(std::string const & news)
 		size_t const id = json.get<size_t>("id", 0);
 		assert(id != 0 && "invalid playlist ID");
 
-		_media_playlist.clear();
-		for (jtree::value_type & obj : json.get_child("items"))
-			_media_playlist.push_back(obj.second.data());
+		vector<string> media_playlist_copy;
 
-		LOG(trace) << "RPLAY >> playlist_change(id=" << id << ", items=(" << _media_playlist.size() << " items)";
+		{
+			lock_guard<mutex> lock{_rplay_data_locker};
+
+			_media_playlist.clear();
+			for (jtree::value_type & obj : json.get_child("items"))
+				_media_playlist.push_back(obj.second.data());
+
+			media_playlist_copy = _media_playlist;
+		}
+
+		LOG(trace) << "RPLAY >> playlist_content(id=" << id << ", items=(" << _media_playlist.size() << " items)";
 
 		for (auto * l : listeners())
-			l->on_playlist_change(id, _media_playlist);
+			l->on_playlist_change(id, media_playlist_copy);
 	}
 	else
 		LOG(warning) << "unknown command '" << cmd << "'";
@@ -62,9 +71,6 @@ void player_client::connect(std::string const & host, unsigned short port)
 	jtree req2;
 	req2.put("cmd", "identify");
 	ask(to_string(req2));
-
-	unique_lock<mutex> lock{_mtx};
-	_connected.wait(lock);  // wait for media_library content
 }
 
 void player_client::on_answer(std::string const & answer)
@@ -75,9 +81,19 @@ void player_client::on_answer(std::string const & answer)
 
 	if (cmd == "media_library")
 	{
-		_media_library.clear();
-		for (jtree::value_type & obj : json.get_child("content"))
-			_media_library.push_back(fs::path{obj.second.data()});
+		vector<string> media_library_copy;
+
+		{
+			lock_guard<mutex> lock{_rplay_data_locker};
+			_media_library.clear();
+			for (jtree::value_type & obj : json.get_child("content"))
+				_media_library.push_back(obj.second.data());
+
+			media_library_copy = _media_library;
+		}
+
+		for (auto * l : listeners())
+			l->on_list_media(media_library_copy);
 
 		// \debug
 //		string content{"{\"content\":[\n"};
@@ -86,8 +102,6 @@ void player_client::on_answer(std::string const & answer)
 //		content += "  \"\"\n]}";
 //		save_to_file("content.json", content);
 		// \enddebug
-
-		_connected.notify_all();
 	}
 	else if (cmd == "server_desc")
 	{
@@ -99,13 +113,15 @@ void player_client::on_answer(std::string const & answer)
 		cout << "unknown answer: " << answer << std::endl;
 }
 
-vector<fs::path> const & player_client::list_media() const
+vector<string> player_client::list_library() const
 {
+	lock_guard<mutex> lock{_rplay_data_locker};
 	return _media_library;
 }
 
-vector<string> const & player_client::list_playlist() const
+vector<string> player_client::list_playlist() const
 {
+	lock_guard<mutex> lock{_rplay_data_locker};
 	return _media_playlist;
 }
 

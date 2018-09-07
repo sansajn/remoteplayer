@@ -40,7 +40,7 @@ void parse_title_author_album(string const & media, string & title, string & aut
 	string & album);
 string format_media(string const & media);
 
-class rplay_window
+class  rplay_window
 	: public Gtk::Window
 	, public player_client_listener
 {
@@ -54,16 +54,17 @@ private:
 	void on_search();
 	void repack_ui();
 	void filter_media_library(string const & filter);
-	fs::path const & get_media(int sel_idx) const;
+	std::string const & get_media(int sel_idx) const;
 
 	// player_client events, note: called from player_client's thread
 	void on_play_progress(string const & media, long position, long duration) override;
 	void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) override;
+	void on_list_media(std::vector<std::string> const & items) override;
 
 	static int update_cb(gpointer user_data);
 
 	player_client _play;
-	vector<int> _filtered_lookup;
+	vector<size_t> _filtered_lookup;
 	bool _filtered;
 
 	// position, duration, media
@@ -71,6 +72,7 @@ private:
 	long _position;
 	long _duration;
 	std::chrono::high_resolution_clock::time_point _last_progress_update;
+	std::vector<std::string> _library;
 	std::vector<std::string> _playlist;
 	size_t _playlist_id;
 	std::mutex _player_data_locker;
@@ -117,7 +119,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_play.register_listener(this);
 
 	LOG(info) << "connecting to server ...";
-	_play.connect(host, port);  // TODO: blocking
+	_play.connect(host, port);
 	LOG(info) << "connected";
 
 	set_title("Remote Player Client");
@@ -164,11 +166,8 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_stop_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_stop_button));
 
 	_playlist_view.set_column_title(0, "Playlist:");
-	_filtered_media_list_view.set_column_title(0, "Media");
-	_media_list_view.set_column_title(0, "Library");
-
-	for (fs::path const & media : _play.list_media())
-		_media_list_view.append(media.string());
+	_filtered_media_list_view.set_column_title(0, "Media:");
+	_media_list_view.set_column_title(0, "Library:");
 
 	_queue_button.set_image_from_icon_name("media-playback-start");
 //	_pause_button.set_image_from_icon_name("media-playback-pause");
@@ -236,8 +235,13 @@ void rplay_window::update_ui()
 {
 	lock_guard<mutex> lock{_player_data_locker};  // TODO: do not lock whole function
 
-	if (_media.empty())
-		return;
+	// library
+	if (_media_list_view.size() != _library.size())
+	{
+		_media_list_view.clear_items();
+		for (string const & media : _library)
+			_media_list_view.append(media);
+	}
 
 	// playlist
 	if (_playlist_id != _last_used_playlist_id)
@@ -248,6 +252,9 @@ void rplay_window::update_ui()
 
 		_last_used_playlist_id = _playlist_id;
 	}
+
+	if (_media.empty())
+		return;
 
 	// media
 	_player_media.set_text(format_media(_media));
@@ -319,35 +326,33 @@ void rplay_window::filter_media_library(string const & filter)
 	regex pat{filter, std::regex_constants::icase};
 
 	_filtered_lookup.clear();
-	vector<fs::path> const & media_list = _play.list_media();
-	for (size_t i = 0; i < media_list.size(); ++i)
+	for (size_t i = 0; i < _library.size(); ++i)
 	{
-		fs::path const & media = media_list[i];
+		fs::path const & media = _library[i];
 		smatch match;
 		if (regex_search(media.native(), match, pat))
 			_filtered_lookup.push_back(i);
 	}
 
 	_filtered_media_list_view.clear_items();
-	for (int idx : _filtered_lookup)
-		_filtered_media_list_view.append(media_list[idx].string());
+	for (size_t idx : _filtered_lookup)
+		_filtered_media_list_view.append(_library[idx]);
 
 	_filtered = true;
 	repack_ui();
 }
 
-fs::path const & rplay_window::get_media(int sel_idx) const
+string const & rplay_window::get_media(int sel_idx) const
 {
-	int media_idx = sel_idx;
+	size_t media_idx = (size_t)sel_idx;
 	if (_filtered)
 	{
 		assert(sel_idx < (int)_filtered_lookup.size());
 		media_idx = _filtered_lookup[sel_idx];
 	}
 
-	vector<fs::path> const & media_list = _play.list_media();
-	assert(media_idx < (int)media_list.size());
-	return media_list[media_idx];
+	assert(media_idx < _library.size());
+	return _library[media_idx];
 }
 
 void rplay_window::on_play_progress(string const & media, long position, long duration)
@@ -364,6 +369,12 @@ void rplay_window::on_playlist_change(size_t playlist_id, vector<string> const &
 	lock_guard<mutex> lock{_player_data_locker};
 	_playlist_id = playlist_id;
 	_playlist = items;
+}
+
+void rplay_window::on_list_media(vector<string> const & items)
+{
+	lock_guard<mutex> lock{_player_data_locker};
+	_library = items;
 }
 
 int main(int argc, char * argv[])

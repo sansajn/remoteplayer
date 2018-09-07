@@ -9,6 +9,7 @@ struct player_client_listener
 {
 	virtual void on_play_progress(std::string const & media, long position, long duration) {}
 	virtual void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) {}
+	virtual void on_list_media(std::vector<std::string> const & items) {}
 };
 
 // TODO: implement notify function
@@ -26,15 +27,15 @@ private:
 };
 
 
-class player_client
+class player_client  // TODO: rename to rplay_client
 	: public zmqu::clone_client
 	, public observable_with<player_client_listener>
 {
 public:
 	void connect(std::string const & host, unsigned short port);
 	void disconnect();
-	std::vector<fs::path> const & list_media() const;
-	std::vector<std::string> const & list_playlist() const;
+	std::vector<std::string> list_library() const;
+	std::vector<std::string> list_playlist() const;
 	void play(fs::path const & media);
 	void stop();
 
@@ -42,12 +43,11 @@ private:
 	void on_news(std::string const & news) override;
 	void on_answer(std::string const & answer) override;
 
-	std::vector<fs::path> _media_library;
+	std::vector<std::string> _media_library;
 	std::vector<std::string> _media_playlist;
 
-	std::thread _t;
-	std::mutex _mtx;
-	std::condition_variable _connected;
+	std::thread _t;  //!< clone_client thread
+	mutable std::mutex _rplay_data_locker;
 };
 
 

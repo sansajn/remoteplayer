@@ -1,4 +1,5 @@
 // Graphics Remote Player Client
+#include <algorithm>
 #include <mutex>
 #include <string>
 #include <regex>
@@ -31,6 +32,7 @@ using std::regex_search;
 using std::smatch;
 using std::regex;
 using std::cout;
+using std::min;
 using boost::lexical_cast;
 using Glib::RefPtr;
 using Glib::ustring;
@@ -261,11 +263,13 @@ void rplay_window::update_ui()
 
 	// position
 	auto elapsed = std::chrono::high_resolution_clock::now() - _last_progress_update;
-	long position = _position + std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
+	long position = min(
+		_position + std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count(),
+		_duration);
 	_player_position.set_text(format_position(position));
 
 	// scale
-	_progress_adj->set_value((double)_position/(double)_duration);
+	_progress_adj->set_value((double)position/(double)_duration);
 
 	// duration
 	_player_duration.set_text(format_position(_duration));

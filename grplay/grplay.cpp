@@ -22,6 +22,7 @@
 #include "player_client.hpp"
 #include "json.hpp"
 #include "fs.hpp"
+#include "library_tree_view.hpp"
 
 using std::mutex;
 using std::lock_guard;
@@ -42,7 +43,8 @@ void parse_title_author_album(string const & media, string & title, string & aut
 	string & album);
 string format_media(string const & media);
 
-class  rplay_window
+
+class rplay_window
 	: public Gtk::Window
 	, public player_client_listener
 {
@@ -95,7 +97,7 @@ private:
 	Gtk::ScrolledWindow _filtered_scroll;
 	Gtk::ListViewText _filtered_media_list_view;
 	Gtk::ScrolledWindow _scroll;
-	Gtk::ListViewText _media_list_view;
+	library_tree_view _media_list_view;
 	Gtk::ButtonBox _button_box;
 	Gtk::Button _queue_button;
 //	Gtk::Button _pause_button;
@@ -116,7 +118,6 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	,  _vbox{Gtk::Orientation::ORIENTATION_VERTICAL}
 	, _playlist_view{1}
 	, _filtered_media_list_view{1}
-	, _media_list_view{1}
 {
 	_play.register_listener(this);
 
@@ -147,8 +148,8 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_playlist_scroll.set_size_request(-1, 150);
 	_playlist_scroll.add(_playlist_view);
 	_playlist_scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
-	_playlist_scroll.set_min_content_height(30);
-	_playlist_scroll.set_max_content_height(80);
+//	_playlist_scroll.set_min_content_height(30);
+//	_playlist_scroll.set_max_content_height(80);
 
 	_search.set_placeholder_text("<Enter search terms there>");
 	_search.signal_changed().connect(sigc::mem_fun(*this, &rplay_window::on_search));
@@ -168,8 +169,8 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_stop_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_stop_button));
 
 	_playlist_view.set_column_title(0, "Playlist:");
-	_filtered_media_list_view.set_column_title(0, "Media:");
-	_media_list_view.set_column_title(0, "Library:");
+	_filtered_media_list_view.set_column_title(0, "Filtered Media:");
+//	_media_list_view.set_column_title(0, "Library:");
 
 	_queue_button.set_image_from_icon_name("media-playback-start");
 //	_pause_button.set_image_from_icon_name("media-playback-pause");
@@ -240,9 +241,9 @@ void rplay_window::update_ui()
 	// library
 	if (_media_list_view.size() != _library.size())
 	{
-		_media_list_view.clear_items();
+		_media_list_view.clear();
 		for (string const & media : _library)
-			_media_list_view.append(media);
+			_media_list_view.insert(media);
 	}
 
 	// playlist
@@ -295,16 +296,26 @@ void rplay_window::repack_ui()
 
 void rplay_window::on_queue_button()
 {
-	Gtk::ListViewText::SelectionList selection;
-	if (_filtered)
-		selection = _filtered_media_list_view.get_selected();
-	else
-		selection = _media_list_view.get_selected();
-
-	assert(!selection.empty());
-
-	fs::path const & media = get_media(selection[0]);
-	_play.play(media.string());
+	if (!_filtered)  // from media library
+	{
+		RefPtr<Gtk::TreeSelection> selection = _media_list_view.get_selection();
+		if (selection)
+		{
+			Gtk::TreeModel::iterator it = selection->get_selected();
+			if (it)
+			{
+				Gtk::TreeModel::Row row = *it;
+				string media = row[_media_list_view.columns._media_id];
+				_play.play(media);
+			}
+		}
+	}
+	else  // from filtered media
+	{
+		Gtk::ListViewText::SelectionList selection = _filtered_media_list_view.get_selected();
+		fs::path const & media = get_media(selection[0]);
+		_play.play(media.string());
+	}
 }
 
 void rplay_window::on_stop_button()
@@ -391,6 +402,5 @@ int main(int argc, char * argv[])
 
 	rplay_window w{host, port};
 
-//	return app->run(w, argc, argv);
 	return app->run(w, 0, nullptr);
 }

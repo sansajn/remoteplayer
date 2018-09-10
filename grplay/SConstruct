@@ -27,5 +27,11 @@ zmqu_lib = env.StaticLibrary('zmqu', Glob('libs/zmqu/*.cpp'))
 env.Program('grplay', [
 	'grplay.cpp',
 	'player_client.cpp',
+	'library_tree_view.cpp',
 	zmqu_lib
 ])
+
+# tests
+test_env = env.Clone()
+
+test_env.Program(['test/treeview.cpp'])

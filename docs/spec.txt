@@ -86,17 +86,22 @@ ako
 
 play_progress [news]:
 
-Správu posiela server v pravidelných intervaloch (10s) počas prehrávania
-skladby.
+Správu posiela server v pravidelných intervaloch (momentálne 10s)
+počas prehrávania skladby.
 
 	{
 		"cmd":"play_progress",   // string
 		"media":"path/to/file",  // string
 		"position":P,            // long
-		"duration":D             // long
+		"duration":D,            // long
+		"playlist_idx":N         // size_t
 	}
 
-kde P je aktuálna pozícia v sekundách a D je dĺžka skladby v sekundách.
+kde P je aktuálna pozícia v nano-sekundách a D je dĺžka skladby v
+nano-sekundách a N je pozícia/index aktuálnej skladby v playliste.
+Platí, že play_progress sa odkazuje na už existujúci playlist, ak
+klient ešte nemá k dispocícii playlist, potom musí pole playlist_idx
+ignorovať.
 
 
 identify [ask]:
@@ -113,17 +118,17 @@ server na dotaz odpovie takto
 
 playlist_content [news]:
 
-Správou informuje server klientou o zmene obsahu playlistu. Správa/príkaz je
+Správou informuje server klientou o zmene obsahu playlistu. Správa je
 definovaná takto:
 
 	{
 		'cmd':'playlist_content',
 		'id':N,
-		'items':[item1, item2, ...]
+		'items':['item1', 'item2', ...]
 	}
 
-kde N identyfikátor playlistu je celé kladné číslo a items obsahuje pole
-reťazcou, kde jednotlivý reťazec popisuje položku pleylistu.
+kde N, identyfikátor playlistu je celé kladné číslo a items obsahuje pole
+reťazcou, kde jednotlive reťazece popisuje položky pleylistu.
 
 
 ping [news]:

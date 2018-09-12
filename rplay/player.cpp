@@ -74,7 +74,7 @@ void player::loop()
 		if (_play_flag)
 		{
 			string media = _items.wait_next();
-			play_signal.call(media);
+			play_signal.call(media, _items.current_item_idx());
 			_p.play(media, bind(&player::item_done_cb, this), bind(&player::item_progress_cb, this, _1, _2));
 			_p.join();
 		}

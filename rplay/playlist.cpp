@@ -53,6 +53,21 @@ vector<string> playlist::items() const
 	return _items;
 }
 
+size_t playlist::current_item_idx() const
+{
+	lock_guard<mutex> lock{_items_locker};
+	if (_item_idx > 0)
+		return _item_idx-1;
+	else
+		throw std::out_of_range{"invalid playlist item index"};
+}
+
+string playlist::item(size_t idx) const
+{
+	lock_guard<mutex> lock{_items_locker};
+	return _items[idx];
+}
+
 void playlist::repeat()
 {
 	lock_guard<mutex> lock{_items_locker};

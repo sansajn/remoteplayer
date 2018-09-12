@@ -46,6 +46,7 @@ zmq_interface::zmq_interface(unsigned short port, library * lib, player * play)
 	, _lib{lib}
 	, _play{play}
 	, _position_change_count{0}
+	, _playlist_idx{0}
 	, _position{0}
 	, _duration{0}
 	, _playlist_id{0}
@@ -53,7 +54,7 @@ zmq_interface::zmq_interface(unsigned short port, library * lib, player * play)
 	_tp = hires_clock::now() + std::chrono::seconds{1};
 
 	_event_handler_id.push_back(
-		_play->play_signal.add(std::bind(&zmq_interface::on_play, this, std::placeholders::_1)));
+		_play->play_signal.add(std::bind(&zmq_interface::on_play, this, std::placeholders::_1, std::placeholders::_2)));
 
 	_event_handler_id.push_back(
 		_play->position_change_signal.add(std::bind(&zmq_interface::on_position_change, this, std::placeholders::_1, std::placeholders::_2)));
@@ -104,7 +105,7 @@ void zmq_interface::join()
 	_th.join();
 }
 
-void zmq_interface::on_play(std::string media)
+void zmq_interface::on_play(std::string media, size_t playlist_idx)
 {
 	cout << "playing '" << media << "' ..." << std::endl;
 
@@ -112,6 +113,7 @@ void zmq_interface::on_play(std::string media)
 
 	lock_guard<mutex> lock{_media_info_locker};
 	_media = media;
+	_playlist_idx = playlist_idx;
 }
 
 void zmq_interface::send_play_progress()
@@ -125,9 +127,10 @@ void zmq_interface::send_play_progress()
 		msg.put("media", _media);
 		msg.put<long>("position", (long)_position);
 		msg.put<long>("duration", (long)_duration);
+		msg.put<size_t>("playlist_idx", _playlist_idx);
 
 		LOG(trace) << "RPLAYC << play_progress(media=" << _media << ", position="
-			<< _position << ", duration=" << _duration << ")";
+			<< _position << ", duration=" << _duration << ", playlist_idx=" << _playlist_idx << ")";
 	}
 
 	publish(to_string(msg));

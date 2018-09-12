@@ -7,7 +7,7 @@
 
 struct player_client_listener
 {
-	virtual void on_play_progress(std::string const & media, long position, long duration) {}
+	virtual void on_play_progress(std::string const & media, long position, long duration, size_t playlist_idx) {}
 	virtual void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) {}
 	virtual void on_list_media(std::vector<std::string> const & items) {}
 };

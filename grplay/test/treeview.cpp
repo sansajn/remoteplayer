@@ -36,6 +36,8 @@ public:
 	};
 
 	library_tree_view();
+	RefPtr<Gtk::TreeStore> store() {return _store;}
+	void activate(string const & item);
 
 	model_columns columns;
 
@@ -83,16 +85,8 @@ private:
 	void on_button_quit();
 	void on_treeview_row_activated(Gtk::TreeModel::Path const & path, Gtk::TreeViewColumn * column);
 
-	// columns_type
-	struct model_columns : public Gtk::TreeModel::ColumnRecord
-	{
-		model_columns() {add(column_name);}
-		Gtk::TreeModelColumn<ustring> column_name;
-	};
-
 	Gtk::Box _vbox;
 	Gtk::ScrolledWindow _scrolled;
-	RefPtr<Gtk::TreeStore> _model;
 	Gtk::ButtonBox _button_box;
 	Gtk::Button _quit;
 	library_tree_view _view;
@@ -121,6 +115,8 @@ example_window::example_window()
 	for (fs::path p : fs::directory_iterator{home_dir() + "/Music"})
 		_view.insert(p.string());
 
+	_view.expand_all();
+
 	_view.signal_row_activated().connect(sigc::mem_fun(*this, &example_window::on_treeview_row_activated));
 
 	show_all_children();
@@ -133,7 +129,7 @@ void example_window::on_button_quit()
 
 void example_window::on_treeview_row_activated(Gtk::TreeModel::Path const & path, Gtk::TreeViewColumn * column)
 {
-	Gtk::TreeModel::iterator it = _model->get_iter(path);
+	Gtk::TreeModel::iterator it = _view.store()->get_iter(path);
 	if (it)
 	{
 		Gtk::TreeModel::Row row = *it;

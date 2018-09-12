@@ -24,7 +24,7 @@ private:
 	void send_playlist_content();
 
 	//! \note called from player thread
-	void on_play(std::string media);
+	void on_play(std::string media, size_t playlist_idx);
 	void on_position_change(int64_t position, int64_t duration);
 	void on_playlist_change(size_t playlist_id, std::vector<std::string> items);
 
@@ -44,6 +44,7 @@ private:
 
 	// current media info
 	std::string _media;
+	size_t _playlist_idx;
 	int64_t _position;
 	int64_t _duration;
 	size_t _playlist_id;

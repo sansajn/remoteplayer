@@ -54,7 +54,18 @@ void player_client::on_news(std::string const & news)
 			l->on_playlist_change(id, media_playlist_copy);
 	}
 	else
-		LOG(warning) << "unknown command '" << cmd << "'";
+	{
+		size_t ping_counter = json.get<size_t>("ping", 0);
+		if (ping_counter > 0)  // ping command
+			LOG(trace) << "RPLAY >> ping(count=" << ping_counter << ")";
+		else
+		{
+			if (!cmd.empty())
+				LOG(warning) << "unknown command '" << cmd << "'";
+			else
+				LOG(warning) << "unknown command '" << news << "'";
+		}
+	}
 }
 
 void player_client::connect(std::string const & host, unsigned short port)

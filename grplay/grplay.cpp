@@ -35,6 +35,7 @@ using std::smatch;
 using std::regex;
 using std::cout;
 using std::min;
+using std::sort;
 using std::advance;
 using boost::lexical_cast;
 using Glib::RefPtr;
@@ -44,6 +45,7 @@ void to_min_and_sec(long t, int & min, int & sec);
 void parse_title_author_album(string const & media, string & title, string & author,
 	string & album);
 string format_media(string const & media);
+static void weakly_directory_first_sort(vector<string> & files);
 
 
 class rplay_window
@@ -60,7 +62,7 @@ private:
 	void on_search();
 	void repack_ui();
 	void filter_media_library(string const & filter);
-	std::string const & get_media(int sel_idx) const;
+	std::string get_media(int sel_idx) const;  //!< \note it will take a lock for
 
 	// player_client events, note: called from player_client's thread
 	void on_play_progress(string const & media, long position, long duration, size_t playlist_idx) override;
@@ -82,7 +84,7 @@ private:
 	std::vector<std::string> _library;
 	std::vector<std::string> _playlist;
 	size_t _playlist_id;
-	std::mutex _player_data_locker;
+	mutable std::mutex _player_data_locker;
 
 	size_t _last_used_playlist_id;
 
@@ -325,8 +327,7 @@ void rplay_window::on_queue_button()
 	else  // from filtered media
 	{
 		Gtk::ListViewText::SelectionList selection = _filtered_media_list_view.get_selected();
-		fs::path const & media = get_media(selection[0]);
-		_play.play(media.string());
+		_play.play(get_media(selection[0]));
 	}
 }
 
@@ -343,6 +344,8 @@ void rplay_window::on_search()
 
 void rplay_window::filter_media_library(string const & filter)
 {
+	lock_guard<mutex> lock{_player_data_locker};
+
 	if (filter.empty())
 	{
 		_filtered = false;
@@ -369,8 +372,10 @@ void rplay_window::filter_media_library(string const & filter)
 	repack_ui();
 }
 
-string const & rplay_window::get_media(int sel_idx) const
+string rplay_window::get_media(int sel_idx) const
 {
+	lock_guard<mutex> lock{_player_data_locker};
+
 	size_t media_idx = (size_t)sel_idx;
 	if (_filtered)
 	{
@@ -400,10 +405,60 @@ void rplay_window::on_playlist_change(size_t playlist_id, vector<string> const &
 	_playlist = items;
 }
 
+bool has_dotdot(fs::path const & p)
+{
+	static fs::path dotdot{".."};
+	for (auto e : p)
+		if (e == dotdot)
+			return true;
+	return false;
+}
+
+bool has_dot(fs::path const & p)
+{
+	static fs::path dot{"."};
+	for (auto e : p)
+		if (e == dot)
+			return true;
+	return false;
+}
+
+bool sub_directory(fs::path const & a, fs::path const & b)  //!< true if a is b sub-directory
+{
+	fs::path const rel = relative(a.parent_path(), b.parent_path());
+	if (has_dotdot(rel) || has_dot(rel))
+		return false;
+	else
+		return true;
+}
+
+void weakly_directory_first_sort(vector<string> & files)
+{
+	// FIXME: direct call from files cause crash, thre must be something wrong with _library access
+	vector<fs::path> patches;
+	for (string const & f : files)
+		patches.push_back(fs::path{f});
+
+	sort(patches.begin(), patches.end(), [](fs::path const & a, fs::path const & b) {
+		if (sub_directory(a, b))
+			return true;
+		else if (sub_directory(b, a))
+			return false;
+		else
+			return a < b;
+	});
+
+	files.clear();
+	for (fs::path const & p : patches)
+		files.push_back(p.string());
+}
+
+
 void rplay_window::on_list_media(vector<string> const & items)
 {
 	lock_guard<mutex> lock{_player_data_locker};
 	_library = items;
+	weakly_directory_first_sort(_library);
 }
 
 int main(int argc, char * argv[])

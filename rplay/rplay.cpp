@@ -6,6 +6,7 @@
 #include "library.hpp"
 #include "config.hpp"
 #include "version.hpp"
+#include "log.hpp"
 
 using std::string;
 using std::cout;
@@ -14,9 +15,23 @@ int main(int argc, char * argv[])
 {
 	config conf{argc, argv};
 
+	if (!conf.log_file.empty())
+	{
+		log_to_file(conf.log_file);
+
+		LOG(info) << software_name() << " " << software_version() << " (" << software_build() << ")";
+		LOG(info) << "listenning on tcp://*:" << conf.port;
+		LOG(info) << "media-home: " << conf.media_home;
+		LOG(info) << "log-file: " << conf.log_file;
+	}
+	else
+		log_to_console();
+
 	cout << software_name() << " " << software_version() << " (" << software_build() << ")\n";
 	cout << "listenning on tcp://*:" << conf.port << "\n";
 	cout << "media-home: " << conf.media_home << "\n";
+	if (!conf.log_file.empty())
+		cout << "log-file: " << conf.log_file << "\n";
 
 	library lib{conf.media_home};
 

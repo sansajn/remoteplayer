@@ -19,7 +19,9 @@ env = Environment(
 		'boost_filesystem',
 		'boost_system',
 		'boost_thread',
-		'boost_log'],
+		'boost_log',
+		'boost_log_setup',
+		'boost_date_time'],
 	CPPDEFINES=['BOOST_SPIRIT_THREADSAFE', 'BOOST_LOG_DYN_LINK'],  # json support
 	CPPPATH=['libs/']
 )
@@ -103,6 +105,7 @@ common_objs = env.Object([
 	'io.cpp',
 	'json.cpp',
 	'fs.cpp',
+	'log.cpp',
 	'zmq_interface.cpp'
 ]);
 
@@ -111,9 +114,6 @@ Requires(common_objs, version_obj)
 
 env.Program('rplay', [
 	'rplay.cpp',
-#	'library.cpp',
-#	'interface.cpp',
-#	'config.cpp',
 	common_objs,
 	zmqu_lib
 ])

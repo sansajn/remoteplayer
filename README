@@ -28,8 +28,15 @@ Remote Player Server (rplay) can be configured with
 	{
 		"rplay":{
 			"media_home":"/home/me/Music",
-			"port":13333
+			"port":13333,
+			"log_file":"~/rplay.log"
 		}
 	}
 
---- end of sample] JSON like file stored as 'rplay.conf' in remoteplayer directory.
+--- end of sample] JSON like file stored as 'rplay.conf' in remoteplayer directory where
+
+	rplay.media_home: specify media library directory
+	rplay.port: specify ZMQ interface port number
+	rplay.log_file: will redirect logging into specified file
+
+

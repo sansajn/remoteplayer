@@ -34,4 +34,6 @@ config::config(int argc, char * argv[])
 		port = lexical_cast<unsigned short>(argv[2]);
 	else
 		port = root.get<unsigned short>("rplay.port", port);
+
+	log_file = root.get<string>("rplay.log_file", string{});
 }

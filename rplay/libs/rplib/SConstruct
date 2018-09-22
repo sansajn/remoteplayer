@@ -1,0 +1,7 @@
+# reference rplib build script
+
+env = Environment(
+	LIBS=['boost_date_time']
+)
+
+rplib_a = env.StaticLibrary(Glob('*.cpp'))

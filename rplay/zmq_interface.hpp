@@ -22,6 +22,7 @@ public:
 private:
 	void send_play_progress();
 	void send_playlist_content();
+	void send_server_alive();
 
 	//! \note called from player thread
 	void on_play(std::string media, size_t playlist_idx);

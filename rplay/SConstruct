@@ -96,6 +96,9 @@ env.Append(LINKFLAGS=str(version_obj[0]))
 # static libzmqu library
 zmqu_lib = env.StaticLibrary('zmqu', Glob('libs/zmqu/*.cpp'))
 
+# static rp library
+rp_lib = env.StaticLibrary('rp', Glob('libs/rplib/*.cpp'))
+
 common_objs = env.Object([
 	'gst_audio_player.cpp',
 	'player.cpp',
@@ -115,5 +118,6 @@ Requires(common_objs, version_obj)
 env.Program('rplay', [
 	'rplay.cpp',
 	common_objs,
+	rp_lib,
 	zmqu_lib
 ])

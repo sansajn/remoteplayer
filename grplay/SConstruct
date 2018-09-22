@@ -14,20 +14,29 @@ else:
 
 env = Environment(
 	CCFLAGS=cxxflags,
-	LIBS=['pthread', 'boost_filesystem', 'boost_system', 'boost_thread',	'boost_log'],
+	LIBS=[
+		'pthread',
+		'boost_filesystem',
+		'boost_system',
+		'boost_thread',
+		'boost_log',
+		'boost_date_time'
+	],
 	CPPDEFINES=['BOOST_SPIRIT_THREADSAFE', 'BOOST_LOG_DYN_LINK'],  # json support
 	CPPPATH=['libs/']
 )
 
 env.ParseConfig('pkg-config --cflags --libs gtkmm-3.0 libzmq')
 
-# static libzmqu library
+# libs
 zmqu_lib = env.StaticLibrary('zmqu', Glob('libs/zmqu/*.cpp'))
+rp_lib = env.StaticLibrary('rp', Glob('libs/rplib/*.cpp'))
 
 env.Program('grplay', [
 	'grplay.cpp',
 	'player_client.cpp',
 	'library_tree_view.cpp',
+	rp_lib,
 	zmqu_lib
 ])
 

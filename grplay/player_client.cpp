@@ -1,5 +1,6 @@
 #include <iostream>
 #include <zmqu/json.hpp>
+#include <rplib/time.hpp>
 #include "player_client.hpp"
 #include "log.hpp"
 
@@ -53,18 +54,23 @@ void player_client::on_news(std::string const & news)
 		for (auto * l : listeners())
 			l->on_playlist_change(id, media_playlist_copy);
 	}
+	else if (cmd == "alive")
+	{
+		size_t count = json.get<size_t>("count", 0);
+		string time_stamp = json.get<string>("time_stamp", "");
+
+		rpl::ptime t0 = rpl::to_ptime(time_stamp);
+		rpl::time_duration dt = rpl::now() - t0;
+
+		LOG(trace) << "RPLAY >> alive(" << count << ") in "
+			<< dt.total_microseconds()/1000.0 << "ms";
+	}
 	else
 	{
-		size_t ping_counter = json.get<size_t>("ping", 0);
-		if (ping_counter > 0)  // ping command
-			LOG(trace) << "RPLAY >> ping(count=" << ping_counter << ")";
+		if (!cmd.empty())
+			LOG(warning) << "unknown command '" << cmd << "'";
 		else
-		{
-			if (!cmd.empty())
-				LOG(warning) << "unknown command '" << cmd << "'";
-			else
-				LOG(warning) << "unknown command '" << news << "'";
-		}
+			LOG(warning) << "unknown command '" << news << "'";
 	}
 }
 

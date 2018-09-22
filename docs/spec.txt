@@ -20,7 +20,7 @@ bude poskytovať nasledujúce funkcie:
 	* play_progress, update priebehu prehrávania (každých 10s)
 	* identify, vráti informácie o serveru
 	* playlist_content, update obsahu playlistu
-	* ping, posiela klientom kazdu 1s
+	* alive, server posiela klientom kazdu 1s (niečo ako ping)
 
 Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
 obsahu.
@@ -131,13 +131,18 @@ kde N, identyfikátor playlistu je celé kladné číslo a items obsahuje pole
 reťazcou, kde jednotlive reťazece popisuje položky pleylistu.
 
 
-ping [news]:
+alive [news]:
 
-remoteplayer posiela príkaz každú 1s v tvare
+remoteplayer posiela príkaz v pravidelných intervaloch (každú 1s) v tvare
 
-	{'ping':N}
+	{
+		'cmd':'alive',
+		'count':N,
+		'time_stamp':ISO_STRING
+	}
 
-kde N je čítač.
+kde N je čítač a ISO_STRING je časové razítko v tvare YYYYMMDDTHHMMSS.ffffff
+reprezentované reťazcom.
 
 
 V prípade neznámeho dotazu odpovie server správou

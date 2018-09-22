@@ -3,6 +3,7 @@
 #include <iostream>
 #include <zmqu/send.hpp>
 #include <zmqu/json.hpp>
+#include <rplib/time.hpp>
 #include "zmq_interface.hpp"
 #include "log.hpp"
 #include "version.hpp"
@@ -72,18 +73,11 @@ zmq_interface::~zmq_interface()
 
 void zmq_interface::idle()
 {
-	static unsigned ping_counter = 1;
-
 	auto now = hires_clock::now();
 	if (now > _tp)
 	{
+		send_server_alive();
 		_tp = now + std::chrono::seconds{1};
-
-		jtree ping;
-		ping.put<unsigned>("ping", ping_counter);
-		++ping_counter;
-
-		publish(to_string(ping));
 	}
 }
 
@@ -152,6 +146,24 @@ void zmq_interface::send_playlist_content()
 	}
 
 	publish(to_string(msg));
+}
+
+void zmq_interface::send_server_alive()
+{
+	static unsigned alive_counter = 1;
+
+	jtree alive;
+	alive.put<string>("cmd", "alive");
+
+	alive.put<size_t>("count", alive_counter);
+	++alive_counter;
+
+	string now = rpl::timestamp();
+	alive.put<string>("time_stamp", now);
+
+	LOG(trace) << "RPLAYC << ping(count=" << alive_counter << ", time_stamp=" << now << ")";
+
+	publish(to_string(alive));
 }
 
 void zmq_interface::on_position_change(int64_t position, int64_t duration)

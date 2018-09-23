@@ -61,6 +61,7 @@ private:
 	void on_stop_button();
 	void on_search();
 	void repack_ui();
+	bool on_seek(Gtk::ScrollType scroll, double value);
 	void filter_media_library(string const & filter);
 	std::string get_media(int sel_idx) const;  //!< \note it will take a lock for
 
@@ -84,6 +85,7 @@ private:
 	std::vector<std::string> _library;
 	std::vector<std::string> _playlist;
 	size_t _playlist_id;
+	bool _seek_position_lock;
 	mutable std::mutex _player_data_locker;
 
 	size_t _last_used_playlist_id;
@@ -123,6 +125,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	, _duration{0}
 	, _playlist_id{0}
 	, _last_used_playlist_id{0}
+	, _seek_position_lock{false}
 	, _vbox{Gtk::Orientation::ORIENTATION_VERTICAL}
 	, _playlist_view{1}
 	, _filtered_media_list_view{1}
@@ -145,6 +148,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_player_progress.set_digits(2);
 	_player_progress.set_draw_value(false);
 	_player_progress.set_adjustment(_progress_adj);
+	_player_progress.signal_change_value().connect(sigc::mem_fun(*this, &rplay_window::on_seek));
 
 	_player_position.set_text("0:00");
 	_player_duration.set_text("00:00");
@@ -277,14 +281,22 @@ void rplay_window::update_ui()
 	_player_media.set_text(format_media(_media));
 
 	// position
-	auto elapsed = std::chrono::high_resolution_clock::now() - _last_progress_update;
-	long position = min(
-		_position + std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count(),
-		_duration);
-	_player_position.set_text(format_position(position));
+	if (!_seek_position_lock)
+	{
+		auto elapsed = std::chrono::high_resolution_clock::now() - _last_progress_update;
+		long position = min(
+			_position + std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count(),
+			_duration);
+		_player_position.set_text(format_position(position));
 
-	// scale
-	_progress_adj->set_value((double)position/(double)_duration);
+		// scale
+		_progress_adj->set_value((double)position/(double)_duration);
+	}
+	else
+	{
+		double pos = _player_progress.get_value();  // new seeked position
+		_player_position.set_text(format_position(pos * _duration));
+	}
 
 	// duration
 	_player_duration.set_text(format_position(_duration));
@@ -306,6 +318,20 @@ void rplay_window::repack_ui()
 	}
 
 	show_all();
+}
+
+bool rplay_window::on_seek(Gtk::ScrollType scroll, double value)
+{
+	lock_guard<mutex> lock{_player_data_locker};
+
+	assert(_duration > 0.0);
+	double pos = value * _duration;
+	_seek_position_lock = true;
+
+	_play.seek(long(pos), _media);
+
+	LOG(debug) << "on_seek(pos=" << pos << "ns)";
+	return true;
 }
 
 void rplay_window::on_queue_button()
@@ -396,6 +422,7 @@ void rplay_window::on_play_progress(string const & media, long position, long du
 	_duration = duration;
 	_playlist_idx = playlist_idx;
 	_last_progress_update = std::chrono::high_resolution_clock::now();
+	_seek_position_lock = false;
 }
 
 void rplay_window::on_playlist_change(size_t playlist_id, vector<string> const & items)

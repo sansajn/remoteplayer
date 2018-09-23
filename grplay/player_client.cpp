@@ -161,3 +161,14 @@ void player_client::stop()
 
 	LOG(trace) << "RPLAY << stop";
 }
+
+void player_client::seek(long pos, fs::path const & media)
+{
+	jtree req;
+	req.put("cmd", "seek");
+	req.put<int>("position", int(pos / 1000000000));
+	req.put("media", media.string());
+	notify(to_string(req));
+
+	LOG(trace) << "RPLAY << seek(pos=" << pos / 1000000000 << "s, media=" << media << ")";
+}

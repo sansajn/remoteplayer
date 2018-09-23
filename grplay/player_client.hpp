@@ -38,6 +38,7 @@ public:
 	std::vector<std::string> list_playlist() const;
 	void play(fs::path const & media);
 	void stop();
+	void seek(long pos, fs::path const & media);
 
 private:
 	void on_news(std::string const & news) override;

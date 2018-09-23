@@ -34,6 +34,11 @@ void player::play()
 	_play_flag = true;
 }
 
+void player::seek(int64_t pos_in_ns)
+{
+	_p.seek(pos_in_ns);
+}
+
 void player::stop()
 {
 	_play_flag = false;

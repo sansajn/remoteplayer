@@ -251,6 +251,17 @@ void zmq_interface::on_notify(string const & s)
 	{
 		_play->stop();
 		_play->clear_media_playlist();
+
+		LOG(trace) << "RPLAYC >> stop()";
+	}
+	else if (cmd == "seek")
+	{
+		int pos = json.get<int>("position", -1);
+		string media = json.get<string>("media", "");
+
+		_play->seek(int64_t{pos} * 1000000000);
+
+		LOG(trace) << "seek(pos=" << pos << ", '" << media << "')";
 	}
 	else
 		LOG(warning) << "unknown command (" << s << ")";

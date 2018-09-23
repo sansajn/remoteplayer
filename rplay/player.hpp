@@ -17,6 +17,7 @@ public:
 	void start();
 	void queue(std::string const & media);
 	void play();
+	void seek(int64_t pos_in_ns);
 	void stop();
 	bool playing() const;
 	playlist const & media_playlist() const;

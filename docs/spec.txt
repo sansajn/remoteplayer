@@ -21,6 +21,7 @@ bude poskytovať nasledujúce funkcie:
 	* identify, vráti informácie o serveru
 	* playlist_content, update obsahu playlistu
 	* alive, server posiela klientom kazdu 1s (niečo ako ping)
+	* seek, ktorá posunie aktualnu skladnu na požadovanú pozíciu
 
 Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
 obsahu.
@@ -143,6 +144,21 @@ remoteplayer posiela príkaz v pravidelných intervaloch (každú 1s) v tvare
 
 kde N je čítač a ISO_STRING je časové razítko v tvare YYYYMMDDTHHMMSS.ffffff
 reprezentované reťazcom.
+
+
+seek [notify]:
+
+klient posielá správu na zmenu pozície aktuálnej skladby v tvare
+
+	{
+		"cmd":"seek",
+		"position":POS_IN_SEC,
+		"media":"/path/to/file"
+	}
+
+kde POS_IN_SEC (int) je nová pozícia skladby.
+
+
 
 
 V prípade neznámeho dotazu odpovie server správou

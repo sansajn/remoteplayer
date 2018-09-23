@@ -2,8 +2,13 @@
 #include <gst/gst.h>
 #include "gst_audio_player.hpp"
 
+// debug
+#include <iostream>
+using std::cout;
+
 using std::function;
 using std::atomic_bool;
+using std::atomic_int64_t;
 using std::string;
 
 
@@ -18,12 +23,12 @@ void invoke(function<void (Args ...)> const & f, Args ... args)
 
 //! stateless cancellable play implementation with progress and done (EOS) callback
 void play(string const & uri, function<void (int64_t, int64_t)> const & progress_cb,
-	function<void ()> const & done_cb, atomic_bool & cancel);
+	function<void ()> const & done_cb, atomic_int64_t & seek_pos_in_ns, atomic_bool & cancel);
 
 }  // Detail
 
 using play_func_t = void (*)(string const &, function<void (int64_t, int64_t)> const &,
-	function<void ()> const &, atomic_bool &);
+	function<void ()> const &, atomic_int64_t &, atomic_bool &);
 
 
 gst_audio_player::gst_audio_player()
@@ -43,7 +48,12 @@ void gst_audio_player::play(string const & media, done_cb_type const & done_cb,
 	_cancel = false;
 
 	_th = std::thread{static_cast<play_func_t>(Detail::play), media, progress_cb,
-		done_cb, std::ref(_cancel)};
+		done_cb, std::ref(_seek_pos_in_ns), std::ref(_cancel)};
+}
+
+void gst_audio_player::seek(int64_t pos_in_ns)
+{
+	_seek_pos_in_ns = pos_in_ns;
 }
 
 void gst_audio_player::stop()
@@ -61,13 +71,15 @@ void gst_audio_player::join()
 namespace Detail {
 
 void play(string const & uri, function<void (int64_t, int64_t)> const & progress_cb,
-	function<void ()> const & done_cb, atomic_bool & cancel)
+	function<void ()> const & done_cb, atomic_int64_t & seek_pos_in_ns, atomic_bool & cancel)
 {
 	GstElement * playbin = gst_element_factory_make("playbin", "playbin");
 	assert(playbin && "unable to create a playbin element");
 
 	// insert media
 	g_object_set(playbin, "uri", uri.c_str(), nullptr);
+
+	seek_pos_in_ns = GST_CLOCK_TIME_NONE;
 
 	// play
 	GstStateChangeReturn ret = gst_element_set_state(playbin, GST_STATE_PLAYING);
@@ -88,7 +100,7 @@ void play(string const & uri, function<void (int64_t, int64_t)> const & progress
 			if (msg->type == GST_MESSAGE_EOS)
 				invoke(done_cb);
 		}
-		else
+		else  // timeout
 		{
 			GstState state, pending;
 			gst_element_get_state(playbin, &state, &pending, GST_CLOCK_TIME_NONE);
@@ -104,6 +116,15 @@ void play(string const & uri, function<void (int64_t, int64_t)> const & progress
 				assert(0 && "unable to query playbin duration");
 
 			invoke(progress_cb, pos, dur);
+
+			// seek
+			if (GST_CLOCK_TIME_IS_VALID(seek_pos_in_ns))
+			{
+				// TODO: check seek conditions
+				cout << "performing seek to " << seek_pos_in_ns / 1e9 << "s" << std::endl;
+				gst_element_seek_simple(playbin, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH|GST_SEEK_FLAG_KEY_UNIT), seek_pos_in_ns);
+				seek_pos_in_ns = GST_CLOCK_TIME_NONE;
+			}
 		}
 	}
 	while (!msg && !cancel);

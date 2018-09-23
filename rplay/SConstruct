@@ -1,6 +1,7 @@
 # dependencies:
 #    libgstreamer1.0-dev
 #    libzmq3-dev
+#    libasound2-dev
 
 # --release-build option
 AddOption('--release-build', action='store_true', dest='release_build',	help='create optimized binary', default=False)
@@ -26,7 +27,7 @@ env = Environment(
 	CPPPATH=['libs/']
 )
 
-env.ParseConfig('pkg-config --cflags --libs gstreamer-1.0 libzmq')
+env.ParseConfig('pkg-config --cflags --libs gstreamer-1.0 libzmq alsa')
 
 
 def find_rplay_version():
@@ -109,7 +110,8 @@ common_objs = env.Object([
 	'json.cpp',
 	'fs.cpp',
 	'log.cpp',
-	'zmq_interface.cpp'
+	'zmq_interface.cpp',
+	'volume_control.cpp'
 ]);
 
 Requires(common_objs, version_obj)

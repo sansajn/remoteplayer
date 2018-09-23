@@ -5,6 +5,7 @@
 #include <zmqu/clone_server.hpp>
 #include "library.hpp"
 #include "player.hpp"
+#include "volume_control.hpp"
 
 /*! zmq based interface implementation */
 class zmq_interface
@@ -23,6 +24,7 @@ private:
 	void send_play_progress();
 	void send_playlist_content();
 	void send_server_alive();
+	void send_volume();
 
 	//! \note called from player thread
 	void on_play(std::string media, size_t playlist_idx);
@@ -37,6 +39,7 @@ private:
 	unsigned short _port;
 	library * _lib;
 	player * _play;
+	volume_control _volume;
 	std::thread _th;
 	hires_clock::time_point _tp;
 	std::vector<size_t> _event_handler_id;

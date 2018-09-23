@@ -22,6 +22,8 @@ bude poskytovať nasledujúce funkcie:
 	* playlist_content, update obsahu playlistu
 	* alive, server posiela klientom kazdu 1s (niečo ako ping)
 	* seek, ktorá posunie aktualnu skladnu na požadovanú pozíciu
+	* volume, posiela server pri zmene hlasitosti
+	* set_volume, dovoluje užívateľovi zmenu hlasitosti
 
 Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
 obsahu.
@@ -157,6 +159,30 @@ klient posielá správu na zmenu pozície aktuálnej skladby v tvare
 	}
 
 kde POS_IN_SEC (int) je nová pozícia skladby.
+
+
+volume [news]:
+
+posiela server pri zmene hlasitosti v tvare
+
+	{
+		"cmd":"volume",
+		"value":N
+	}
+
+kde N (int) je celé kladné číslo v rozsahu 0 až 100.
+
+
+set_volume [notify]:
+
+Príkaz užívateľovi zmenu hlasitosti
+
+	{
+		"cmd":"set_volume",
+		"value":N
+	}
+
+kde N (int) je celé kladné číslo v rozsahu 0 až 100.
 
 
 

@@ -166,6 +166,18 @@ void zmq_interface::send_server_alive()
 	publish(to_string(alive));
 }
 
+void zmq_interface::send_volume()
+{
+	int value = (int)_volume.value();
+
+	jtree news;
+	news.put<string>("cmd", "volume");
+	news.put<int>("value", value);
+	publish(to_string(news));
+
+	LOG(trace) << "RPLAYC << volume(value=" << value << ")";
+}
+
 void zmq_interface::on_position_change(int64_t position, int64_t duration)
 {
 //	cout << "progress=" << position << "/" << duration << std::endl;
@@ -237,31 +249,46 @@ void zmq_interface::on_notify(string const & s)
 
 	if (cmd == "play_media")
 	{
-		string const content = json.get("content", string{});
+		string content = json.get("content", string{});
+
+		LOG(trace) << "RPLAYC >> play_media(content='" << content << "')";
+
 		if (!content.empty())
 		{
 			_play->queue(content);
 			if (!_play->playing())
 				_play->play();
 		}
-
-		LOG(trace) << "RPLAYC >> play_media(content='" << content << "')";
 	}
 	else if (cmd == "stop")
 	{
+		LOG(trace) << "RPLAYC >> stop()";
+
 		_play->stop();
 		_play->clear_media_playlist();
-
-		LOG(trace) << "RPLAYC >> stop()";
 	}
 	else if (cmd == "seek")
 	{
 		int pos = json.get<int>("position", -1);
 		string media = json.get<string>("media", "");
 
-		_play->seek(int64_t{pos} * 1000000000);
+		LOG(trace) << "RPLAY >> seek(pos=" << pos << ", '" << media << "')";
 
-		LOG(trace) << "seek(pos=" << pos << ", '" << media << "')";
+		_play->seek(int64_t{pos} * 1000000000);
+	}
+	else if (cmd == "set_volume")
+	{
+		int value = json.get<int>("value", -1);
+
+		LOG(trace) << "RPLAY >> set_volume(value=" << value << ")\n";
+
+		if (value >= 0 && value <= 100)
+		{
+			_volume.value(value);
+			send_volume();
+		}
+		else
+			LOG(warning) << "set_volume command ignored, value=" << value << " not in range.";
 	}
 	else
 		LOG(warning) << "unknown command (" << s << ")";

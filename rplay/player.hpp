@@ -20,6 +20,7 @@ public:
 	void seek(int64_t pos_in_ns);
 	void stop();
 	bool playing() const;
+	void add(std::string const & media);
 	playlist const & media_playlist() const;
 	void clear_media_playlist();
 	void quit();

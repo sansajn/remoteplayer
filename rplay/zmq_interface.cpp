@@ -290,6 +290,14 @@ void zmq_interface::on_notify(string const & s)
 		else
 			LOG(warning) << "set_volume command ignored, value=" << value << " not in range.";
 	}
+	else if (cmd == "playlist_add")
+	{
+		string media = json.get<string>("media", "");
+		if (!media.empty())
+			_play->add(media);
+
+		LOG(trace) << "RPLAY >> playlist_add('" << media << "')";
+	}
 	else
 		LOG(warning) << "unknown command (" << s << ")";
 }

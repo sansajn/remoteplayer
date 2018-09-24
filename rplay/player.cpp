@@ -24,9 +24,7 @@ void player::start()
 
 void player::queue(string const & media)
 {
-	_items.add("file://" + media);
-	++_playlist_id;
-	playlist_change_signal.call(_playlist_id, _items.items());
+	add(media);
 }
 
 void player::play()
@@ -48,6 +46,13 @@ void player::stop()
 bool player::playing() const
 {
 	return _play_flag;
+}
+
+void player::add(std::string const & media)
+{
+	_items.add("file://" + media);
+	++_playlist_id;
+	playlist_change_signal.call(_playlist_id, _items.items());
 }
 
 playlist const & player::media_playlist() const

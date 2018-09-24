@@ -303,8 +303,10 @@ void zmq_interface::on_accepted(socket_id sid, std::string const & addr)
 
 	LOG(trace) << "client connected";
 
-	if (!_playlist.empty())
+	if (_playlist.size() > 0)
 		send_playlist_content();
+
+	send_volume();
 
 	if (_play->playing())
 		send_play_progress();

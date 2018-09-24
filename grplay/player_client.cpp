@@ -62,8 +62,16 @@ void player_client::on_news(std::string const & news)
 		rpl::ptime t0 = rpl::to_ptime(time_stamp);
 		rpl::time_duration dt = rpl::now() - t0;
 
-		LOG(trace) << "RPLAY >> alive(" << count << ") in "
-			<< dt.total_microseconds()/1000.0 << "ms";
+//		LOG(trace) << "RPLAY >> alive(" << count << ") in "
+//			<< dt.total_microseconds()/1000.0 << "ms";
+	}
+	else if (cmd == "volume")
+	{
+		int value = json.get<int>("value", -1);
+		LOG(trace) << "RPLAY >> volume(value=" << value << ")";
+
+		for (auto * l : listeners())
+			l->on_volume(value);
 	}
 	else
 	{
@@ -171,4 +179,17 @@ void player_client::seek(long pos, fs::path const & media)
 	notify(to_string(req));
 
 	LOG(trace) << "RPLAY << seek(pos=" << pos / 1000000000 << "s, media=" << media << ")";
+}
+
+void player_client::volume(int val)
+{
+	if (val < 0 || val > 100)
+		return;  // out of range
+
+	jtree req;
+	req.put("cmd", "set_volume");
+	req.put<int>("value", val);
+	notify(to_string(req));
+
+	LOG(trace) << "RPLAY << set_volume(value=" << val << ")";
 }

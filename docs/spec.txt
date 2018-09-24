@@ -165,22 +165,17 @@ volume [news]:
 
 posiela server pri zmene hlasitosti v tvare
 
-	{
-		"cmd":"volume",
-		"value":N
-	}
+	{"cmd":"volume", "value":N}
 
-kde N (int) je celé kladné číslo v rozsahu 0 až 100.
+kde N (int) je celé kladné číslo v rozsahu 0 až 100. Server volume spravu
+posiela aj pri pripojeni klienta k serveru.
 
 
 set_volume [notify]:
 
 Príkaz užívateľovi zmenu hlasitosti
 
-	{
-		"cmd":"set_volume",
-		"value":N
-	}
+	{"cmd":"set_volume",	"value":N}
 
 kde N (int) je celé kladné číslo v rozsahu 0 až 100.
 

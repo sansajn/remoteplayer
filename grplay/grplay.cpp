@@ -19,6 +19,7 @@
 #include <gtkmm/listviewtext.h>
 #include <gtkmm/searchentry.h>
 #include <gtkmm/scale.h>
+#include <gtkmm/volumebutton.h>
 #include "log.hpp"
 #include "player_client.hpp"
 #include "json.hpp"
@@ -60,8 +61,9 @@ private:
 	void on_queue_button();
 	void on_stop_button();
 	void on_search();
-	void repack_ui();
 	bool on_seek(Gtk::ScrollType scroll, double value);
+	void on_volume_change();
+	void repack_ui();
 	void filter_media_library(string const & filter);
 	std::string get_media(int sel_idx) const;  //!< \note it will take a lock for
 
@@ -69,6 +71,7 @@ private:
 	void on_play_progress(string const & media, long position, long duration, size_t playlist_idx) override;
 	void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) override;
 	void on_list_media(std::vector<std::string> const & items) override;
+	void on_volume(int val) override;
 
 	static int update_cb(gpointer user_data);
 
@@ -86,6 +89,7 @@ private:
 	std::vector<std::string> _playlist;
 	size_t _playlist_id;
 	bool _seek_position_lock;
+	int _serv_volume;
 	mutable std::mutex _player_data_locker;
 
 	size_t _last_used_playlist_id;
@@ -98,6 +102,9 @@ private:
 	Gtk::Scale _player_progress;
 	RefPtr<Gtk::Adjustment> _progress_adj;
 	Gtk::Label _player_duration;
+	Gtk::ButtonBox _control_bar;
+	Gtk::VolumeButton _volume;
+	RefPtr<Gtk::Adjustment> _volume_adj;
 	Gtk::ScrolledWindow _playlist_scroll;
 	Gtk::ListViewText _playlist_view;
 	Gtk::SearchEntry _search;
@@ -124,8 +131,9 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	, _position{0}
 	, _duration{0}
 	, _playlist_id{0}
-	, _last_used_playlist_id{0}
 	, _seek_position_lock{false}
+	, _serv_volume{0}
+	, _last_used_playlist_id{0}
 	, _vbox{Gtk::Orientation::ORIENTATION_VERTICAL}
 	, _playlist_view{1}
 	, _filtered_media_list_view{1}
@@ -156,6 +164,12 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_progress_hbox.add(_player_position);
 	_progress_hbox.pack_start(_player_progress, Gtk::PackOptions::PACK_EXPAND_WIDGET);
 	_progress_hbox.add(_player_duration);
+
+	_volume_adj = Gtk::Adjustment::create(0, 0, 100, 1);
+	_volume.set_adjustment(_volume_adj);
+	_volume_adj->signal_value_changed().connect(sigc::mem_fun(*this, &rplay_window::on_volume_change));
+	_control_bar.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_END);
+	_control_bar.pack_start(_volume, Gtk::PackOptions::PACK_SHRINK);
 
 	_playlist_scroll.set_size_request(-1, 150);
 	_playlist_scroll.add(_playlist_view);
@@ -188,6 +202,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	// pack
 	_vbox.pack_start(_player_media, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_progress_hbox, Gtk::PackOptions::PACK_SHRINK);
+	_vbox.pack_start(_control_bar, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_playlist_scroll, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_scroll, Gtk::PackOptions::PACK_EXPAND_WIDGET);
 	_vbox.pack_start(_search, Gtk::PackOptions::PACK_SHRINK);
@@ -265,6 +280,10 @@ void rplay_window::update_ui()
 		_last_used_playlist_id = _playlist_id;
 	}
 
+	// volume
+	if ((int)_volume_adj->get_value() != _serv_volume)
+		_volume_adj->set_value(_serv_volume);
+
 	if (_media.empty())
 		return;
 
@@ -308,13 +327,13 @@ void rplay_window::repack_ui()
 	{
 		_vbox.remove(_scroll);
 		_vbox.pack_start(_filtered_scroll, Gtk::PackOptions::PACK_EXPAND_WIDGET);
-		_vbox.reorder_child(_filtered_scroll, 3);
+		_vbox.reorder_child(_filtered_scroll, 4);
 	}
 	else
 	{
 		_vbox.remove(_filtered_scroll);
 		_vbox.pack_start(_scroll, Gtk::PackOptions::PACK_EXPAND_WIDGET);
-		_vbox.reorder_child(_scroll, 3);
+		_vbox.reorder_child(_scroll, 4);
 	}
 
 	show_all();
@@ -330,8 +349,12 @@ bool rplay_window::on_seek(Gtk::ScrollType scroll, double value)
 
 	_play.seek(long(pos), _media);
 
-	LOG(debug) << "on_seek(pos=" << pos << "ns)";
 	return true;
+}
+
+void rplay_window::on_volume_change()
+{
+	_play.volume((int)_volume_adj->get_value());
 }
 
 void rplay_window::on_queue_button()
@@ -486,6 +509,12 @@ void rplay_window::on_list_media(vector<string> const & items)
 	lock_guard<mutex> lock{_player_data_locker};
 	_library = items;
 	weakly_directory_first_sort(_library);
+}
+
+void rplay_window::on_volume(int val)
+{
+	lock_guard<mutex> lock{_player_data_locker};
+	_serv_volume = val;
 }
 
 int main(int argc, char * argv[])

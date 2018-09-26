@@ -193,3 +193,13 @@ void player_client::volume(int val)
 
 	LOG(trace) << "RPLAY << set_volume(value=" << val << ")";
 }
+
+void player_client::playlist_add(fs::path const & media)
+{
+	jtree req;
+	req.put("cmd", "playlist_add");
+	req.put("media", media.string());
+	notify(to_string(req));
+
+	LOG(trace) << "RPLAY << playlist_add(" << media << ")";
+}

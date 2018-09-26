@@ -60,6 +60,7 @@ private:
 	void update_ui();
 	void on_queue_button();
 	void on_stop_button();
+	void on_playlist_add_button();
 	void on_search();
 	bool on_seek(Gtk::ScrollType scroll, double value);
 	void on_volume_change();
@@ -102,7 +103,12 @@ private:
 	Gtk::Scale _player_progress;
 	RefPtr<Gtk::Adjustment> _progress_adj;
 	Gtk::Label _player_duration;
-	Gtk::ButtonBox _control_bar;
+	Gtk::Box _control_bar_hbox;
+	Gtk::ButtonBox _control_bar_r;
+	Gtk::Button _queue_button;
+//	Gtk::Button _pause_button;
+	Gtk::Button _stop_button;
+	Gtk::ButtonBox _control_bar_l;
 	Gtk::VolumeButton _volume;
 	RefPtr<Gtk::Adjustment> _volume_adj;
 	Gtk::ScrolledWindow _playlist_scroll;
@@ -112,10 +118,8 @@ private:
 	Gtk::ListViewText _filtered_media_list_view;
 	Gtk::ScrolledWindow _scroll;
 	library_tree_view _media_list_view;
-	Gtk::ButtonBox _button_box;
-	Gtk::Button _queue_button;
-//	Gtk::Button _pause_button;
-	Gtk::Button _stop_button;
+	Gtk::ButtonBox _library_control_bar;
+	Gtk::Button _playlist_add_button;
 };
 
 int rplay_window::update_cb(gpointer user_data)
@@ -165,12 +169,32 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_progress_hbox.pack_start(_player_progress, Gtk::PackOptions::PACK_EXPAND_WIDGET);
 	_progress_hbox.add(_player_duration);
 
+	// control bar
+	_control_bar_hbox.add(_control_bar_r);
+	_control_bar_hbox.add(_control_bar_l);
+	_control_bar_hbox.set_homogeneous();
+
+	_control_bar_r.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
+
+	_queue_button.set_image_from_icon_name("media-playback-start");
+	_queue_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_queue_button));
+//	_pause_button.set_image_from_icon_name("media-playback-pause");
+	_stop_button.set_image_from_icon_name("media-playback-stop");
+	_stop_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_stop_button));
+
+	_control_bar_r.pack_start(_queue_button, Gtk::PackOptions::PACK_SHRINK);
+//	_control_bar.pack_start(_pause_button, Gtk::PackOptions::PACK_SHRINK);
+	_control_bar_r.pack_start(_stop_button, Gtk::PackOptions::PACK_SHRINK);
+
+	_control_bar_l.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_END);
+
 	_volume_adj = Gtk::Adjustment::create(0, 0, 100, 1);
 	_volume.set_adjustment(_volume_adj);
 	_volume_adj->signal_value_changed().connect(sigc::mem_fun(*this, &rplay_window::on_volume_change));
-	_control_bar.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_END);
-	_control_bar.pack_start(_volume, Gtk::PackOptions::PACK_SHRINK);
 
+	_control_bar_l.pack_start(_volume, Gtk::PackOptions::PACK_SHRINK);
+
+	// playlist
 	_playlist_scroll.set_size_request(-1, 150);
 	_playlist_scroll.add(_playlist_view);
 	_playlist_scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
@@ -185,28 +209,22 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
 
 //	_button_box.set_margin(5);
-	_button_box.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
-	_button_box.pack_start(_queue_button, Gtk::PackOptions::PACK_SHRINK);
-//	_button_box.pack_start(_pause_button, Gtk::PackOptions::PACK_SHRINK);
-	_button_box.pack_start(_stop_button, Gtk::PackOptions::PACK_SHRINK);
-	_queue_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_queue_button));
-	_stop_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_stop_button));
+	_library_control_bar.pack_start(_playlist_add_button, Gtk::PackOptions::PACK_SHRINK);
+	_library_control_bar.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
+	_playlist_add_button.set_label("+");
+	_playlist_add_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_add_button));
 
 	_playlist_view.set_column_title(0, "Playlist:");
 	_filtered_media_list_view.set_column_title(0, "Filtered Media:");
 
-	_queue_button.set_image_from_icon_name("media-playback-start");
-//	_pause_button.set_image_from_icon_name("media-playback-pause");
-	_stop_button.set_image_from_icon_name("media-playback-stop");
-
 	// pack
 	_vbox.pack_start(_player_media, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_progress_hbox, Gtk::PackOptions::PACK_SHRINK);
-	_vbox.pack_start(_control_bar, Gtk::PackOptions::PACK_SHRINK);
+	_vbox.pack_start(_control_bar_hbox, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_playlist_scroll, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_scroll, Gtk::PackOptions::PACK_EXPAND_WIDGET);
 	_vbox.pack_start(_search, Gtk::PackOptions::PACK_SHRINK);
-	_vbox.pack_start(_button_box, Gtk::PackOptions::PACK_SHRINK);
+	_vbox.pack_start(_library_control_bar, Gtk::PackOptions::PACK_SHRINK);
 
 	show_all();
 
@@ -383,6 +401,29 @@ void rplay_window::on_queue_button()
 void rplay_window::on_stop_button()
 {
 	_play.stop();
+}
+
+void rplay_window::on_playlist_add_button()
+{
+	if (!_filtered)  // from media library
+	{
+		RefPtr<Gtk::TreeSelection> selection = _media_list_view.get_selection();
+		if (selection)
+		{
+			Gtk::TreeModel::iterator it = selection->get_selected();
+			if (it)
+			{
+				Gtk::TreeModel::Row row = *it;
+				string media = row[_media_list_view.columns._media_id];
+				_play.playlist_add(media);
+			}
+		}
+	}
+	else  // from filtered media
+	{
+		Gtk::ListViewText::SelectionList selection = _filtered_media_list_view.get_selected();
+		_play.playlist_add(get_media(selection[0]));
+	}
 }
 
 void rplay_window::on_search()

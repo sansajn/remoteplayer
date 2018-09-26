@@ -15,7 +15,7 @@ interface bude implementovaný pomocou ZMQ ako clone pattern client/server a
 bude poskytovať nasledujúce funkcie:
 
 	* list_media, ktorá vráti zoznam medií
-	* play_media, ktorá prehrá medium zo zoznamu medií
+	* play, ktorá prehrá skladbu s playlistu
 	* stop, zastavenie prehrávania
 	* play_progress, update priebehu prehrávania (každých 10s)
 	* identify, vráti informácie o serveru
@@ -70,15 +70,14 @@ Umožnuje klientovy získať zoznam medií, odpoveď klientovy vypadá takto
 TODO: premenuj content na items
 
 
-play_media [notify]:
+play [notify]:
 
-Príkaz umožnuje clientovy prehrať obsah
+Príkaz umožnuje clientovy prehrať skladbu z playlistu v tvare
 
-	{"cmd":"play_media", "content":"media-identifier"}
+	{"cmd":"play", "playlist":PID, "idx":N}
 
-kde media-identifier je identifikátor obsahu získaný z odpovedi na príkaz
-media_library. V prípade notify soketu sa neočakáva žiadna odpoveď zo strany
-serveru.
+kde PID je cele kladne číslo (size_t) reprezentujúce playlist a N (size_t) je
+index skladby v playliste.
 
 
 stop [notify]:
@@ -189,7 +188,6 @@ Umožnuje klientovy pridať skladbu do playlistu, správa je v tvare
 	{"cmd":"playlist_add", "media":"path/to/file"}
 
 		"media":"path/to/file",  // string
-
 
 
 

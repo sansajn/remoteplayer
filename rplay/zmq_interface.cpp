@@ -180,6 +180,15 @@ void zmq_interface::send_volume()
 	LOG(trace) << "RPLAYC << volume(value=" << value << ")";
 }
 
+void zmq_interface::send_stop()
+{
+	jtree news;
+	news.put<string>("cmd", "stop");
+	publish(to_string(news));
+
+	LOG(trace) << "RPLAYC << stop";
+}
+
 void zmq_interface::on_position_change(int64_t position, int64_t duration)
 {
 //	cout << "progress=" << position << "/" << duration << std::endl;
@@ -269,10 +278,12 @@ void zmq_interface::on_notify(string const & s)
 	}
 	else if (cmd == "stop")
 	{
-		LOG(trace) << "RPLAYC >> stop()";
+		LOG(trace) << "RPLAYC >> stop";
 
 		_play->stop();
 		_play->clear_media_playlist();
+
+		send_stop();
 	}
 	else if (cmd == "seek")
 	{

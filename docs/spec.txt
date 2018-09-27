@@ -26,7 +26,6 @@ bude poskytovať nasledujúce funkcie:
 	* set_volume, zmena hlasitosti
 	* playlist_add, pridáva skladbu do playlistu
 
-
 Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
 obsahu.
 
@@ -80,12 +79,18 @@ kde PID je cele kladne číslo (size_t) reprezentujúce playlist a N (size_t) je
 index skladby v playliste.
 
 
-stop [notify]:
+stop [notify|news]:
 
 Príkaz umožnuje klientovy zastaviť prehrávanie, príkaz je definovaný
 ako
 
 	{"cmd":"stop"}
+
+rovnako aj server posiela oznámenie o zastavení prehrávania v tvare
+
+	{"cmd":"stop"}
+
+ako reakcia na stop od niektorého s klientou.
 
 
 play_progress [news]:

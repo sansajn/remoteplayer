@@ -20,6 +20,8 @@ static void vector_put(jtree & root, string const & key, vector<string> const & 
 static string unknown_command_answer(string const & cmd);
 static string not_yet_implemented_answer(string const & cmd);
 
+static size_t invalid_idx = (size_t)-1;
+
 namespace zmqu {
 
 //template <>
@@ -161,7 +163,7 @@ void zmq_interface::send_server_alive()
 	string now = rpl::timestamp();
 	alive.put<string>("time_stamp", now);
 
-	LOG(trace) << "RPLAYC << ping(count=" << alive_counter << ", time_stamp=" << now << ")";
+//	LOG(trace) << "RPLAYC << ping(count=" << alive_counter << ", time_stamp=" << now << ")";
 
 	publish(to_string(alive));
 }
@@ -247,18 +249,23 @@ void zmq_interface::on_notify(string const & s)
 	to_json(s, json);
 	string const cmd = json.get("cmd", string{});
 
-	if (cmd == "play_media")
+	if (cmd == "play")
 	{
-		string content = json.get("content", string{});
+		size_t pid = json.get<size_t>("playlist_id", 0);
+		size_t idx = json.get<size_t>("idx", invalid_idx);
 
-		LOG(trace) << "RPLAYC >> play_media(content='" << content << "')";
+		LOG(trace) << "RPLAYC >> play(playlist_idx=" << pid << ", idx=" << idx << ")";
 
-		if (!content.empty())
+		if (pid == 0 || idx == invalid_idx)
 		{
-			_play->queue(content);
-			if (!_play->playing())
-				_play->play();
+			LOG(warning) << "play(playlist_idx=" << pid << ", idx=" << idx << ") ignored, reason invalid playlist ID or item index";
+			return;
 		}
+
+		if (_play->is_latest_playlist(pid))
+			_play->play(idx);
+		else
+			LOG(warning) << "playlist outdated";
 	}
 	else if (cmd == "stop")
 	{

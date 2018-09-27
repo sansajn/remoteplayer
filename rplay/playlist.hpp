@@ -9,6 +9,7 @@ class playlist
 public:
 	playlist();
 	std::string wait_next(); /*const*/
+	void set_current_item(size_t idx);
 	void add(std::string const & item);
 	void remove(std::string const & item);
 	void clear();

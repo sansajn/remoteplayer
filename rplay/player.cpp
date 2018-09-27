@@ -22,9 +22,10 @@ void player::start()
 	_th = std::thread{&player::loop, this};
 }
 
-void player::queue(string const & media)
+void player::play(size_t idx)
 {
-	add(media);
+	_items.set_current_item(idx);
+	play();
 }
 
 void player::play()
@@ -58,6 +59,11 @@ void player::add(std::string const & media)
 playlist const & player::media_playlist() const
 {
 	return _items;
+}
+
+bool player::is_latest_playlist(size_t playlist_id)
+{
+	return playlist_id == _playlist_id;
 }
 
 void player::clear_media_playlist()

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <stdexcept>
 #include "playlist.hpp"
 
 using std::string;
@@ -19,6 +20,17 @@ string playlist::wait_next()
 	_new_item_cond.wait(lock, [this]{return _items.size() > _item_idx;});
 	return _items[_item_idx++];
 }
+
+void playlist::set_current_item(size_t idx)
+{
+	if (idx >= _items.size())
+		throw std::out_of_range{"playlist index out of range"};
+
+	lock_guard<mutex> lock{_items_locker};
+	_item_idx = idx;
+	_new_item_cond.notify_one();
+}
+
 
 void playlist::add(string const & item)
 {

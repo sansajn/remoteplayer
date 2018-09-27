@@ -15,13 +15,14 @@ class player
 public:
 	player();
 	void start();
-	void queue(std::string const & media);
+	void play(size_t idx);  //!< play from playlist
 	void play();
 	void seek(int64_t pos_in_ns);
 	void stop();
 	bool playing() const;
 	void add(std::string const & media);
 	playlist const & media_playlist() const;
+	bool is_latest_playlist(size_t playlist_id);  // TODO: wrong design we need atomic play with index and playlist_id
 	void clear_media_playlist();
 	void quit();
 	void join();

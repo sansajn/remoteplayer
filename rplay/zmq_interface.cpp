@@ -251,14 +251,14 @@ void zmq_interface::on_notify(string const & s)
 
 	if (cmd == "play")
 	{
-		size_t pid = json.get<size_t>("playlist_id", 0);
+		size_t pid = json.get<size_t>("playlist", 0);
 		size_t idx = json.get<size_t>("idx", invalid_idx);
 
 		LOG(trace) << "RPLAYC >> play(playlist_idx=" << pid << ", idx=" << idx << ")";
 
 		if (pid == 0 || idx == invalid_idx)
 		{
-			LOG(warning) << "play(playlist_idx=" << pid << ", idx=" << idx << ") ignored, reason invalid playlist ID or item index";
+			LOG(warning) << "play(playlist_id=" << pid << ", idx=" << idx << ") ignored, reason invalid playlist ID or item index";
 			return;
 		}
 

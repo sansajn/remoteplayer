@@ -58,7 +58,7 @@ public:
 
 private:
 	void update_ui();
-	void on_queue_button();
+	void on_play_button();
 	void on_stop_button();
 	void on_playlist_add_button();
 	void on_search();
@@ -105,7 +105,7 @@ private:
 	Gtk::Label _player_duration;
 	Gtk::Box _control_bar_hbox;
 	Gtk::ButtonBox _control_bar_r;
-	Gtk::Button _queue_button;
+	Gtk::Button _play_button;
 //	Gtk::Button _pause_button;
 	Gtk::Button _stop_button;
 	Gtk::ButtonBox _control_bar_l;
@@ -176,13 +176,13 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 
 	_control_bar_r.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
 
-	_queue_button.set_image_from_icon_name("media-playback-start");
-	_queue_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_queue_button));
+	_play_button.set_image_from_icon_name("media-playback-start");
+	_play_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_play_button));
 //	_pause_button.set_image_from_icon_name("media-playback-pause");
 	_stop_button.set_image_from_icon_name("media-playback-stop");
 	_stop_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_stop_button));
 
-	_control_bar_r.pack_start(_queue_button, Gtk::PackOptions::PACK_SHRINK);
+	_control_bar_r.pack_start(_play_button, Gtk::PackOptions::PACK_SHRINK);
 //	_control_bar.pack_start(_pause_button, Gtk::PackOptions::PACK_SHRINK);
 	_control_bar_r.pack_start(_stop_button, Gtk::PackOptions::PACK_SHRINK);
 
@@ -375,27 +375,9 @@ void rplay_window::on_volume_change()
 	_play.volume((int)_volume_adj->get_value());
 }
 
-void rplay_window::on_queue_button()
+void rplay_window::on_play_button()
 {
-	if (!_filtered)  // from media library
-	{
-		RefPtr<Gtk::TreeSelection> selection = _media_list_view.get_selection();
-		if (selection)
-		{
-			Gtk::TreeModel::iterator it = selection->get_selected();
-			if (it)
-			{
-				Gtk::TreeModel::Row row = *it;
-				string media = row[_media_list_view.columns._media_id];
-				_play.play(media);
-			}
-		}
-	}
-	else  // from filtered media
-	{
-		Gtk::ListViewText::SelectionList selection = _filtered_media_list_view.get_selected();
-		_play.play(get_media(selection[0]));
-	}
+	_play.play(_playlist_id, 0);  // play from playlist beginning
 }
 
 void rplay_window::on_stop_button()

@@ -151,14 +151,15 @@ vector<string> player_client::list_playlist() const
 	return _media_playlist;
 }
 
-void player_client::play(fs::path const & media)
+void player_client::play(size_t playlist_id, size_t playlist_idx)
 {
 	jtree req;
-	req.put("cmd", "play_media");
-	req.put("content", media.string());
+	req.put("cmd", "play");
+	req.put<size_t>("playlist", playlist_id);
+	req.put<size_t>("idx", playlist_idx);
 	notify(to_string(req));
 
-	LOG(trace) << "RPLAY << play_media(content='" << media.string() << "')";
+	LOG(trace) << "RPLAY << play_media(playlist=" << playlist_id << ", idx=" << playlist_idx << ")";
 }
 
 void player_client::stop()

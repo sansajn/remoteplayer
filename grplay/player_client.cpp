@@ -165,7 +165,16 @@ void player_client::play(size_t playlist_id, size_t playlist_idx)
 	req.put<size_t>("idx", playlist_idx);
 	notify(to_string(req));
 
-	LOG(trace) << "RPLAY << play_media(playlist=" << playlist_id << ", idx=" << playlist_idx << ")";
+	LOG(trace) << "RPLAY << play(playlist=" << playlist_id << ", idx=" << playlist_idx << ")";
+}
+
+void player_client::pause()
+{
+	jtree req;
+	req.put("cmd", "pause");
+	notify(to_string(req));
+
+	LOG(trace) << "RPLAY << pause";
 }
 
 void player_client::stop()

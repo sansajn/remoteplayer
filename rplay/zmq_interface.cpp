@@ -189,6 +189,15 @@ void zmq_interface::send_stop()
 	LOG(trace) << "RPLAYC << stop";
 }
 
+void zmq_interface::send_pause()
+{
+	jtree news;
+	news.put<string>("cmd", "pause");
+	publish(to_string(news));
+
+	LOG(trace) << "RPLAYC << pause";
+}
+
 void zmq_interface::on_position_change(int64_t position, int64_t duration)
 {
 //	cout << "progress=" << position << "/" << duration << std::endl;
@@ -275,6 +284,14 @@ void zmq_interface::on_notify(string const & s)
 			_play->play(idx);
 		else
 			LOG(warning) << "playlist outdated";
+	}
+	else if (cmd == "pause")
+	{
+		LOG(trace) << "RPLAYC >> pause";
+
+		_play->pause();
+
+		send_pause();
 	}
 	else if (cmd == "stop")
 	{

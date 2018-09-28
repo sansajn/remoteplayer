@@ -17,6 +17,7 @@ public:
 	void start();
 	void play(size_t idx);  //!< play from playlist
 	void play();
+	void pause();
 	void seek(int64_t pos_in_ns);
 	void stop();
 	bool playing() const;
@@ -42,6 +43,6 @@ private:
 	gst_audio_player _p;
 	playlist _items;  // list of media URIs
 	size_t _playlist_id;  // unique playlist identifier
-	std::atomic_bool _play_flag, _quit_flag;
+	std::atomic_bool _play_flag, _pause_flag, _quit_flag;
 	std::thread _th;
 };

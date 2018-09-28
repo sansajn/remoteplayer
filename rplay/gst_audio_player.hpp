@@ -22,12 +22,14 @@ public:
 	void play(std::string const & media, done_cb_type const & done_cb = done_cb_type{},
 		progress_cb_type const & progress_cb = progress_cb_type{});
 
+	void pause();
+	void resume();
 	void seek(int64_t pos_in_ns);
 	void stop();
 	void join();
 
 private:
 	std::thread _th;
-	std::atomic_bool _cancel;
+	std::atomic_bool _cancel, _pause;
 	std::atomic_int64_t _seek_pos_in_ns;
 };

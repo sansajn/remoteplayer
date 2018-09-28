@@ -23,15 +23,19 @@ void invoke(function<void (Args ...)> const & f, Args ... args)
 
 //! stateless cancellable play implementation with progress and done (EOS) callback
 void play(string const & uri, function<void (int64_t, int64_t)> const & progress_cb,
-	function<void ()> const & done_cb, atomic_int64_t & seek_pos_in_ns, atomic_bool & cancel);
+	function<void ()> const & done_cb, atomic_int64_t & seek_pos_in_ns, atomic_bool & cancel,
+	atomic_bool & pause);
 
 }  // Detail
 
 using play_func_t = void (*)(string const &, function<void (int64_t, int64_t)> const &,
-	function<void ()> const &, atomic_int64_t &, atomic_bool &);
+	function<void ()> const &, atomic_int64_t &, atomic_bool &, atomic_bool &);
 
 
 gst_audio_player::gst_audio_player()
+	: _cancel{false}
+	, _pause{false}
+	, _seek_pos_in_ns{0}
 {
 	int argc = 0;
 	gst_init(&argc, nullptr);
@@ -46,9 +50,20 @@ void gst_audio_player::play(string const & media, done_cb_type const & done_cb,
 		_th.join();
 
 	_cancel = false;
+	_pause = false;
 
 	_th = std::thread{static_cast<play_func_t>(Detail::play), media, progress_cb,
-		done_cb, std::ref(_seek_pos_in_ns), std::ref(_cancel)};
+		done_cb, std::ref(_seek_pos_in_ns), std::ref(_cancel), std::ref(_pause)};
+}
+
+void gst_audio_player::pause()
+{
+	_pause = true;
+}
+
+void gst_audio_player::resume()
+{
+	_pause = false;
 }
 
 void gst_audio_player::seek(int64_t pos_in_ns)
@@ -71,8 +86,11 @@ void gst_audio_player::join()
 namespace Detail {
 
 void play(string const & uri, function<void (int64_t, int64_t)> const & progress_cb,
-	function<void ()> const & done_cb, atomic_int64_t & seek_pos_in_ns, atomic_bool & cancel)
+	function<void ()> const & done_cb, atomic_int64_t & seek_pos_in_ns, atomic_bool & cancel,
+	atomic_bool & pause)
 {
+	bool paused = false;
+
 	GstElement * playbin = gst_element_factory_make("playbin", "playbin");
 	assert(playbin && "unable to create a playbin element");
 
@@ -104,7 +122,7 @@ void play(string const & uri, function<void (int64_t, int64_t)> const & progress
 		{
 			GstState state, pending;
 			gst_element_get_state(playbin, &state, &pending, GST_CLOCK_TIME_NONE);
-			if (state != GST_STATE_PLAYING)
+			if (state != GST_STATE_PLAYING && state != GST_STATE_PAUSED)
 				continue;
 
 			int64_t pos = -1;
@@ -124,6 +142,17 @@ void play(string const & uri, function<void (int64_t, int64_t)> const & progress
 				cout << "performing seek to " << seek_pos_in_ns / 1e9 << "s" << std::endl;
 				gst_element_seek_simple(playbin, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH|GST_SEEK_FLAG_KEY_UNIT), seek_pos_in_ns);
 				seek_pos_in_ns = GST_CLOCK_TIME_NONE;
+			}
+
+			// pause
+			if (pause != paused)
+			{
+				GstState new_state = pause ? GST_STATE_PAUSED : GST_STATE_PLAYING;
+				paused = pause;
+
+				GstStateChangeReturn ret = gst_element_set_state(playbin, new_state);
+				if (ret == GST_STATE_CHANGE_FAILURE)
+					cout << "warning: unable to pause/resume";
 			}
 		}
 	}

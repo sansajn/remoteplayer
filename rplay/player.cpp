@@ -14,7 +14,8 @@ using namespace std::placeholders;
 
 player::player()
 	: _playlist_id{1}
-	, _play_flag{0}
+	, _play_flag{false}
+	, _pause_flag{false}
 {}
 
 void player::start()
@@ -31,6 +32,20 @@ void player::play(size_t idx)
 void player::play()
 {
 	_play_flag = true;
+}
+
+void player::pause()
+{
+	if (!_pause_flag)
+	{
+		_p.pause();
+		_pause_flag = true;
+	}
+	else
+	{
+		_p.resume();
+		_pause_flag = false;
+	}
 }
 
 void player::seek(int64_t pos_in_ns)

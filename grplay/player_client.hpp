@@ -39,6 +39,7 @@ public:
 	std::vector<std::string> list_library() const;
 	std::vector<std::string> list_playlist() const;
 	void play(size_t playlist_id, size_t playlist_idx);
+	void pause();
 	void stop();
 	void seek(long pos, fs::path const & media);
 	void volume(int val);  //!< val can be from [0, 100] range

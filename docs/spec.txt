@@ -16,6 +16,7 @@ bude poskytovať nasledujúce funkcie:
 
 	* list_media, ktorá vráti zoznam medií
 	* play, ktorá prehrá skladbu s playlistu
+	* pause, ktorá pozastaví prehrávanie aktuálnej skladby
 	* stop, zastavenie prehrávania
 	* play_progress, update priebehu prehrávania (každých 10s)
 	* identify, vráti informácie o serveru
@@ -77,6 +78,19 @@ Príkaz umožnuje clientovy prehrať skladbu z playlistu v tvare
 
 kde PID je cele kladne číslo (size_t) reprezentujúce playlist a N (size_t) je
 index skladby v playliste.
+
+
+
+pause [notify|news]:
+
+Príkaz unožnuje klientovy pozastaviť prehrávanie aktuálnej skladby, príkaz je v
+tvare
+
+	{"cmd":"pause"}
+
+následne server klientom pošle oznámenie v tvare
+
+	{"cmd":"pause"}
 
 
 stop [notify|news]:

@@ -88,6 +88,13 @@ void player_client::on_news(std::string const & news)
 	}
 }
 
+player_client::~player_client()
+{
+	quit();
+	if (_t.joinable())
+		_t.join();
+}
+
 void player_client::connect(std::string const & host, unsigned short port)
 {
 	zmqu::clone_client::connect(host, port, port+1, port+2);

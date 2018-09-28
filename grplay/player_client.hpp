@@ -34,6 +34,7 @@ class player_client  // TODO: rename to rplay_client
 	, public observable_with<player_client_listener>
 {
 public:
+	~player_client();
 	void connect(std::string const & host, unsigned short port);
 	void disconnect();
 	std::vector<std::string> list_library() const;

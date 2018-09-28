@@ -603,7 +603,8 @@ int main(int argc, char * argv[])
 	string const host = argc > 1 ? argv[1] : "localhost";
 	unsigned short const port = argc > 2 ? lexical_cast<unsigned short>(argv[2]) : 13333;
 
-	auto app = Gtk::Application::create("org.gtkmm.example");
+	auto app = Gtk::Application::create("org.gtkmm.example", Gio::APPLICATION_NON_UNIQUE);
+	assert(app);
 
 	rplay_window w{host, port};
 

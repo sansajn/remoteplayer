@@ -559,7 +559,6 @@ bool sub_directory(fs::path const & a, fs::path const & b)  //!< true if a is b 
 
 void weakly_directory_first_sort(vector<string> & files)
 {
-	// FIXME: direct call from files cause crash, thre must be something wrong with _library access
 	vector<fs::path> patches;
 	for (string const & f : files)
 		patches.push_back(fs::path{f});

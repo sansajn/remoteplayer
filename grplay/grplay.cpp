@@ -60,9 +60,11 @@ public:
 
 private:
 	void update_ui();
+	void on_prev_button();
 	void on_play_button();
 	void on_pause_button();
 	void on_stop_button();
+	void on_next_button();
 	void on_playlist_add_button();
 	void on_search();
 	bool on_seek(Gtk::ScrollType scroll, double value);
@@ -110,9 +112,11 @@ private:
 	Gtk::Label _player_duration;
 	Gtk::Box _control_bar_hbox;
 	Gtk::ButtonBox _control_bar_l;
+	Gtk::Button _prev_button;
 	Gtk::Button _play_button;
 	Gtk::Button _pause_button;
 	Gtk::Button _stop_button;
+	Gtk::Button _next_button;
 	Gtk::ButtonBox _control_bar_r;
 	Gtk::VolumeButton _volume;
 	RefPtr<Gtk::Adjustment> _volume_adj;
@@ -175,24 +179,27 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_progress_hbox.add(_player_duration);
 
 	// control bar
-	_control_bar_hbox.add(_control_bar_l);
-	_control_bar_hbox.add(_control_bar_r);
-	_control_bar_hbox.set_homogeneous();
+	_control_bar_hbox.pack_start(_control_bar_l, Gtk::PackOptions::PACK_SHRINK);
+	_control_bar_hbox.pack_end(_control_bar_r, Gtk::PackOptions::PACK_SHRINK);
 
 	_control_bar_l.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
 
+	_prev_button.set_image_from_icon_name("media-skip-backward");
+	_prev_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_prev_button));
 	_play_button.set_image_from_icon_name("media-playback-start");
 	_play_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_play_button));
 	_pause_button.set_image_from_icon_name("media-playback-pause");
 	_pause_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_pause_button));
 	_stop_button.set_image_from_icon_name("media-playback-stop");
 	_stop_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_stop_button));
+	_next_button.set_image_from_icon_name("media-skip-forward");
+	_next_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_next_button));
 
+	_control_bar_l.pack_start(_prev_button, Gtk::PackOptions::PACK_SHRINK);
 	_control_bar_l.pack_start(_play_button, Gtk::PackOptions::PACK_SHRINK);
 	_control_bar_l.pack_start(_pause_button, Gtk::PackOptions::PACK_SHRINK);
 	_control_bar_l.pack_start(_stop_button, Gtk::PackOptions::PACK_SHRINK);
-
-	_control_bar_r.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_END);
+	_control_bar_l.pack_start(_next_button, Gtk::PackOptions::PACK_SHRINK);
 
 	_volume_adj = Gtk::Adjustment::create(0, 0, 100, 1);
 	_volume.set_adjustment(_volume_adj);
@@ -392,8 +399,18 @@ void rplay_window::on_volume_change()
 	_play.volume((int)_volume_adj->get_value());
 }
 
+void rplay_window::on_prev_button()
+{
+	lock_guard<mutex> locker{_player_data_locker};
+	if (_playlist_idx > 0)
+		_play.play(_playlist_id, _playlist_idx-1);
+	else
+		_play.play(_playlist_id, 0);
+}
+
 void rplay_window::on_play_button()
 {
+	lock_guard<mutex> locker{_player_data_locker};
 	_play.play(_playlist_id, 0);  // play from playlist beginning
 }
 
@@ -405,6 +422,13 @@ void rplay_window::on_pause_button()
 void rplay_window::on_stop_button()
 {
 	_play.stop();
+}
+
+void rplay_window::on_next_button()
+{
+	lock_guard<mutex> locker{_player_data_locker};
+	if (_playlist_idx+1 < _playlist.size())
+		_play.play(_playlist_id, _playlist_idx+1);
 }
 
 void rplay_window::on_playlist_add_button()

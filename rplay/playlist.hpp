@@ -4,7 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 
-class playlist
+class playlist  //!< thread safe playlist implementation
 {
 public:
 	playlist();

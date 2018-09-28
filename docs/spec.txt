@@ -15,7 +15,7 @@ interface bude implementovaný pomocou ZMQ ako clone pattern client/server a
 bude poskytovať nasledujúce funkcie:
 
 	* list_media, ktorá vráti zoznam medií
-	* play, ktorá prehrá skladbu s playlistu
+	* play, ktorá prehrá skladbu z playlistu
 	* pause, ktorá pozastaví prehrávanie aktuálnej skladby
 	* stop, zastavenie prehrávania
 	* play_progress, update priebehu prehrávania (každých 10s)

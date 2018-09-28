@@ -219,7 +219,15 @@ void zmq_interface::on_playlist_change(size_t playlist_id, vector<string> items)
 	{
 		lock_guard<mutex> lock{_media_info_locker};
 		_playlist_id = playlist_id;
-		_playlist = items;
+
+		_playlist.clear();
+		for (string const & item : items)
+		{
+			if (item.find("file://", 0, 7) == 0)
+				_playlist.push_back(item.substr(7));
+			else
+				_playlist.push_back(item);
+		}
 	}
 
 	send_playlist_content();

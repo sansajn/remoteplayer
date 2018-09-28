@@ -67,6 +67,7 @@ private:
 	void on_stop_button();
 	void on_next_button();
 	void on_playlist_add_button();
+	void on_playlist_play(Gtk::TreeModel::Path const & path, Gtk::TreeViewColumn * column);
 	void on_search();
 	bool on_seek(Gtk::ScrollType scroll, double value);
 	void on_volume_change();
@@ -212,6 +213,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_playlist_scroll.set_size_request(-1, 150);
 	_playlist_scroll.add(_playlist_view);
 	_playlist_scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
+	_playlist_view.signal_row_activated().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_play));
 
 	_search.set_placeholder_text("<Enter search terms there>");
 	_search.signal_changed().connect(sigc::mem_fun(*this, &rplay_window::on_search));
@@ -453,6 +455,13 @@ void rplay_window::on_playlist_add_button()
 		Gtk::ListViewText::SelectionList selection = _filtered_media_list_view.get_selected();
 		_play.playlist_add(get_media(selection[0]));
 	}
+}
+
+void rplay_window::on_playlist_play(Gtk::TreeModel::Path const & path, Gtk::TreeViewColumn * column)
+{
+	lock_guard<mutex> lock{_player_data_locker};
+	int sel_idx = _playlist_view.get_selected()[0];
+	_play.play(_playlist_id, (size_t)sel_idx);
 }
 
 void rplay_window::on_search()

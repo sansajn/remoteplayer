@@ -25,6 +25,7 @@ void player::start()
 
 void player::play(size_t idx)
 {
+	_p.stop();
 	_items.set_current_item(idx);
 	play();
 }

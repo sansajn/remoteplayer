@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <functional>
 #include <string>
 #include <iostream>
@@ -8,6 +9,7 @@
 #include "log.hpp"
 #include "version.hpp"
 
+using std::abs;
 using std::string;
 using std::to_string;
 using std::vector;
@@ -200,17 +202,18 @@ void zmq_interface::send_pause()
 
 void zmq_interface::on_position_change(int64_t position, int64_t duration)
 {
-//	cout << "progress=" << position << "/" << duration << std::endl;
+	bool seek_send_progress = false;
 
 	{
 		lock_guard<mutex> lock{_media_info_locker};
+		seek_send_progress = abs(position - _position) > 1000000000;  // 1s (means seek)
 		_position = position;
 		_duration = duration;
 	}
 
 	assert(!_media.empty());
 
-	if ((_position_change_count++ % 100) == 0)
+	if ((_position_change_count++ % 100) == 0 || seek_send_progress)
 		send_play_progress();
 }
 

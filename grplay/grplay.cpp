@@ -36,6 +36,7 @@ using std::ostringstream;
 using std::regex_search;
 using std::smatch;
 using std::regex;
+using std::regex_error;
 using std::cout;
 using std::min;
 using std::sort;
@@ -471,23 +472,28 @@ void rplay_window::filter_media_library(string const & filter)
 		return;
 	}
 
-	regex pat{filter, std::regex_constants::icase};
+	try { // search only if we can create regex expression
+		regex pat{filter, std::regex_constants::icase};
 
-	_filtered_lookup.clear();
-	for (size_t i = 0; i < _library.size(); ++i)
-	{
-		fs::path const & media = _library[i];
-		smatch match;
-		if (regex_search(media.native(), match, pat))
-			_filtered_lookup.push_back(i);
+		_filtered_lookup.clear();
+		for (size_t i = 0; i < _library.size(); ++i)
+		{
+			fs::path const & media = _library[i];
+			smatch match;
+			if (regex_search(media.native(), match, pat))
+				_filtered_lookup.push_back(i);
+		}
+
+		_filtered_media_list_view.clear_items();
+		for (size_t idx : _filtered_lookup)
+			_filtered_media_list_view.append(_library[idx]);
+
+		_filtered = true;
+		repack_ui();
 	}
-
-	_filtered_media_list_view.clear_items();
-	for (size_t idx : _filtered_lookup)
-		_filtered_media_list_view.append(_library[idx]);
-
-	_filtered = true;
-	repack_ui();
+	catch (regex_error &) {
+		// do nothing
+	}
 }
 
 string rplay_window::get_media(int sel_idx) const

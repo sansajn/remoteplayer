@@ -62,8 +62,7 @@ void player_client::on_news(std::string const & news)
 		rpl::ptime t0 = rpl::to_ptime(time_stamp);
 		rpl::time_duration dt = rpl::now() - t0;
 
-//		LOG(trace) << "RPLAY >> alive(" << count << ") in "
-//			<< dt.total_microseconds()/1000.0 << "ms";
+//		LOG(trace) << "RPLAY >> alive(" << count << ") in " << dt.total_microseconds()/1000.0 << "ms";
 	}
 	else if (cmd == "volume")
 	{
@@ -72,6 +71,13 @@ void player_client::on_news(std::string const & news)
 
 		for (auto * l : listeners())
 			l->on_volume(value);
+	}
+	else if (cmd == "stop")
+	{
+		LOG(trace) << "RPLAY >> stop";
+
+		for (auto * l : listeners())
+			l->on_stop();
 	}
 	else
 	{

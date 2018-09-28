@@ -1,6 +1,7 @@
 // Graphics Remote Player Client
 #include <algorithm>
 #include <mutex>
+#include <atomic>
 #include <string>
 #include <regex>
 #include <chrono>
@@ -28,6 +29,7 @@
 
 using std::mutex;
 using std::lock_guard;
+using std::atomic_bool;
 using std::string;
 using std::vector;
 using std::ostringstream;
@@ -73,6 +75,7 @@ private:
 	void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) override;
 	void on_list_media(std::vector<std::string> const & items) override;
 	void on_volume(int val) override;
+	void on_stop() override;
 
 	static int update_cb(gpointer user_data);
 
@@ -94,6 +97,7 @@ private:
 	mutable std::mutex _player_data_locker;
 
 	size_t _last_used_playlist_id;
+	atomic_bool _playback_stoped;
 
 	// gui
 	Gtk::Box _vbox;
@@ -138,6 +142,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	, _seek_position_lock{false}
 	, _serv_volume{0}
 	, _last_used_playlist_id{0}
+	, _playback_stoped{false}
 	, _vbox{Gtk::Orientation::ORIENTATION_VERTICAL}
 	, _playlist_view{1}
 	, _filtered_media_list_view{1}
@@ -317,8 +322,19 @@ void rplay_window::update_ui()
 	// media
 	_player_media.set_text(format_media(_media));
 
+	if (_playback_stoped)
+	{
+		_position = _duration = 0;
+		_playback_stoped = false;
+	}
+
 	// position
-	if (!_seek_position_lock)
+	if (_position == 0 && _duration  == 0)
+	{
+		_player_position.set_text("0:00");
+		_player_duration.set_text("0:00");
+	}
+	else if (!_seek_position_lock)
 	{
 		auto elapsed = std::chrono::high_resolution_clock::now() - _last_progress_update;
 		long position = min(
@@ -538,6 +554,11 @@ void rplay_window::on_volume(int val)
 {
 	lock_guard<mutex> lock{_player_data_locker};
 	_serv_volume = val;
+}
+
+void rplay_window::on_stop()
+{
+	_playback_stoped = true;
 }
 
 int main(int argc, char * argv[])

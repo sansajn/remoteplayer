@@ -11,6 +11,7 @@ struct player_client_listener
 	virtual void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) {}
 	virtual void on_list_media(std::vector<std::string> const & items) {}
 	virtual void on_volume(int val) {}
+	virtual void on_stop() {}
 };
 
 // TODO: implement notify function

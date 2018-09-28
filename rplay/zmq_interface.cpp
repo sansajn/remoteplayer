@@ -281,7 +281,6 @@ void zmq_interface::on_notify(string const & s)
 		LOG(trace) << "RPLAYC >> stop";
 
 		_play->stop();
-		_play->clear_media_playlist();
 
 		send_stop();
 	}

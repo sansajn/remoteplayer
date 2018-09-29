@@ -63,7 +63,6 @@ private:
 	void update_ui();
 	void on_prev_button();
 	void on_play_button();
-	void on_pause_button();
 	void on_stop_button();
 	void on_next_button();
 	void on_playlist_add_button();
@@ -118,7 +117,6 @@ private:
 	Gtk::ButtonBox _control_bar_l;
 	Gtk::Button _prev_button;
 	Gtk::Button _play_button;
-	Gtk::Button _pause_button;
 	Gtk::Button _stop_button;
 	Gtk::Button _next_button;
 	Gtk::ButtonBox _control_bar_r;
@@ -193,8 +191,6 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_prev_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_prev_button));
 	_play_button.set_image_from_icon_name("media-playback-start");
 	_play_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_play_button));
-	_pause_button.set_image_from_icon_name("media-playback-pause");
-	_pause_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_pause_button));
 	_stop_button.set_image_from_icon_name("media-playback-stop");
 	_stop_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_stop_button));
 	_next_button.set_image_from_icon_name("media-skip-forward");
@@ -202,7 +198,6 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 
 	_control_bar_l.pack_start(_prev_button, Gtk::PackOptions::PACK_SHRINK);
 	_control_bar_l.pack_start(_play_button, Gtk::PackOptions::PACK_SHRINK);
-	_control_bar_l.pack_start(_pause_button, Gtk::PackOptions::PACK_SHRINK);
 	_control_bar_l.pack_start(_stop_button, Gtk::PackOptions::PACK_SHRINK);
 	_control_bar_l.pack_start(_next_button, Gtk::PackOptions::PACK_SHRINK);
 
@@ -317,6 +312,20 @@ void rplay_window::update_ui()
 		_last_used_playlist_id = _playlist_id;
 	}
 
+	// play_pause
+	static playback_state_e prev_state = playback_state_e::invalid;
+	if (_playback_state != prev_state)
+	{
+		if (_playback_state == playback_state_e::paused)
+			_play_button.set_image_from_icon_name("media-playback-start");
+		else if (_playback_state == playback_state_e::playing)
+			_play_button.set_image_from_icon_name("media-playback-pause");
+		else
+			_play_button.set_image_from_icon_name("media-playback-start");
+
+		prev_state = _playback_state;
+	}
+
 	// volume
 	if ((int)_volume_adj->get_value() != _serv_volume)
 		_volume_adj->set_value(_serv_volume);
@@ -339,6 +348,7 @@ void rplay_window::update_ui()
 	if (_playback_stoped)
 	{
 		_position = _duration = 0;
+		_playback_state = playback_state_e::invalid;
 		_playback_stoped = false;
 	}
 
@@ -348,7 +358,7 @@ void rplay_window::update_ui()
 		_player_position.set_text("0:00");
 		_player_duration.set_text("0:00");
 	}
-	else if (!_seek_position_lock)
+	else if (!_seek_position_lock && _playback_state == playback_state_e::playing)
 	{
 		auto elapsed = std::chrono::high_resolution_clock::now() - _last_progress_update;
 		long position = min(
@@ -417,12 +427,10 @@ void rplay_window::on_prev_button()
 void rplay_window::on_play_button()
 {
 	lock_guard<mutex> locker{_player_data_locker};
-	_play.play(_playlist_id, 0);  // play from playlist beginning
-}
-
-void rplay_window::on_pause_button()
-{
-	_play.pause();
+	if (_playback_state == playback_state_e::invalid)
+		_play.play(_playlist_id, 0);  // play from playlist beginning
+	else  // pause/resume
+		_play.pause();
 }
 
 void rplay_window::on_stop_button()

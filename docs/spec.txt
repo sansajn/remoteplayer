@@ -88,9 +88,7 @@ tvare
 
 	{"cmd":"pause"}
 
-následne server klientom pošle oznámenie v tvare
-
-	{"cmd":"pause"}
+následne server klientom pošle správu play_progress(playback_status=paused).
 
 
 stop [notify|news]:

@@ -197,14 +197,14 @@ void zmq_interface::send_stop()
 	LOG(trace) << "RPLAYC << stop";
 }
 
-void zmq_interface::send_pause()
-{
-	jtree news;
-	news.put<string>("cmd", "pause");
-	publish(to_string(news));
+//void zmq_interface::send_pause()
+//{
+//	jtree news;
+//	news.put<string>("cmd", "pause");
+//	publish(to_string(news));
 
-	LOG(trace) << "RPLAYC << pause";
-}
+//	LOG(trace) << "RPLAYC << pause";
+//}
 
 void zmq_interface::on_position_change(int64_t position, int64_t duration)
 {
@@ -308,7 +308,7 @@ void zmq_interface::on_notify(string const & s)
 
 		_play->pause();
 
-		send_pause();
+		send_play_progress();
 	}
 	else if (cmd == "stop")
 	{

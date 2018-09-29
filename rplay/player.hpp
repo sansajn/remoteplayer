@@ -21,6 +21,7 @@ public:
 	void seek(int64_t pos_in_ns);
 	void stop();
 	bool playing() const;
+	bool paused() const;
 	void add(std::string const & media);
 	void remove(size_t playlist_idx);
 	playlist const & media_playlist() const;

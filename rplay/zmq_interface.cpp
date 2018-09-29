@@ -116,6 +116,8 @@ void zmq_interface::on_play(std::string media, size_t playlist_idx)
 
 void zmq_interface::send_play_progress()
 {
+	assert(_play->playing());
+
 	jtree msg;
 
 	{
@@ -127,8 +129,12 @@ void zmq_interface::send_play_progress()
 		msg.put<long>("duration", (long)_duration);
 		msg.put<size_t>("playlist_idx", _playlist_idx);
 
+		int playback_state = _play->paused() ? 2 : 1;
+		msg.put<int>("playback_state", playback_state);
+
 		LOG(trace) << "RPLAYC << play_progress(media=" << _media << ", position="
-			<< _position << ", duration=" << _duration << ", playlist_idx=" << _playlist_idx << ")";
+			<< _position << ", duration=" << _duration << ", playlist_idx=" << _playlist_idx
+			<< ", playback_state=" << playback_state << ")";
 	}
 
 	publish(to_string(msg));

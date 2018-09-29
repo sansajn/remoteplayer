@@ -51,7 +51,6 @@ void playlist::remove(size_t idx)
 		_item_idx -= 1;
 }
 
-
 void playlist::clear()
 {
 	lock_guard<mutex> lock{_items_locker};

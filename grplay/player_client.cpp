@@ -19,18 +19,21 @@ void player_client::on_news(std::string const & news)
 
 	if (cmd == "play_progress")
 	{
-		string const media = json.get("media", string{});
+		string media = json.get("media", string{});
 		long position = json.get<long>("position", 0L);
 		long duration = json.get<long>("duration", 0L);
 		size_t playlist_idx = json.get<size_t>("playlist_idx", 0);
+		int playback_state = json.get<int>("playback_state", 0);
 
 		assert(duration > 0);
+		assert(playback_state > 0);
 
 		LOG(trace) << "RPLAY >> play_progress(media='" << media << "', posiiton=" << position
 			<< ", duration=" << duration << ", playlist_idx=" << playlist_idx << ")";
 
+		playback_state_e state = playback_state == 1 ? playback_state_e::playing : playback_state_e::paused;
 		for (auto * l : listeners())
-			l->on_play_progress(media, position, duration, playlist_idx);
+			l->on_play_progress(media, position, duration, playlist_idx, state);
 	}
 	else if (cmd == "playlist_content")
 	{

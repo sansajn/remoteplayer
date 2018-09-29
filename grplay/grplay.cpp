@@ -76,7 +76,8 @@ private:
 	std::string get_media(int sel_idx) const;  //!< \note it will take a lock for
 
 	// player_client events, note: called from player_client's thread
-	void on_play_progress(string const & media, long position, long duration, size_t playlist_idx) override;
+	void on_play_progress(string const & media, long position, long duration, size_t playlist_idx,
+		playback_state_e playback_state) override;
 	void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) override;
 	void on_list_media(std::vector<std::string> const & items) override;
 	void on_volume(int val) override;
@@ -91,6 +92,7 @@ private:
 	// position, duration, media
 	string _media;
 	size_t _playlist_idx;
+	playback_state_e _playback_state;
 	long _position;
 	long _duration;
 	std::chrono::high_resolution_clock::time_point _last_progress_update;
@@ -143,6 +145,7 @@ int rplay_window::update_cb(gpointer user_data)
 rplay_window::rplay_window(string const & host, unsigned short port)
 	: _filtered{false}
 	, _playlist_idx{0}
+	, _playback_state{playback_state_e::invalid}
 	, _position{0}
 	, _duration{0}
 	, _playlist_id{0}
@@ -521,13 +524,14 @@ string rplay_window::get_media(int sel_idx) const
 }
 
 void rplay_window::on_play_progress(string const & media, long position, long duration,
-	size_t playlist_idx)
+	size_t playlist_idx, playback_state_e playback_state)
 {
 	lock_guard<mutex> lock{_player_data_locker};
 	_media = media;
 	_position = position;
 	_duration = duration;
 	_playlist_idx = playlist_idx;
+	_playback_state = playback_state;
 	_last_progress_update = std::chrono::high_resolution_clock::now();
 	_seek_position_lock = false;
 }

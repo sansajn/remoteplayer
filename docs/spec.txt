@@ -117,14 +117,15 @@ počas prehrávania skladby.
 		"media":"path/to/file",  // string
 		"position":P,            // long
 		"duration":D,            // long
-		"playlist_idx":N         // size_t
+		"playlist_idx":N,        // size_t
+		"playback_state":S       // int (playing,paused)
 	}
 
 kde P je aktuálna pozícia v nano-sekundách a D je dĺžka skladby v
-nano-sekundách a N je pozícia/index aktuálnej skladby v playliste.
-Platí, že play_progress sa odkazuje na už existujúci playlist, ak
-klient ešte nemá k dispocícii playlist, potom musí pole playlist_idx
-ignorovať.
+nano-sekundách a N je pozícia/index aktuálnej skladby v playliste. Platí, že
+play_progress sa odkazuje na už existujúci playlist, ak klient ešte nemá k
+dispocícii playlist, potom musí pole playlist_idx ignorovať. S predstavuje
+prehrávací stav, ktorý je v stave 'playing' (1), alebo v stave 'paused' (2).
 
 
 identify [ask]:

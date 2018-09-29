@@ -65,6 +65,11 @@ bool player::playing() const
 	return _play_flag;
 }
 
+bool player::paused() const
+{
+	return _pause_flag;
+}
+
 void player::add(std::string const & media)
 {
 	_items.add("file://" + media);

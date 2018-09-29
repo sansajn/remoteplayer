@@ -5,9 +5,12 @@
 #include <zmqu/clone_client.hpp>
 #include "fs.hpp"
 
+enum class playback_state_e{invalid, playing, paused};
+
 struct player_client_listener
 {
-	virtual void on_play_progress(std::string const & media, long position, long duration, size_t playlist_idx) {}
+	virtual void on_play_progress(std::string const & media, long position, long duration,
+		size_t playlist_idx, playback_state_e playback_state) {}
 	virtual void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) {}
 	virtual void on_list_media(std::vector<std::string> const & items) {}
 	virtual void on_volume(int val) {}

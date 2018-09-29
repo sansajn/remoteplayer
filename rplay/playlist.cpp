@@ -39,13 +39,18 @@ void playlist::add(string const & item)
 	_new_item_cond.notify_one();
 }
 
-void playlist::remove(string const & item)
+void playlist::remove(size_t idx)
 {
 	lock_guard<mutex> lock{_items_locker};
-	auto it = find(_items.begin(), _items.end(), item);
-	if (it != _items.end())
-		_items.erase(it);
+	if (idx >= _items.size())
+		return;  // out_of_range, nothing to remove
+
+	_items.erase(_items.begin() + (int)idx);
+
+	if (idx < _item_idx)
+		_item_idx -= 1;
 }
+
 
 void playlist::clear()
 {

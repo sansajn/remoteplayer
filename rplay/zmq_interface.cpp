@@ -343,6 +343,25 @@ void zmq_interface::on_notify(string const & s)
 
 		LOG(trace) << "RPLAY >> playlist_add('" << media << "')";
 	}
+	else if (cmd == "playlist_remove")
+	{
+		size_t pid = json.get<size_t>("playlist", 0);
+		size_t idx = json.get<size_t>("idx", invalid_idx);
+
+		LOG(trace) << "RPLAY >> playlist_remove(playlist=" << pid << ", idx=" << idx << ")";
+
+		if (pid == 0 || idx == invalid_idx)
+		{
+			LOG(warning) << "play(playlist_id=" << pid << ", idx=" << idx << ") ignored, reason invalid playlist ID or item index";
+			return;
+		}
+
+		if (_play->is_latest_playlist(pid))
+			_play->remove(idx);
+		else
+			LOG(warning) << "playlist outdated";
+
+	}
 	else
 		LOG(warning) << "unknown command (" << s << ")";
 }

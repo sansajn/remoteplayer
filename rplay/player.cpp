@@ -72,6 +72,13 @@ void player::add(std::string const & media)
 	playlist_change_signal.call(_playlist_id, _items.items());
 }
 
+void player::remove(size_t playlist_idx)
+{
+	_items.remove(playlist_idx);
+	++_playlist_id;
+	playlist_change_signal.call(_playlist_id, _items.items());
+}
+
 playlist const & player::media_playlist() const
 {
 	return _items;

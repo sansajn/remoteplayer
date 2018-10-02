@@ -357,6 +357,7 @@ void rplay_window::update_ui()
 	{
 		_player_position.set_text("0:00");
 		_player_duration.set_text("0:00");
+		_progress_adj->set_value(0.0);
 	}
 	else if (!_seek_position_lock && _playback_state == playback_state_e::playing)
 	{

@@ -91,18 +91,14 @@ tvare
 následne server klientom pošle správu play_progress(playback_status=paused).
 
 
-stop [notify|news]:
+stop [notify]:
 
 Príkaz umožnuje klientovy zastaviť prehrávanie, príkaz je definovaný
 ako
 
 	{"cmd":"stop"}
 
-rovnako aj server posiela oznámenie o zastavení prehrávania v tvare
-
-	{"cmd":"stop"}
-
-ako reakcia na stop od niektorého s klientou.
+následne server klientom pošle správu play_progress(media="").
 
 
 play_progress [news]:
@@ -116,14 +112,18 @@ počas prehrávania skladby.
 		"position":P,            // long
 		"duration":D,            // long
 		"playlist_idx":N,        // size_t
-		"playback_state":S       // int (playing,paused)
+		"playback_state":S       // int (playing=1,paused=2)
 	}
 
 kde P je aktuálna pozícia v nano-sekundách a D je dĺžka skladby v
 nano-sekundách a N je pozícia/index aktuálnej skladby v playliste. Platí, že
 play_progress sa odkazuje na už existujúci playlist, ak klient ešte nemá k
 dispocícii playlist, potom musí pole playlist_idx ignorovať. S predstavuje
-prehrávací stav, ktorý je v stave 'playing' (1), alebo v stave 'paused' (2).
+prehrávací stav, ktorý je buď v stave 'playing' (1), alebo v stave 'paused'
+(2).
+
+Ak klient obdrží play_progress v ktorej media je prázdny reťazec, potom
+remoteplayer signalizuje stop (pozri popis stop príkazu).
 
 
 identify [ask]:

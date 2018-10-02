@@ -116,8 +116,6 @@ void zmq_interface::on_play(std::string media, size_t playlist_idx)
 
 void zmq_interface::send_play_progress()
 {
-	assert(_play->playing());
-
 	jtree msg;
 
 	{
@@ -188,24 +186,6 @@ void zmq_interface::send_volume()
 	LOG(trace) << "RPLAYC << volume(value=" << value << ")";
 }
 
-void zmq_interface::send_stop()
-{
-	jtree news;
-	news.put<string>("cmd", "stop");
-	publish(to_string(news));
-
-	LOG(trace) << "RPLAYC << stop";
-}
-
-//void zmq_interface::send_pause()
-//{
-//	jtree news;
-//	news.put<string>("cmd", "pause");
-//	publish(to_string(news));
-
-//	LOG(trace) << "RPLAYC << pause";
-//}
-
 void zmq_interface::on_position_change(int64_t position, int64_t duration)
 {
 	bool seek_send_progress = false;
@@ -215,9 +195,9 @@ void zmq_interface::on_position_change(int64_t position, int64_t duration)
 		seek_send_progress = abs(position - _position) > 1000000000;  // 1s (means seek)
 		_position = position;
 		_duration = duration;
+		if (_media.empty())
+			return;
 	}
-
-	assert(!_media.empty());
 
 	if ((_position_change_count++ % 100) == 0 || seek_send_progress)
 		send_play_progress();
@@ -316,7 +296,13 @@ void zmq_interface::on_notify(string const & s)
 
 		_play->stop();
 
-		send_stop();
+		{
+			lock_guard<mutex> lock{_media_info_locker};
+			_media = "";
+			_position = _duration = 0;
+		}
+
+		send_play_progress();
 	}
 	else if (cmd == "seek")
 	{

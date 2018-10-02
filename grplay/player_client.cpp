@@ -1,4 +1,3 @@
-#include <iostream>
 #include <zmqu/json.hpp>
 #include <rplib/time.hpp>
 #include "player_client.hpp"
@@ -9,7 +8,6 @@ using std::unique_lock;
 using std::lock_guard;
 using std::mutex;
 using std::string;
-using std::cout;
 
 void player_client::on_news(std::string const & news)
 {
@@ -25,15 +23,20 @@ void player_client::on_news(std::string const & news)
 		size_t playlist_idx = json.get<size_t>("playlist_idx", 0);
 		int playback_state = json.get<int>("playback_state", 0);
 
-		assert(duration > 0);
 		assert(playback_state > 0);
 
 		LOG(trace) << "RPLAY >> play_progress(media='" << media << "', posiiton=" << position
 			<< ", duration=" << duration << ", playlist_idx=" << playlist_idx << ")";
 
-		playback_state_e state = playback_state == 1 ? playback_state_e::playing : playback_state_e::paused;
-		for (auto * l : listeners())
-			l->on_play_progress(media, position, duration, playlist_idx, state);
+		if (!media.empty())
+		{
+			playback_state_e state = playback_state == 1 ? playback_state_e::playing : playback_state_e::paused;
+			for (auto * l : listeners())
+				l->on_play_progress(media, position, duration, playlist_idx, state);
+		}
+		else
+			for (auto * l : listeners())
+				l->on_stop();
 	}
 	else if (cmd == "playlist_content")
 	{
@@ -74,13 +77,6 @@ void player_client::on_news(std::string const & news)
 
 		for (auto * l : listeners())
 			l->on_volume(value);
-	}
-	else if (cmd == "stop")
-	{
-		LOG(trace) << "RPLAY >> stop";
-
-		for (auto * l : listeners())
-			l->on_stop();
 	}
 	else
 	{
@@ -152,7 +148,7 @@ void player_client::on_answer(std::string const & answer)
 		LOG(debug) << "server=(" << version << ", " << build << ")";
 	}
 	else
-		cout << "unknown answer: " << answer << std::endl;
+		LOG(warning) << "unknown answer: " << answer;
 }
 
 vector<string> player_client::list_library() const

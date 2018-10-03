@@ -104,6 +104,7 @@ private:
 
 	size_t _last_used_playlist_id;
 	atomic_bool _playback_stoped;
+	atomic_bool _highlight_media_in_playlist;
 
 	// gui
 	Gtk::Box _vbox;
@@ -151,6 +152,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	, _serv_volume{0}
 	, _last_used_playlist_id{0}
 	, _playback_stoped{false}
+	, _highlight_media_in_playlist{false}
 	, _vbox{Gtk::Orientation::ORIENTATION_VERTICAL}
 	, _playlist_view{1}
 	, _filtered_media_list_view{1}
@@ -334,12 +336,16 @@ void rplay_window::update_ui()
 		return;
 
 	// highlight played media in playlist
-	Gtk::TreeModel::Children playlist_items = _playlist_view.get_model()->children();
-	if (playlist_items.size() > _playlist_idx)
+	if (_highlight_media_in_playlist)
 	{
-		auto it = playlist_items.begin();
-		advance(it, _playlist_idx);
-		_playlist_view.set_cursor(Gtk::TreeModel::Path{it});  // TODO: better way to set cursor ?
+		Gtk::TreeModel::Children playlist_items = _playlist_view.get_model()->children();
+		if (playlist_items.size() > _playlist_idx)
+		{
+			auto it = playlist_items.begin();
+			advance(it, _playlist_idx);
+			_playlist_view.set_cursor(Gtk::TreeModel::Path{it});  // TODO: better way to set cursor ?
+		}
+		_highlight_media_in_playlist = false;
 	}
 
 	// media
@@ -536,6 +542,7 @@ void rplay_window::on_play_progress(string const & media, long position, long du
 	size_t playlist_idx, playback_state_e playback_state)
 {
 	lock_guard<mutex> lock{_player_data_locker};
+	bool new_media = _media != media;
 	_media = media;
 	_position = position;
 	_duration = duration;
@@ -543,6 +550,9 @@ void rplay_window::on_play_progress(string const & media, long position, long du
 	_playback_state = playback_state;
 	_last_progress_update = std::chrono::high_resolution_clock::now();
 	_seek_position_lock = false;
+
+	if (new_media)
+		_highlight_media_in_playlist = true;
 }
 
 void rplay_window::on_playlist_change(size_t playlist_id, vector<string> const & items)

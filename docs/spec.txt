@@ -208,7 +208,7 @@ Umožnuje klientovy pridať skladbu do playlistu, správa je v tvare
 
 playlist_remove [notify]:
 
-Umožnuje odobrať skladbu s playlistu v tvare
+Umožnuje odobrať skladbu z playlistu v tvare
 
 	{"cmd":"playlist_remove", "playlist":PID, "idx":N}
 

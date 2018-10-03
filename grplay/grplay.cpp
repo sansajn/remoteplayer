@@ -22,6 +22,7 @@
 #include <gtkmm/scale.h>
 #include <gtkmm/volumebutton.h>
 #include <gtkmm/paned.h>
+#include <gtkmm/menu.h>
 #include "log.hpp"
 #include "player_client.hpp"
 #include "json.hpp"
@@ -68,6 +69,9 @@ private:
 	void on_next_button();
 	void on_playlist_add_button();
 	void on_playlist_play(Gtk::TreeModel::Path const & path, Gtk::TreeViewColumn * column);
+	void on_playlist_popup_play();
+	void on_playlist_popup_remove();
+	void on_playlist_button_press(GdkEventButton * button_event);
 	void on_search();
 	bool on_seek(Gtk::ScrollType scroll, double value);
 	void on_volume_change();
@@ -127,6 +131,7 @@ private:
 	Gtk::VPaned _playlist_library_paned;
 	Gtk::ScrolledWindow _playlist_scroll;
 	Gtk::ListViewText _playlist_view;
+	Gtk::Menu _playlist_context_menu;
 	Gtk::Box _libray_control_box;
 	Gtk::ScrolledWindow _filtered_scroll;
 	Gtk::ListViewText _filtered_media_list_view;
@@ -220,6 +225,17 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_playlist_scroll.add(_playlist_view);
 	_playlist_scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
 	_playlist_view.signal_row_activated().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_play));
+
+	auto item = Gtk::manage(new Gtk::MenuItem("_Play", true));
+	item->signal_activate().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_popup_play));
+	_playlist_context_menu.append(*item);
+
+	item = Gtk::manage(new Gtk::MenuItem("_Remove", true));
+	item->signal_activate().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_popup_remove));
+	_playlist_context_menu.append(*item);
+	_playlist_context_menu.accelerate(*this);
+	_playlist_context_menu.show_all();
+	_playlist_view.signal_button_press_event().connect_notify(sigc::mem_fun(*this, &rplay_window::on_playlist_button_press));
 
 	// library
 	_playlist_library_paned.add2(_libray_control_box);
@@ -489,6 +505,29 @@ void rplay_window::on_playlist_play(Gtk::TreeModel::Path const & path, Gtk::Tree
 	lock_guard<mutex> lock{_player_data_locker};
 	int sel_idx = _playlist_view.get_selected()[0];
 	_play.play(_playlist_id, (size_t)sel_idx);
+}
+
+void rplay_window::on_playlist_popup_play()
+{
+	lock_guard<mutex> locker{_player_data_locker};
+	int idx = _playlist_view.get_selected()[0];
+	_play.play(_playlist_id, (size_t)idx);
+}
+
+void rplay_window::on_playlist_popup_remove()
+{
+	lock_guard<mutex> locker{_player_data_locker};
+	int idx = _playlist_view.get_selected()[0];
+	_play.playlist_remove(_playlist_id, (size_t)idx);
+}
+
+void rplay_window::on_playlist_button_press(GdkEventButton * button_event)
+{
+	if((button_event->type == GDK_BUTTON_PRESS) && (button_event->button == 3))
+	{
+		if (!_playlist_view.get_selected().empty())
+			_playlist_context_menu.popup_at_pointer((GdkEvent *)button_event);
+	}
 }
 
 void rplay_window::on_search()

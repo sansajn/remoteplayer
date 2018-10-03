@@ -225,3 +225,14 @@ void player_client::playlist_add(fs::path const & media)
 
 	LOG(trace) << "RPLAY << playlist_add(" << media << ")";
 }
+
+void player_client::playlist_remove(size_t playlist_id, size_t playlist_idx)
+{
+	jtree req;
+	req.put("cmd", "playlist_remove");
+	req.put("playlist", playlist_id);
+	req.put("idx", playlist_idx);
+	notify(to_string(req));
+
+	LOG(trace) << "RPLAY << playlist_remove(idx=" << playlist_idx << ")";
+}

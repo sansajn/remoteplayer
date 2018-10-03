@@ -48,6 +48,7 @@ public:
 	void seek(long pos, fs::path const & media);
 	void volume(int val);  //!< val can be from [0, 100] range
 	void playlist_add(fs::path const & media);
+	void playlist_remove(size_t playlist_id, size_t playlist_idx);
 
 private:
 	void on_news(std::string const & news) override;

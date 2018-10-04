@@ -329,11 +329,14 @@ void zmq_interface::on_notify(string const & s)
 	}
 	else if (cmd == "playlist_add")
 	{
-		string media = json.get<string>("media", "");
-		if (!media.empty())
+		vector<string> media;
+		for (jtree::value_type & obj : json.get_child("media"))
+			media.push_back(obj.second.data());
+
+		if (media.empty())
 			_play->add(media);
 
-		LOG(trace) << "RPLAY >> playlist_add('" << media << "')";
+		LOG(trace) << "RPLAY >> playlist_add(media='" << media.size() << " items')";
 	}
 	else if (cmd == "playlist_remove")
 	{

@@ -70,9 +70,11 @@ bool player::paused() const
 	return _pause_flag;
 }
 
-void player::add(std::string const & media)
+void player::add(vector<string> const & media)
 {
-	_items.add("file://" + media);
+	for (string const & item : media)
+		_items.add("file://" + item);
+
 	++_playlist_id;
 	playlist_change_signal.call(_playlist_id, _items.items());
 }

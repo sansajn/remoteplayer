@@ -203,7 +203,7 @@ playlist_add [notify]:
 
 Umožnuje klientovy pridať skladbu do playlistu, správa je v tvare
 
-	{"cmd":"playlist_add", "media":"path/to/file"}
+	{"cmd":"playlist_add", "media":["path/to/file1", ...]}
 
 
 playlist_remove [notify]:

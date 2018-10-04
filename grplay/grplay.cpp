@@ -78,6 +78,7 @@ private:
 	void repack_ui();
 	void filter_media_library(string const & filter);
 	std::string get_media(int sel_idx) const;  //!< \note it will take a lock for
+	void highlight_played_item_in_playlist();
 
 	// player_client events, note: called from player_client's thread
 	void on_play_progress(string const & media, long position, long duration, size_t playlist_idx,
@@ -162,7 +163,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	, _playback_stoped{false}
 	, _highlight_media_in_playlist{false}
 	, _vbox{Gtk::Orientation::ORIENTATION_VERTICAL}
-	, _playlist_view{1}
+	, _playlist_view{2}
 	, _libray_control_box{Gtk::ORIENTATION_VERTICAL}
 	, _filtered_media_list_view{1}
 {
@@ -226,6 +227,11 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_playlist_scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
 	_playlist_view.signal_row_activated().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_play));
 
+	_playlist_view.set_column_title(0, "Track");
+	_playlist_view.set_column_title(1, "Title");
+
+	_playlist_view.get_column(0)->set_alignment(Gtk::Align::ALIGN_CENTER);
+
 	auto item = Gtk::manage(new Gtk::MenuItem("_Play", true));
 	item->signal_activate().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_popup_play));
 	_playlist_context_menu.append(*item);
@@ -243,19 +249,18 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_search.set_placeholder_text("<Enter search terms there>");
 	_search.signal_changed().connect(sigc::mem_fun(*this, &rplay_window::on_search));
 
+	_scroll.add(_media_list_view);
+	_scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
+
 	_filtered_scroll.add(_filtered_media_list_view);
 	_filtered_scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
 
-	_scroll.add(_media_list_view);
-	_scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
+	_filtered_media_list_view.set_column_title(0, "Filtered Media:");
 
 	_library_control_bar.pack_start(_playlist_add_button, Gtk::PackOptions::PACK_SHRINK);
 	_library_control_bar.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
 	_playlist_add_button.set_label("+");
 	_playlist_add_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_add_button));
-
-	_playlist_view.set_column_title(0, "Playlist:");
-	_filtered_media_list_view.set_column_title(0, "Filtered Media:");
 
 	_libray_control_box.pack_start(_scroll, Gtk::PackOptions::PACK_EXPAND_WIDGET);
 	_libray_control_box.pack_start(_search, Gtk::PackOptions::PACK_SHRINK);
@@ -334,7 +339,17 @@ void rplay_window::update_ui()
 	{
 		_playlist_view.clear_items();
 		for (string const & media : _playlist)
-			_playlist_view.append(media);
+		{
+			guint row = _playlist_view.append();
+			_playlist_view.set_text(row, 1, media);
+		}
+
+		if (_playlist_view.size() > _playlist_idx
+			&& (_playback_state == playback_state_e::playing
+				|| _playback_state == playback_state_e::paused))
+		{
+			highlight_played_item_in_playlist();
+		}
 
 		_last_used_playlist_id = _playlist_id;
 	}
@@ -349,6 +364,9 @@ void rplay_window::update_ui()
 			_play_button.set_image_from_icon_name("media-playback-pause");
 		else
 			_play_button.set_image_from_icon_name("media-playback-start");
+
+		if (_playlist_view.size() > _playlist_idx)
+			highlight_played_item_in_playlist();
 
 		prev_state = _playback_state;
 	}
@@ -369,6 +387,8 @@ void rplay_window::update_ui()
 			auto it = playlist_items.begin();
 			advance(it, _playlist_idx);
 			_playlist_view.set_cursor(Gtk::TreeModel::Path{it});  // TODO: better way to set cursor ?
+
+			highlight_played_item_in_playlist();
 		}
 		_highlight_media_in_playlist = false;
 	}
@@ -584,6 +604,25 @@ string rplay_window::get_media(int sel_idx) const
 
 	assert(media_idx < _library.size());
 	return _library[media_idx];
+}
+
+void rplay_window::highlight_played_item_in_playlist()
+{
+	// ui helper, do not lock
+	for (guint i = 0; i < _playlist_view.size(); ++i)
+	{
+		if (i != _playlist_idx)
+			_playlist_view.set_text(i, 0, "");
+		else
+		{
+			assert(_playback_state != playback_state_e::invalid);
+
+			if (_playback_state == playback_state_e::playing)
+				_playlist_view.set_text(i, 0, "  >");
+			else
+				_playlist_view.set_text(i, 0, "  ||");
+		}
+	}
 }
 
 void rplay_window::on_play_progress(string const & media, long position, long duration,

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include "fs.hpp"
 #include "library_tree_view.hpp"
+#include "log.hpp"
 
 using std::find_if;
 using std::string;
@@ -50,4 +51,15 @@ void library_tree_view::clear()
 size_t library_tree_view::size() const
 {
 	return _item_count;
+}
+
+void library_tree_view::expand_smart()
+{
+	Gtk::TreeStore::Children rows = _store->children();
+	while (rows.size() < 2)
+	{
+		auto path = _store->get_path(*(rows.begin()));
+		expand_row(path, false);
+		rows = rows->children().begin()->children();
+	}
 }

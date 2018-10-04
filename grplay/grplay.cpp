@@ -332,6 +332,8 @@ void rplay_window::update_ui()
 		_media_list_view.clear();
 		for (string const & media : _library)
 			_media_list_view.insert(media);
+
+		_media_list_view.expand_smart();
 	}
 
 	// playlist

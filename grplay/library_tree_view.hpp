@@ -20,6 +20,7 @@ public:
 	void insert(std::string const & media);
 	void clear();
 	size_t size() const;
+	void expand_smart();
 
 private:
 	Glib::RefPtr<Gtk::TreeStore> _store;

@@ -63,3 +63,8 @@ void library_tree_view::expand_smart()
 		rows = rows->children().begin()->children();
 	}
 }
+
+Gtk::TreeStore & library_tree_view::store()
+{
+	return *(_store.get());
+}

@@ -266,6 +266,10 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_libray_control_box.pack_start(_search, Gtk::PackOptions::PACK_SHRINK);
 	_libray_control_box.pack_start(_library_control_bar, Gtk::PackOptions::PACK_SHRINK);
 
+	RefPtr<Gtk::TreeSelection> selection = _media_list_view.get_selection();
+	assert(selection);
+	selection->set_mode(Gtk::SELECTION_MULTIPLE);
+
 	// pack
 	_vbox.pack_start(_player_media, Gtk::PackOptions::PACK_SHRINK);
 	_vbox.pack_start(_progress_hbox, Gtk::PackOptions::PACK_SHRINK);
@@ -506,19 +510,32 @@ void rplay_window::on_playlist_add_button()
 		RefPtr<Gtk::TreeSelection> selection = _media_list_view.get_selection();
 		if (selection)
 		{
-			Gtk::TreeModel::iterator it = selection->get_selected();
-			if (it)
+//			Gtk::TreeModel::iterator it = selection->get_selected();
+//			if (it)
+//			{
+//				Gtk::TreeModel::Row row = *it;
+//				string media = row[_media_list_view.columns._media_id];
+//				_play.playlist_add({media});
+//			}
+
+			vector<fs::path> items;
+			for (Gtk::TreeModel::Path const & p : selection->get_selected_rows())
 			{
+				Gtk::TreeModel::iterator it = _media_list_view.store().get_iter(p);
+				assert(it);
 				Gtk::TreeModel::Row row = *it;
 				string media = row[_media_list_view.columns._media_id];
-				_play.playlist_add(media);
+				items.push_back(media);
 			}
+
+			if (!items.empty())
+				_play.playlist_add(items);
 		}
 	}
 	else  // from filtered media
 	{
 		Gtk::ListViewText::SelectionList selection = _filtered_media_list_view.get_selected();
-		_play.playlist_add(get_media(selection[0]));
+		_play.playlist_add({get_media(selection[0])});
 	}
 }
 

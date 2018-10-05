@@ -9,6 +9,9 @@ using std::lock_guard;
 using std::mutex;
 using std::string;
 
+static void vector_put(jtree & root, string const & key, vector<string> const & v);
+
+
 void player_client::on_news(std::string const & news)
 {
 	jtree json;
@@ -216,14 +219,19 @@ void player_client::volume(int val)
 	LOG(trace) << "RPLAY << set_volume(value=" << val << ")";
 }
 
-void player_client::playlist_add(fs::path const & media)
+void player_client::playlist_add(vector<fs::path> const & media)
 {
 	jtree req;
 	req.put("cmd", "playlist_add");
-	req.put("media", media.string());
+
+	vector<string> items;
+	for (fs::path const & item : media)
+		items.push_back(item.string());
+	vector_put(req, "media", items);
+
 	notify(to_string(req));
 
-	LOG(trace) << "RPLAY << playlist_add(" << media << ")";
+	LOG(trace) << "RPLAY << playlist_add(media='" << media.size() << " items')";
 }
 
 void player_client::playlist_remove(size_t playlist_id, size_t playlist_idx)
@@ -235,4 +243,16 @@ void player_client::playlist_remove(size_t playlist_id, size_t playlist_idx)
 	notify(to_string(req));
 
 	LOG(trace) << "RPLAY << playlist_remove(idx=" << playlist_idx << ")";
+}
+
+void vector_put(jtree & root, string const & key, vector<string> const & v)
+{
+	jtree arr;
+	for (string const & elem : v)
+	{
+		jtree local;
+		local.put("", elem);
+		arr.push_back(make_pair("", local));
+	}
+	root.add_child(key, arr);
 }

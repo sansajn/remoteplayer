@@ -21,6 +21,7 @@ public:
 	void clear();
 	size_t size() const;
 	void expand_smart();
+	Gtk::TreeStore & store();  // TODO: better name
 
 private:
 	Glib::RefPtr<Gtk::TreeStore> _store;

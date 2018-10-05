@@ -333,7 +333,7 @@ void zmq_interface::on_notify(string const & s)
 		for (jtree::value_type & obj : json.get_child("media"))
 			media.push_back(obj.second.data());
 
-		if (media.empty())
+		if (!media.empty())
 			_play->add(media);
 
 		LOG(trace) << "RPLAY >> playlist_add(media='" << media.size() << " items')";

@@ -50,6 +50,7 @@ using Glib::ustring;
 void to_min_and_sec(long t, int & min, int & sec);
 void parse_title_author_album(string const & media, string & title, string & author,
 	string & album);
+bool parse_file_name(string const & name, string & author, string & title);
 string format_media(string const & media);
 static void weakly_directory_first_sort(vector<string> & files);
 
@@ -312,18 +313,42 @@ void parse_title_author_album(string const & media, string & title, string & aut
 	// TODO: remove hash
 }
 
+bool parse_file_name(string const & name, string & author, string & title)
+{
+	try {
+		// {author}@{title}-{hash}.{ext}
+		static regex const pat{R"((.+)@(.+)-(.{11})\..+$)"};
+
+		smatch match;
+		if (regex_match(name, match, pat))
+		{
+			author = match[1];
+			title = match[2];
+			return true;
+		}
+		else
+			return false;
+	}
+	catch (std::regex_error & e) {
+		cout << e.what() << "\n";
+	}
+
+	return false;
+}
+
 string format_media(string const & media)
 {
-	string title, author, album;
-	parse_title_author_album(media, title, author, album);
-
-	string result = title;
-	if (!author.empty())
-		result += "\n" + author;
-	if (!album.empty())
-		result += "\n" + album;
-
-	return result;
+	fs::path p{media};
+	string author, title;
+	if (parse_file_name(p.filename().string()/*p.stem().string()*/, author, title))
+	{
+		string result;
+		result = author;
+		result += "@" + title;
+		return result;
+	}
+	else
+		return media;
 }
 
 void rplay_window::update_ui()

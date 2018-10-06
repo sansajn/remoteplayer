@@ -355,6 +355,13 @@ void rplay_window::update_ui()
 {
 	lock_guard<mutex> lock{_player_data_locker};  // TODO: do not lock whole function
 
+	auto elapsed = std::chrono::high_resolution_clock::now() - _last_progress_update;
+	long playback_position = min(
+		_position + std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count(),
+		_duration);
+
+	bool eos = playback_position == _duration;
+
 	// library
 	if (_media_list_view.size() != _library.size())
 	{
@@ -443,14 +450,10 @@ void rplay_window::update_ui()
 	}
 	else if (!_seek_position_lock && _playback_state == playback_state_e::playing)
 	{
-		auto elapsed = std::chrono::high_resolution_clock::now() - _last_progress_update;
-		long position = min(
-			_position + std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count(),
-			_duration);
-		_player_position.set_text(format_position(position));
+		_player_position.set_text(format_position(playback_position));
 
 		// scale
-		_progress_adj->set_value((double)position/(double)_duration);
+		_progress_adj->set_value((double)playback_position/(double)_duration);
 	}
 	else
 	{
@@ -460,6 +463,11 @@ void rplay_window::update_ui()
 
 	// duration
 	_player_duration.set_text(format_position(_duration));
+
+	if (eos)
+	{
+		_playback_state = playback_state_e::invalid;
+	}
 }
 
 void rplay_window::repack_ui()
@@ -757,6 +765,10 @@ void rplay_window::on_volume(int val)
 void rplay_window::on_stop()
 {
 	_playback_stoped = true;
+	_highlight_media_in_playlist = true;
+
+	lock_guard<mutex> lock{_player_data_locker};
+	_playback_state = playback_state_e::invalid;
 }
 
 int main(int argc, char * argv[])

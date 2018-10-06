@@ -119,7 +119,13 @@ void player::loop()
 	{
 		if (_play_flag)
 		{
-			string media = _items.wait_next();
+			string media;
+			if (!_items.try_next(media))
+			{
+				_play_flag = false;
+				continue;  // nothing new in playlist
+			}
+
 			play_signal.call(media, _items.current_item_idx());
 			_p.play(media, bind(&player::item_done_cb, this), bind(&player::item_progress_cb, this, _1, _2));
 			_p.join();

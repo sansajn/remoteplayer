@@ -21,6 +21,16 @@ string playlist::wait_next()
 	return _items[_item_idx++];
 }
 
+bool playlist::try_next(std::string & item)
+{
+	lock_guard<mutex> lock{_items_locker};
+	if (_item_idx >= _items.size())
+		return false;
+
+	item = _items[_item_idx++];
+	return true;
+}
+
 void playlist::set_current_item(size_t idx)
 {
 	if (idx >= _items.size())

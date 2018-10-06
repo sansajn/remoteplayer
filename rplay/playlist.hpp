@@ -9,6 +9,7 @@ class playlist  //!< thread safe playlist implementation
 public:
 	playlist();
 	std::string wait_next(); /*const*/
+	bool try_next(std::string & item);
 	void set_current_item(size_t idx);
 	void add(std::string const & item);
 	void remove(size_t idx);

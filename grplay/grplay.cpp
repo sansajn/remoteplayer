@@ -48,9 +48,8 @@ using Glib::RefPtr;
 using Glib::ustring;
 
 void to_min_and_sec(long t, int & min, int & sec);
-void parse_title_author_album(string const & media, string & title, string & author,
-	string & album);
 bool parse_file_name(string const & name, string & author, string & title);
+bool remove_ext(string & name);
 string format_media(string const & media);
 static void weakly_directory_first_sort(vector<string> & files);
 
@@ -302,19 +301,6 @@ string format_position(long pos)
 	return sout.str();
 }
 
-void parse_title_author_album(string const & media, string & title, string & author,
-	string & album)
-{
-	// /home/music/ANNA - Rave On Snow 2017 (BE-AT.TV)-7LNsnWbLcFU.opus
-
-	fs::path p{media};
-	title = p.stem().string();
-	author = "";
-	album = "";
-
-	// TODO: remove hash
-}
-
 bool parse_file_name(string const & name, string & author, string & title)
 {
 	try {
@@ -338,6 +324,32 @@ bool parse_file_name(string const & name, string & author, string & title)
 	return false;
 }
 
+bool remove_ext(string & name)
+{
+	try {
+		// {title}-{hash}.{ext}
+		static regex const pat{R"((.+)-.{11}\..+$)"};
+
+		smatch match;
+		if (regex_match(name, match, pat))
+		{
+			name = match[1];
+			return true;
+		}
+		else
+		{
+			fs::path p{name};
+			name = p.stem().string();
+			return true;
+		}
+	}
+	catch (std::regex_error & e) {
+		cout << e.what() << "\n";
+	}
+
+	return false;
+}
+
 string format_media(string const & media)
 {
 	fs::path p{media};
@@ -350,7 +362,12 @@ string format_media(string const & media)
 		return result;
 	}
 	else
-		return media;
+	{
+		// at least try to remove file:// and hash if present
+		string result{p.filename().string()};
+		remove_ext(result);
+		return result;
+	}
 }
 
 void rplay_window::update_ui()
@@ -545,14 +562,6 @@ void rplay_window::on_playlist_add_button()
 		RefPtr<Gtk::TreeSelection> selection = _media_list_view.get_selection();
 		if (selection)
 		{
-//			Gtk::TreeModel::iterator it = selection->get_selected();
-//			if (it)
-//			{
-//				Gtk::TreeModel::Row row = *it;
-//				string media = row[_media_list_view.columns._media_id];
-//				_play.playlist_add({media});
-//			}
-
 			vector<fs::path> items;
 			for (Gtk::TreeModel::Path const & p : selection->get_selected_rows())
 			{
@@ -647,8 +656,6 @@ void rplay_window::filter_media_library(string const & filter)
 
 string rplay_window::get_media(int sel_idx) const
 {
-	lock_guard<mutex> lock{_player_data_locker};
-
 	size_t media_idx = (size_t)sel_idx;
 	if (_filtered)
 	{
@@ -656,6 +663,7 @@ string rplay_window::get_media(int sel_idx) const
 		media_idx = _filtered_lookup[sel_idx];
 	}
 
+	lock_guard<mutex> lock{_player_data_locker};
 	assert(media_idx < _library.size());
 	return _library[media_idx];
 }

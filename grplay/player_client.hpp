@@ -49,6 +49,8 @@ public:
 	void volume(int val);  //!< val can be from [0, 100] range
 	void playlist_add(std::vector<fs::path> const & media);
 	void playlist_remove(size_t playlist_id, size_t playlist_idx);
+	void ask_identify();
+	void ask_list_media();
 
 private:
 	void on_news(std::string const & news) override;

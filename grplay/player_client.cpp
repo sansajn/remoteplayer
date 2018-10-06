@@ -104,14 +104,8 @@ void player_client::connect(std::string const & host, unsigned short port)
 
 	std::this_thread::sleep_for(std::chrono::milliseconds{200});  // wait for thread
 
-	// ask for media_library
-	jtree req;
-	req.put("cmd", "list_media");
-	ask(to_string(req));
-
-	jtree req2;
-	req2.put("cmd", "identify");
-	ask(to_string(req2));
+	ask_identify();
+	ask_list_media();
 }
 
 void player_client::on_answer(std::string const & answer)
@@ -243,6 +237,24 @@ void player_client::playlist_remove(size_t playlist_id, size_t playlist_idx)
 	notify(to_string(req));
 
 	LOG(trace) << "RPLAY << playlist_remove(idx=" << playlist_idx << ")";
+}
+
+void player_client::ask_identify()
+{
+	jtree req;
+	req.put("cmd", "identify");
+	ask(to_string(req));
+
+	LOG(trace) << "RPLAY << identify";
+}
+
+void player_client::ask_list_media()
+{
+	jtree req;
+	req.put("cmd", "list_media");
+	ask(to_string(req));
+
+	LOG(trace) << "RPLAY << list_media";
 }
 
 void vector_put(jtree & root, string const & key, vector<string> const & v)

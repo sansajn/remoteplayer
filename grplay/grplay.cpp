@@ -23,7 +23,7 @@
 #include <gtkmm/volumebutton.h>
 #include <gtkmm/paned.h>
 #include <gtkmm/menu.h>
-#include "log.hpp"
+#include "rplib/log.hpp"
 #include "player_client.hpp"
 #include "json.hpp"
 #include "fs.hpp"
@@ -764,6 +764,8 @@ int main(int argc, char * argv[])
 	// config
 	string const host = argc > 1 ? argv[1] : "localhost";
 	unsigned short const port = argc > 2 ? lexical_cast<unsigned short>(argv[2]) : 13333;
+
+	rpl::log_to_console();
 
 	auto app = Gtk::Application::create("org.gtkmm.example", Gio::APPLICATION_NON_UNIQUE);
 	assert(app);

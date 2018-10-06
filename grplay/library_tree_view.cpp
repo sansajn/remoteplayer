@@ -1,7 +1,7 @@
 #include <algorithm>
+#include "rplib/log.hpp"
 #include "fs.hpp"
 #include "library_tree_view.hpp"
-#include "log.hpp"
 
 using std::find_if;
 using std::string;

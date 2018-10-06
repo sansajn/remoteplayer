@@ -4,4 +4,4 @@ env = Environment(
 	LIBS=['boost_date_time']
 )
 
-rplib_a = env.StaticLibrary(Glob('*.cpp'))
+rplib_a = env.StaticLibrary('rp', [Glob('*.cpp')])

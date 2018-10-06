@@ -1,7 +1,7 @@
 #include <boost/lexical_cast.hpp>
+#include "rplib/log.hpp"
 #include "config.hpp"
 #include "json.hpp"
-#include "log.hpp"
 #include "fs.hpp"
 
 using std::string;

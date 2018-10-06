@@ -8,5 +8,6 @@ using namespace boost::posix_time;
 
 std::string timestamp();
 ptime to_ptime(std::string const & iso_t);
+ptime now();
 
 }  // rpl

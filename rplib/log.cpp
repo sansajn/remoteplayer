@@ -8,6 +8,8 @@
 #include <boost/log/support/date_time.hpp>
 #include "log.hpp"
 
+namespace rpl {
+
 namespace logging = boost::log;
 namespace expr = boost::log::expressions;
 namespace keywords = boost::log::keywords;
@@ -42,3 +44,5 @@ void log_to_file(std::string const & log_file)
 		)  // [2017-12-15 15:48:46.989610] [info]
 	);
 }
+
+}  // rpl

@@ -2,11 +2,11 @@
 #include <functional>
 #include <string>
 #include <iostream>
-#include <zmqu/send.hpp>
-#include <zmqu/json.hpp>
-#include <rplib/time.hpp>
+#include "zmqu/send.hpp"
+#include "zmqu/json.hpp"
+#include "rplib/time.hpp"
+#include "rplib/log.hpp"
 #include "zmq_interface.hpp"
-#include "log.hpp"
 #include "version.hpp"
 
 using std::abs;

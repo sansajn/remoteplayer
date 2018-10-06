@@ -1,7 +1,7 @@
 #include <zmqu/json.hpp>
-#include <rplib/time.hpp>
+#include "rplib/time.hpp"
+#include "rplib/log.hpp"
 #include "player_client.hpp"
-#include "log.hpp"
 
 using std::vector;
 using std::unique_lock;

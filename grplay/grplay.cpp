@@ -655,7 +655,7 @@ void rplay_window::highlight_played_item_in_playlist()
 	// ui helper, do not lock
 	for (guint i = 0; i < _playlist_view.size(); ++i)
 	{
-		if (i != _playlist_idx)
+		if (i != _playlist_idx || _playback_state == playback_state_e::invalid)
 			_playlist_view.set_text(i, 0, "");
 		else
 		{

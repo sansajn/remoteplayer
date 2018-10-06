@@ -37,6 +37,7 @@ class player_client  // TODO: rename to rplay_client
 	, public observable_with<player_client_listener>
 {
 public:
+	player_client();
 	~player_client();
 	void connect(std::string const & host, unsigned short port);
 	void disconnect();
@@ -53,14 +54,21 @@ public:
 	void ask_list_media();
 
 private:
+	void idle() override;
+	void loop();
+	void send_ready() const;
 	void on_news(std::string const & news) override;
 	void on_answer(std::string const & answer) override;
+	void on_connected(socket_id sid, std::string const & addr) override;
+	void on_closed(socket_id sid, std::string const & addr) override;
 
 	std::vector<std::string> _media_library;
 	std::vector<std::string> _media_playlist;
 
 	std::thread _t;  //!< clone_client thread
 	mutable std::mutex _rplay_data_locker;
+
+	bool _connected_flag, _connected[3];
 };
 
 

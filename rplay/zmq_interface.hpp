@@ -24,7 +24,7 @@ private:
 	void send_play_progress();
 	void send_playlist_content();
 	void send_server_alive();
-	void send_volume();
+	void send_volume();  // don't need to lock
 
 	//! \note called from player thread
 	void on_play(std::string media, size_t playlist_idx);

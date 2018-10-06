@@ -12,6 +12,15 @@ using std::string;
 static void vector_put(jtree & root, string const & key, vector<string> const & v);
 
 
+void player_client::send_ready() const
+{
+	jtree req;
+	req.put<string>("cmd", "client_ready");
+	notify(to_string(req));
+
+	LOG(trace) << "RPLAY << client_ready";
+}
+
 void player_client::on_news(std::string const & news)
 {
 	jtree json;
@@ -58,7 +67,7 @@ void player_client::on_news(std::string const & news)
 			media_playlist_copy = _media_playlist;
 		}
 
-		LOG(trace) << "RPLAY >> playlist_content(id=" << id << ", items=(" << _media_playlist.size() << " items)";
+		LOG(trace) << "RPLAY >> playlist_content(id=" << id << ", items='" << _media_playlist.size() << " items')";
 
 		for (auto * l : listeners())
 			l->on_playlist_change(id, media_playlist_copy);
@@ -97,15 +106,16 @@ player_client::~player_client()
 		_t.join();
 }
 
+player_client::player_client()
+	: _connected_flag{false}, _connected{false, false, false}
+{}
+
 void player_client::connect(std::string const & host, unsigned short port)
 {
 	zmqu::clone_client::connect(host, port, port+1, port+2);
-	_t = std::thread{&zmqu::clone_client::start, this};
+	_t = std::thread{&player_client::loop, this};
 
 	std::this_thread::sleep_for(std::chrono::milliseconds{200});  // wait for thread
-
-	ask_identify();
-	ask_list_media();
 }
 
 void player_client::on_answer(std::string const & answer)
@@ -121,31 +131,50 @@ void player_client::on_answer(std::string const & answer)
 		{
 			lock_guard<mutex> lock{_rplay_data_locker};
 			_media_library.clear();
-			for (jtree::value_type & obj : json.get_child("content"))
+			for (jtree::value_type & obj : json.get_child("items"))
 				_media_library.push_back(obj.second.data());
 
 			media_library_copy = _media_library;
 		}
 
+		LOG(trace) << "RPLAY >> media_library('" << media_library_copy.size() << " items')";
+
 		for (auto * l : listeners())
 			l->on_list_media(media_library_copy);
-
-		// \debug
-//		string content{"{\"content\":[\n"};
-//		for (jtree::value_type & obj : json.get_child("content"))
-//			content += "  \"" + obj.second.data() + "\",\n";
-//		content += "  \"\"\n]}";
-//		save_to_file("content.json", content);
-		// \enddebug
 	}
 	else if (cmd == "server_desc")
 	{
 		string version = json.get("version", "0");
 		string build = json.get("build", "0");
-		LOG(debug) << "server=(" << version << ", " << build << ")";
+		LOG(trace) << "RPLAY >> server_desc(version='" << version << "', build='" << build << "')";
 	}
 	else
 		LOG(warning) << "unknown answer: " << answer;
+}
+
+void player_client::idle()
+{
+	bool connected = (_connected[0] && _connected[1] && _connected[2]);
+
+	if (connected && !_connected_flag)
+	{
+		send_ready();
+		ask_identify();
+		ask_list_media();
+	}
+
+	_connected_flag = connected;
+}
+
+
+void player_client::on_connected(socket_id sid, std::string const & addr)
+{
+	_connected[sid] = true;
+}
+
+void player_client::on_closed(socket_id sid, std::string const & addr)
+{
+	_connected[sid] = false;
 }
 
 vector<string> player_client::list_library() const
@@ -221,11 +250,11 @@ void player_client::playlist_add(vector<fs::path> const & media)
 	vector<string> items;
 	for (fs::path const & item : media)
 		items.push_back(item.string());
-	vector_put(req, "media", items);
+	vector_put(req, "items", items);
 
 	notify(to_string(req));
 
-	LOG(trace) << "RPLAY << playlist_add(media='" << media.size() << " items')";
+	LOG(trace) << "RPLAY << playlist_add(items='" << media.size() << " items')";
 }
 
 void player_client::playlist_remove(size_t playlist_id, size_t playlist_idx)
@@ -255,6 +284,12 @@ void player_client::ask_list_media()
 	ask(to_string(req));
 
 	LOG(trace) << "RPLAY << list_media";
+}
+
+void player_client::loop()
+{
+	assert(!_connected[0] && !_connected[1] && !_connected[2]);
+	start();
 }
 
 void vector_put(jtree & root, string const & key, vector<string> const & v)

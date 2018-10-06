@@ -1,4 +1,4 @@
-Špecifikácia remoteplayeru, verzia 0.2 (koncept)
+Špecifikácia remoteplayeru, verzia 0.4 (koncept)
 
 {server}
 Umožnuje klientom prehrávať média z knižnice medií.
@@ -21,12 +21,13 @@ bude poskytovať nasledujúce funkcie:
 	* play_progress, update priebehu prehrávania (každých 10s)
 	* identify, vráti informácie o serveru
 	* playlist_content, update obsahu playlistu
+	* playlist_add, pridáva skladbu do playlistu
+	* playlist_remove, odobera skladbu s playlistu
 	* alive, server posiela klientom kazdu 1s (niečo ako ping)
 	* seek, ktorá posunie aktualnu skladnu na požadovanú pozíciu
 	* volume, posiela server pri zmene hlasitosti
 	* set_volume, zmena hlasitosti
-	* playlist_add, pridáva skladbu do playlistu
-	* playlist_remove, odobera skladbu s playlistu
+	* client_ready, signal serveru, ze je klient pripraveny prijímať správy
 
 Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
 obsahu.
@@ -60,15 +61,18 @@ list_media [ask]:
 
 	{"cmd":"list_media"}
 
-Umožnuje klientovy získať zoznam medií, odpoveď klientovy vypadá takto
+Umožnuje klientovy získať zoznam medií (knižnicu), odpoveď klientovy vypadá
+takto
 
-	{"cmd":"media_library", "content":[
+	{"cmd":"media_library", "items":[
 		"path/to/file1",
 		"path/to/file2",
 		"path/to/file3"
 	]}
 
-TODO: premenuj content na items
+Knižnica sú jediné dáta na ktoré sa musí klient explicitne opýtať a to kvôly
+tomu, že predpokladám tisícky prvkou v knižnici, takže by prípadný oznam mohol
+byť veľký aj stovky KB.
 
 
 play [notify]:
@@ -203,7 +207,7 @@ playlist_add [notify]:
 
 Umožnuje klientovy pridať skladbu do playlistu, správa je v tvare
 
-	{"cmd":"playlist_add", "media":["path/to/file1", ...]}
+	{"cmd":"playlist_add", "items":["path/to/file1", ...]}
 
 
 playlist_remove [notify]:
@@ -215,6 +219,14 @@ Umožnuje odobrať skladbu z playlistu v tvare
 kde PID (size_t) je identifikátor playlistu a N je index skladby s playlistu.
 Následne ako reakcia na zmenu playlistu server vyheneruje správu
 playlist_content.
+
+
+client_ready [notify]:
+
+Umožnuje klientom signalizovať, že sú od serveru pripravený príjimať správy, po
+obdržaní dotazu client_ready server pošle správy playlist_content a
+play_progress.
+
 
 
 

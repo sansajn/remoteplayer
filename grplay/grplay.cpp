@@ -179,6 +179,8 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 
 	add(_vbox);
 
+	_player_media.property_wrap() = true;
+	_player_media.property_max_width_chars() = 30;
 	_player_media.set_text("waiting ...");
 
 	_progress_adj = Gtk::Adjustment::create(0.0, 0.0, 1.0, 0.01);

@@ -105,8 +105,6 @@ void zmq_interface::join()
 
 void zmq_interface::on_play(std::string media, size_t playlist_idx)
 {
-	cout << "playing '" << media << "' ..." << std::endl;
-
 	_position_change_count = 0;
 
 	lock_guard<mutex> lock{_media_info_locker};
@@ -280,7 +278,7 @@ void zmq_interface::on_notify(string const & s)
 		if (_play->is_latest_playlist(pid))
 			_play->play(idx);
 		else
-			LOG(warning) << "playlist outdated";
+			LOG(warning) << "play ignored, what: playlist outdated";
 	}
 	else if (cmd == "pause")
 	{
@@ -333,10 +331,10 @@ void zmq_interface::on_notify(string const & s)
 		for (jtree::value_type & obj : json.get_child("media"))
 			media.push_back(obj.second.data());
 
+		LOG(trace) << "RPLAY >> playlist_add(media='" << media.size() << " items')";
+
 		if (!media.empty())
 			_play->add(media);
-
-		LOG(trace) << "RPLAY >> playlist_add(media='" << media.size() << " items')";
 	}
 	else if (cmd == "playlist_remove")
 	{

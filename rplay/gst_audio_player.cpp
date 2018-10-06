@@ -1,10 +1,7 @@
 #include <cassert>
 #include <gst/gst.h>
+#include "rplib/log.hpp"
 #include "gst_audio_player.hpp"
-
-// debug
-#include <iostream>
-using std::cout;
 
 using std::function;
 using std::atomic_bool;
@@ -105,6 +102,8 @@ void play(string const & uri, function<void (int64_t, int64_t)> const & progress
 		return;  // unable to play
 	assert(ret == GST_STATE_CHANGE_ASYNC);
 
+	LOG(trace) << "playing '" << uri << "'";
+
 	// wait till ends
 	GstBus * bus = gst_element_get_bus(playbin);
 
@@ -139,7 +138,7 @@ void play(string const & uri, function<void (int64_t, int64_t)> const & progress
 			if (GST_CLOCK_TIME_IS_VALID(seek_pos_in_ns))
 			{
 				// TODO: check seek conditions
-				cout << "performing seek to " << seek_pos_in_ns / 1e9 << "s" << std::endl;
+				LOG(info) << "performing seek to " << seek_pos_in_ns / 1e9 << "s";
 				gst_element_seek_simple(playbin, GST_FORMAT_TIME, (GstSeekFlags)(GST_SEEK_FLAG_FLUSH|GST_SEEK_FLAG_KEY_UNIT), seek_pos_in_ns);
 				seek_pos_in_ns = GST_CLOCK_TIME_NONE;
 			}
@@ -152,7 +151,7 @@ void play(string const & uri, function<void (int64_t, int64_t)> const & progress
 
 				GstStateChangeReturn ret = gst_element_set_state(playbin, new_state);
 				if (ret == GST_STATE_CHANGE_FAILURE)
-					cout << "warning: unable to pause/resume";
+					LOG(warning) << "unable to pause/resume";
 			}
 		}
 	}
@@ -165,6 +164,8 @@ void play(string const & uri, function<void (int64_t, int64_t)> const & progress
 
 	gst_element_set_state(playbin, GST_STATE_NULL);
 	gst_object_unref(playbin);
+
+	LOG(trace) << "playback done!";
 }
 
 }  // Detail

@@ -1,23 +1,40 @@
-TODO:
-	* playback progress
-	* android app
-	* playlist
-	* media meta-data
-	* media library stats
-	* volume control
-	* queue state
-	* stop command
-	* pause command
-	* next command
+Prenášanie stavu vs. udalostí, momentálne prenášam udalosti pomocou ktorých sa
+v klientovy snažím zrekonštruovať stav
 
-čo treba implementovať vo verzii 0.2:
-	* playback progress
-	* queue state
-	done - * version (rplay)
-	* media library as tree
-	* non blocking player connect
-	* rplay queue
-	* stop button
+ak by som posielal stav, ten by som na druhej strane nemusel žiadnak
+rekonštruovať, jednoducho by som len nastavil príslušné komponenty do správneho
+stavu (napr. progress, a tak.)
+
+stav {
+	position,
+	duration,
+	media-playlist-idx,
+	playback_state [ready|playing|paused],
+}
+
+nevýhoda je, že je potrebné stav prenášať niekoľko krát za sekundu, alebo aspoň
+pri každej udalosti. Môžem ale použiť kombinované riešenie v ktorom sa budú
+pravidelne posielať stavy (s nízkou frekvenciou opakovania) a prí nejakej
+sledovanej udalosti pošlem stav, takže smena sa ku klientom dostane ihneť.
+
+Server tiež musí umožnovať získať obsah playlistu. O playliste uvažujem ako o
+dynamicky sa meniacom zozname, takže pri zmene ho zverejním klientom, správou
+
+	playlist_content
+
+
+Klient na druhej strane volá metódy serveru
+
+	play, pause, stop, seek, identify, list_media, playlist_add, playlist_remove,
+volume a ready
+
+
+Jedinou vecou na vyžiadanie je knižnica, metóda
+
+	list_media
+
+
+
 
 
 done - * rplay: version

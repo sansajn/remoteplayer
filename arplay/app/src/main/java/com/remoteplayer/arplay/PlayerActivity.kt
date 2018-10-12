@@ -3,13 +3,24 @@ package com.remoteplayer.arplay
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ArrayAdapter
 
 import kotlinx.android.synthetic.main.activity_player.*
 import kotlinx.android.synthetic.main.content_player.*
 
+
+fun formatDuration(dur: Int): String {
+	var min = dur/60
+	var sec = dur % 60
+	return "$min:$sec"
+}
+
 class PlayerActivity : AppCompatActivity() {
+
+	var rplay: DummyRPlayClient = DummyRPlayClient()
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -21,8 +32,35 @@ class PlayerActivity : AppCompatActivity() {
 					  .setAction("Action", null).show()
 		}
 
+		media_text_view.text = rplay.media()
+		position_text_view.text = formatDuration(rplay.position())
+		durationTextView.text = formatDuration(rplay.duration())
+		mediaSeekBar.max = rplay.duration()
+		mediaSeekBar.progress = rplay.position()
+
+		// setup control buttons handlers
+		prev_button.setOnClickListener {
+			Log.d("arplay", "prev button clicked")
+		}
+
+		play_pause_button.setOnClickListener {
+			Log.d("arplay", "play/pause buton clicked")
+		}
+
+		stop_button.setOnClickListener {
+			Log.d("arplay", "stop button clicked")
+		}
+
+		next_button.setOnClickListener {
+			Log.d("arplay", "next button clicked")
+		}
+
+		// fill playlist
+		val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, rplay.playlist())
+		playlist_list_view.adapter = adapter
+
 		// Example of a call to a native method
-		sample_text.text = stringFromJNI()
+		val textString: String = stringFromJNI()
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {

@@ -45,10 +45,12 @@ class PlayerActivity : AppCompatActivity() {
 
 		play_pause_button.setOnClickListener {
 			Log.d("arplay", "play/pause buton clicked")
+			rplay.play(0, 1)
 		}
 
 		stop_button.setOnClickListener {
 			Log.d("arplay", "stop button clicked")
+			rplay.stop()
 		}
 
 		next_button.setOnClickListener {

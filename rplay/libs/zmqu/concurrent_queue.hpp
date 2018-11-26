@@ -20,7 +20,7 @@ public:
 	template <typename Rep, typename Period>
 	bool wait_and_pop(T & result, std::chrono::duration<Rep, Period> const & rel_time);
 
-	std::shared_ptr<T> wait_and_pop();  // NOTE: why I don't return a copy ?
+	std::shared_ptr<T> wait_and_pop();
 	bool try_pop(T & result);
 	std::shared_ptr<T> try_pop();
 	bool empty() const;

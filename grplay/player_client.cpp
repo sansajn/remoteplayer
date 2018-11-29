@@ -164,6 +164,8 @@ void player_client::idle()
 	}
 
 	_connected_flag = connected;
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 

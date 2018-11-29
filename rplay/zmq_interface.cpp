@@ -83,6 +83,8 @@ void zmq_interface::idle()
 		send_server_alive();
 		_tp = now + std::chrono::seconds{1};
 	}
+
+	std::this_thread::sleep_for(std::chrono::milliseconds{10});
 }
 
 void zmq_interface::run()

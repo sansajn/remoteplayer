@@ -326,18 +326,21 @@ void zmq_interface::on_notify(string const & s)
 	else if (cmd == "playlist_remove")
 	{
 		size_t pid = json.get<size_t>("playlist", 0);
-		size_t idx = json.get<size_t>("idx", invalid_idx);
 
-		LOG(trace) << "RPLAY >> playlist_remove(playlist=" << pid << ", idx=" << idx << ")";
+		vector<size_t> items;
+		for (jtree::value_type & obj : json.get_child("items"))
+			items.push_back(obj.second.get_value<size_t>());
 
-		if (pid == 0 || idx == invalid_idx)
+		LOG(trace) << "RPLAY >> playlist_remove(playlist=" << pid << ", items='" << items.size() << " items')";
+
+		if (pid == 0 || items.empty())
 		{
-			LOG(warning) << "play(playlist_id=" << pid << ", idx=" << idx << ") ignored, reason invalid playlist ID or item index";
+			LOG(warning) << "play(playlist_id=" << pid << ", items=[<empty>]) ignored, reason invalid playlist ID or item index";
 			return;
 		}
 
 		if (_play->is_latest_playlist(pid))
-			_play->remove(idx);
+			_play->remove(items);
 		else
 			LOG(warning) << "playlist outdated";
 

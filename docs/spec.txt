@@ -1,4 +1,4 @@
-Špecifikácia remoteplayeru, verzia 0.4 (koncept)
+Špecifikácia remoteplayeru, verzia 0.5 (koncept)
 
 {server}
 Umožnuje klientom prehrávať média z knižnice medií.
@@ -214,9 +214,11 @@ playlist_remove [notify]:
 
 Umožnuje odobrať skladbu z playlistu v tvare
 
-	{"cmd":"playlist_remove", "playlist":PID, "idx":N}
+	{"cmd":"playlist_remove", "playlist":PID, "items":[i1, i2, ..., iN]}
 
-kde PID (size_t) je identifikátor playlistu a N je index skladby s playlistu.
+kde PID (size_t) je identifikátor playlistu a items je zoznam indexou skladieb
+playlistu, ktoré sa majú odstrániť. 
+
 Následne ako reakcia na zmenu playlistu server vyheneruje správu
 playlist_content.
 

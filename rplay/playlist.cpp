@@ -61,6 +61,19 @@ void playlist::remove(size_t idx)
 		_item_idx -= 1;
 }
 
+void playlist::remove(vector<size_t> const & indices)
+{
+	vector<size_t> sorted = indices;
+	std::sort(sorted.begin(), sorted.end(), std::greater<size_t>{});
+
+	for (size_t idx : sorted)
+	{
+		if (idx < _item_idx)
+			_item_idx -= 1;
+		_items.erase(_items.begin() + (int)idx);
+	}
+}
+
 void playlist::clear()
 {
 	lock_guard<mutex> lock{_items_locker};

@@ -79,9 +79,10 @@ void player::add(vector<string> const & media)
 	playlist_change_signal.call(_playlist_id, _items.items());
 }
 
-void player::remove(size_t playlist_idx)
+void player::remove(vector<size_t> const & items)
 {
-	_items.remove(playlist_idx);
+	_items.remove(items);
+
 	++_playlist_id;
 	playlist_change_signal.call(_playlist_id, _items.items());
 }

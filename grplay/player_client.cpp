@@ -9,8 +9,6 @@ using std::lock_guard;
 using std::mutex;
 using std::string;
 
-static void vector_put(jtree & root, string const & key, vector<string> const & v);
-
 
 void player_client::send_ready() const
 {
@@ -252,22 +250,23 @@ void player_client::playlist_add(vector<fs::path> const & media)
 	vector<string> items;
 	for (fs::path const & item : media)
 		items.push_back(item.string());
-	vector_put(req, "items", items);
+	vector_put(items, "items", req);
 
 	notify(to_string(req));
 
 	LOG(trace) << "RPLAY << playlist_add(items='" << media.size() << " items')";
 }
 
-void player_client::playlist_remove(size_t playlist_id, size_t playlist_idx)
+void player_client::playlist_remove(size_t playlist_id, vector<size_t> const & items)
 {
 	jtree req;
 	req.put("cmd", "playlist_remove");
 	req.put("playlist", playlist_id);
-	req.put("idx", playlist_idx);
+	vector_put(items, "items", req);
+
 	notify(to_string(req));
 
-	LOG(trace) << "RPLAY << playlist_remove(idx=" << playlist_idx << ")";
+	LOG(trace) << "RPLAY << playlist_remove(items='" << items.size() << " items')";
 }
 
 void player_client::ask_identify()
@@ -292,16 +291,4 @@ void player_client::loop()
 {
 	assert(!_connected[0] && !_connected[1] && !_connected[2]);
 	start();
-}
-
-void vector_put(jtree & root, string const & key, vector<string> const & v)
-{
-	jtree arr;
-	for (string const & elem : v)
-	{
-		jtree local;
-		local.put("", elem);
-		arr.push_back(make_pair("", local));
-	}
-	root.add_child(key, arr);
 }

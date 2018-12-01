@@ -23,7 +23,7 @@ public:
 	bool playing() const;
 	bool paused() const;
 	void add(std::vector<std::string> const & media);
-	void remove(size_t playlist_idx);
+	void remove(std::vector<size_t> const & items);
 	playlist const & media_playlist() const;
 	bool is_latest_playlist(size_t playlist_id);  // TODO: wrong design we need atomic play with index and playlist_id
 	void clear_media_playlist();

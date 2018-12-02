@@ -87,6 +87,19 @@ void player::remove(vector<size_t> const & items)
 	playlist_change_signal.call(_playlist_id, _items.items());
 }
 
+bool player::move(size_t playlist_id, size_t from_idx, size_t to_idx)
+{
+	if (playlist_id != _playlist_id)
+		return false;
+
+	_items.move(from_idx, to_idx);
+
+	++_playlist_id;
+	playlist_change_signal.call(_playlist_id, _items.items());
+
+	return true;
+}
+
 playlist const & player::media_playlist() const
 {
 	return _items;

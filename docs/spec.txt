@@ -23,6 +23,7 @@ bude poskytovať nasledujúce funkcie:
 	* playlist_content, update obsahu playlistu
 	* playlist_add, pridáva skladbu do playlistu
 	* playlist_remove, odobera skladbu s playlistu
+	* playlist_move, zmena pozície skladby v playliste
 	* alive, server posiela klientom kazdu 1s (niečo ako ping)
 	* seek, ktorá posunie aktualnu skladnu na požadovanú pozíciu
 	* volume, posiela server pri zmene hlasitosti
@@ -221,6 +222,16 @@ playlistu, ktoré sa majú odstrániť.
 
 Následne ako reakcia na zmenu playlistu server vyheneruje správu
 playlist_content.
+
+
+playlist_move [notify]:
+
+Príkaz umožnuje zmenu pozície skladby v playliste a je definovaný ako
+
+	{"cmd":"playlist_move", "playlist":PID, "from":N, "to":M}
+
+kde PID (size_t) je identifikátor playlistu, N index skladby a M je nový index
+skladby.
 
 
 client_ready [notify]:

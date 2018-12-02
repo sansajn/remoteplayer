@@ -345,6 +345,25 @@ void zmq_interface::on_notify(string const & s)
 			LOG(warning) << "playlist outdated";
 
 	}
+	else if (cmd == "playlist_move")
+	{
+		size_t pid = json.get<size_t>("playlist", 0);
+		size_t from_idx = json.get<size_t>("from", -1u);
+		size_t to_idx = json.get<size_t>("to", -1u);
+
+		LOG(trace) << "playlist_move(playlist_id=" << pid << ", from= "
+			<< from_idx << ", to=" << to_idx << ")";
+
+		if (pid == 0 || from_idx == -1u || to_idx == -1u)
+		{
+			LOG(warning) << "playlist_move(playlist_id=" << pid << ", from= "
+				<< from_idx << ", to=" << to_idx << ") ignored, reason: invalid playlist ID or indices";
+			return;
+		}
+
+		if (!_play->move(pid, from_idx, to_idx))
+			LOG(warning) << "playlist outdated";
+	}
 	else if (cmd == "client_ready")
 	{
 		send_volume();

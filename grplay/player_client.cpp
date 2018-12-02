@@ -10,7 +10,7 @@ using std::mutex;
 using std::string;
 
 
-void player_client::send_ready() const
+void rplay_client::send_ready() const
 {
 	jtree req;
 	req.put<string>("cmd", "client_ready");
@@ -19,7 +19,7 @@ void player_client::send_ready() const
 	LOG(trace) << "RPLAY << client_ready";
 }
 
-void player_client::on_news(std::string const & news)
+void rplay_client::on_news(std::string const & news)
 {
 	jtree json;
 	to_json(news, json);
@@ -97,26 +97,26 @@ void player_client::on_news(std::string const & news)
 	}
 }
 
-player_client::~player_client()
+rplay_client::~rplay_client()
 {
 	quit();
 	if (_t.joinable())
 		_t.join();
 }
 
-player_client::player_client()
+rplay_client::rplay_client()
 	: _connected_flag{false}, _connected{false, false, false}
 {}
 
-void player_client::connect(std::string const & host, unsigned short port)
+void rplay_client::connect(std::string const & host, unsigned short port)
 {
 	zmqu::clone_client::connect(host, port, port+1, port+2);
-	_t = std::thread{&player_client::loop, this};
+	_t = std::thread{&rplay_client::loop, this};
 
 	std::this_thread::sleep_for(std::chrono::milliseconds{200});  // wait for thread
 }
 
-void player_client::on_answer(std::string const & answer)
+void rplay_client::on_answer(std::string const & answer)
 {
 	jtree json;
 	to_json(answer, json);
@@ -150,7 +150,7 @@ void player_client::on_answer(std::string const & answer)
 		LOG(warning) << "unknown answer: " << answer;
 }
 
-void player_client::idle()
+void rplay_client::idle()
 {
 	bool connected = (_connected[0] && _connected[1] && _connected[2]);
 
@@ -167,29 +167,29 @@ void player_client::idle()
 }
 
 
-void player_client::on_connected(socket_id sid, std::string const & addr)
+void rplay_client::on_connected(socket_id sid, std::string const & addr)
 {
 	_connected[sid] = true;
 }
 
-void player_client::on_closed(socket_id sid, std::string const & addr)
+void rplay_client::on_closed(socket_id sid, std::string const & addr)
 {
 	_connected[sid] = false;
 }
 
-vector<string> player_client::list_library() const
+vector<string> rplay_client::list_library() const
 {
 	lock_guard<mutex> lock{_rplay_data_locker};
 	return _media_library;
 }
 
-vector<string> player_client::list_playlist() const
+vector<string> rplay_client::list_playlist() const
 {
 	lock_guard<mutex> lock{_rplay_data_locker};
 	return _media_playlist;
 }
 
-void player_client::play(size_t playlist_id, size_t playlist_idx)
+void rplay_client::play(size_t playlist_id, size_t playlist_idx)
 {
 	jtree req;
 	req.put("cmd", "play");
@@ -200,7 +200,7 @@ void player_client::play(size_t playlist_id, size_t playlist_idx)
 	LOG(trace) << "RPLAY << play(playlist=" << playlist_id << ", idx=" << playlist_idx << ")";
 }
 
-void player_client::pause()
+void rplay_client::pause()
 {
 	jtree req;
 	req.put("cmd", "pause");
@@ -209,7 +209,7 @@ void player_client::pause()
 	LOG(trace) << "RPLAY << pause";
 }
 
-void player_client::stop()
+void rplay_client::stop()
 {
 	jtree req;
 	req.put("cmd", "stop");
@@ -218,7 +218,7 @@ void player_client::stop()
 	LOG(trace) << "RPLAY << stop";
 }
 
-void player_client::seek(long pos, fs::path const & media)
+void rplay_client::seek(long pos, fs::path const & media)
 {
 	jtree req;
 	req.put("cmd", "seek");
@@ -229,7 +229,7 @@ void player_client::seek(long pos, fs::path const & media)
 	LOG(trace) << "RPLAY << seek(pos=" << pos / 1000000000 << "s, media=" << media << ")";
 }
 
-void player_client::volume(int val)
+void rplay_client::volume(int val)
 {
 	if (val < 0 || val > 100)
 		return;  // out of range
@@ -242,7 +242,7 @@ void player_client::volume(int val)
 	LOG(trace) << "RPLAY << set_volume(value=" << val << ")";
 }
 
-void player_client::playlist_add(vector<fs::path> const & media)
+void rplay_client::playlist_add(vector<fs::path> const & media)
 {
 	jtree req;
 	req.put("cmd", "playlist_add");
@@ -257,7 +257,7 @@ void player_client::playlist_add(vector<fs::path> const & media)
 	LOG(trace) << "RPLAY << playlist_add(items='" << media.size() << " items')";
 }
 
-void player_client::playlist_remove(size_t playlist_id, vector<size_t> const & items)
+void rplay_client::playlist_remove(size_t playlist_id, vector<size_t> const & items)
 {
 	jtree req;
 	req.put("cmd", "playlist_remove");
@@ -269,7 +269,20 @@ void player_client::playlist_remove(size_t playlist_id, vector<size_t> const & i
 	LOG(trace) << "RPLAY << playlist_remove(items='" << items.size() << " items')";
 }
 
-void player_client::ask_identify()
+void rplay_client::playlist_move_item(size_t playlist_id, size_t from_idx, size_t to_idx)
+{
+	jtree req;
+	req.put("cmd", "playlist_move");
+	req.put("playlist", playlist_id);
+	req.put("from", from_idx);
+	req.put("to", to_idx);
+
+	notify(to_string(req));
+
+	LOG(trace) << "RPLAY << playlist_move(from=" << from_idx << ", to=" << to_idx << ")";
+}
+
+void rplay_client::ask_identify()
 {
 	jtree req;
 	req.put("cmd", "identify");
@@ -278,7 +291,7 @@ void player_client::ask_identify()
 	LOG(trace) << "RPLAY << identify";
 }
 
-void player_client::ask_list_media()
+void rplay_client::ask_list_media()
 {
 	jtree req;
 	req.put("cmd", "list_media");
@@ -287,7 +300,7 @@ void player_client::ask_list_media()
 	LOG(trace) << "RPLAY << list_media";
 }
 
-void player_client::loop()
+void rplay_client::loop()
 {
 	assert(!_connected[0] && !_connected[1] && !_connected[2]);
 	start();

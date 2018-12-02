@@ -14,6 +14,7 @@ public:
 	void add(std::string const & item);
 	void remove(size_t idx);
 	void remove(std::vector<size_t> const & indices);
+	void move(size_t from_idx, size_t to_idx);
 	void clear();
 	size_t size() const;
 	std::vector<std::string> items() const;

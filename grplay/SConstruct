@@ -36,6 +36,9 @@ env.Program('grplay', [
 	'grplay.cpp',
 	'player_client.cpp',
 	'library_tree_view.cpp',
+	'playlist_ui.cpp',
+	'library_ui.cpp',
+	'playback_ui.cpp',
 	rp_lib,
 	zmqu_lib
 ])

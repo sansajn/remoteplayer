@@ -32,13 +32,13 @@ private:
 };
 
 
-class player_client  // TODO: rename to rplay_client
+class rplay_client
 	: public zmqu::clone_client
 	, public observable_with<player_client_listener>
 {
 public:
-	player_client();
-	~player_client();
+	rplay_client();
+	~rplay_client();
 	void connect(std::string const & host, unsigned short port);
 	void disconnect();
 	std::vector<std::string> list_library() const;
@@ -50,6 +50,7 @@ public:
 	void volume(int val);  //!< val can be from [0, 100] range
 	void playlist_add(std::vector<fs::path> const & media);
 	void playlist_remove(size_t playlist_id, std::vector<size_t> const & items);
+	void playlist_move_item(size_t playlist_id, size_t from_idx, size_t to_idx);
 	void ask_identify();
 	void ask_list_media();
 

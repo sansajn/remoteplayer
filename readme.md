@@ -1,14 +1,19 @@
-# How to install remoteplayer
+# remoteplayer
 
-## Server part
+> TODO: describe what remoteplayer is and how cen be used ...
 
-- compile with '$ scons -j8' command
-- run remoteplayer with '$ ./rplay /path/to/media/library' command
+
+## How to install ?
+
+### Server part (rplay)
+
+- compile with `$ scons -j11` command
+- run remoteplayer with `$ ./rplay /path/to/media/library` command
 
 That is it, remoteplayer (rplay) is now listenning on `tcp://*:5557` address.
 
 
-## Client part
+### Client part (grplay)
 
 Run grplay (graphics remote player client) with rplay IP address and port number
 
@@ -22,11 +27,13 @@ or run rplayc (console remote player client) with rplay IP address, like
 $ ./rplayc 192.168.0.111
 ```
 
-# Configure remoteplayer
 
-Remote Player Server (rplay) can be configured with
+## How to configure ?
 
-[Sample: rplay.conf
+### Server part (rplay)
+
+Remote Player Server (rplay) can be configured with `rplay.conf` config file stored in remoteplayer directory, see sample
+
 ```js
 {
 	"rplay":{
@@ -37,10 +44,17 @@ Remote Player Server (rplay) can be configured with
 }
 ```
 
---- end of sample] JSON like file stored as `rplay.conf` in remoteplayer directory where
+where
 
 **rplay.media_home**: specify media library directory
 
 **rplay.port**: specify ZMQ interface port number
 
 **rplay.log_file**: will redirect logging into specified file
+
+
+### rsync
+
+> describe rsinc configuration I use ...
+
+

@@ -48,12 +48,13 @@ string format_media(string const & media);
 static void weakly_directory_first_sort(vector<string> & files);
 
 
-class rplay_window
+class grplay_window
 	: public Gtk::Window
 	, public player_client_listener
+	, public playlist_event_listener
 {
 public:
-	rplay_window(string const & host, unsigned short port);
+	grplay_window(string const & host, unsigned short port);
 
 private:
 	void update_ui();
@@ -65,9 +66,6 @@ private:
 	void on_playlist_down_button();
 	void on_playlist_clear_all_button();
 	void on_playlist_add_button();
-	void on_playlist_play(Gtk::TreeModel::Path const & path, Gtk::TreeViewColumn * column);
-	void on_playlist_popup_play();
-	void on_playlist_popup_remove();
 	void on_search();
 	bool on_seek(Gtk::ScrollType scroll, double value);
 	void on_volume_change();
@@ -77,11 +75,16 @@ private:
 
 	// player_client events, note: called from player_client's thread
 	void on_play_progress(string const & media, long position, long duration, size_t playlist_idx,
-		playback_state_e playback_state) override;
+		playback_state_e playback_state, playlist_mode_e playlist_mode) override;
 	void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) override;
 	void on_list_media(std::vector<std::string> const & items) override;
 	void on_volume(int val) override;
 	void on_stop() override;
+
+	// playlist events
+	void on_playlist_play_item(size_t idx) override;
+	void on_playlist_remove_item(size_t idx) override;
+	void on_playlist_shuffle(bool shuffle) override;
 
 	static int update_cb(gpointer user_data);
 
@@ -100,6 +103,7 @@ private:
 	std::vector<std::string> _playlist;
 	size_t _playlist_id;
 	bool _seek_position_lock;
+	bool _shuffle;
 	int _serv_volume;
 	mutable std::mutex _player_data_locker;
 
@@ -114,14 +118,14 @@ private:
 	Gtk::VPaned _playlist_library_paned;  // move down
 };
 
-int rplay_window::update_cb(gpointer user_data)
+int grplay_window::update_cb(gpointer user_data)
 {
-	rplay_window * rplay = (rplay_window *)user_data;
+	grplay_window * rplay = (grplay_window *)user_data;
 	rplay->update_ui();
 	return 1;
 }
 
-rplay_window::rplay_window(string const & host, unsigned short port)
+grplay_window::grplay_window(string const & host, unsigned short port)
 	: _filtered{false}
 	, _playlist_idx{0}
 	, _playback_state{playback_state_e::invalid}
@@ -153,7 +157,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_plb_ui._player_progress.set_digits(2);
 	_plb_ui._player_progress.set_draw_value(false);
 	_plb_ui._player_progress.set_adjustment(_plb_ui._progress_adj);
-	_plb_ui._player_progress.signal_change_value().connect(sigc::mem_fun(*this, &rplay_window::on_seek));
+	_plb_ui._player_progress.signal_change_value().connect(sigc::mem_fun(*this, &grplay_window::on_seek));
 
 	_plb_ui._player_position.set_text("0:00");
 	_plb_ui._player_duration.set_text("00:00");
@@ -169,13 +173,13 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_plb_ui._control_bar_l.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
 
 	_plb_ui._prev_button.set_image_from_icon_name("media-skip-backward");
-	_plb_ui._prev_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_prev_button));
+	_plb_ui._prev_button.signal_clicked().connect(sigc::mem_fun(*this, &grplay_window::on_prev_button));
 	_plb_ui._play_button.set_image_from_icon_name("media-playback-start");
-	_plb_ui._play_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_play_button));
+	_plb_ui._play_button.signal_clicked().connect(sigc::mem_fun(*this, &grplay_window::on_play_button));
 	_plb_ui._stop_button.set_image_from_icon_name("media-playback-stop");
-	_plb_ui._stop_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_stop_button));
+	_plb_ui._stop_button.signal_clicked().connect(sigc::mem_fun(*this, &grplay_window::on_stop_button));
 	_plb_ui._next_button.set_image_from_icon_name("media-skip-forward");
-	_plb_ui._next_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_next_button));
+	_plb_ui._next_button.signal_clicked().connect(sigc::mem_fun(*this, &grplay_window::on_next_button));
 
 	_plb_ui._control_bar_l.pack_start(_plb_ui._prev_button, Gtk::PackOptions::PACK_SHRINK);
 	_plb_ui._control_bar_l.pack_start(_plb_ui._play_button, Gtk::PackOptions::PACK_SHRINK);
@@ -184,36 +188,27 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 
 	_plb_ui._volume_adj = Gtk::Adjustment::create(0, 0, 100, 1);
 	_plb_ui._volume.set_adjustment(_plb_ui._volume_adj);
-	_plb_ui._volume_adj->signal_value_changed().connect(sigc::mem_fun(*this, &rplay_window::on_volume_change));
+	_plb_ui._volume_adj->signal_value_changed().connect(sigc::mem_fun(*this, &grplay_window::on_volume_change));
 
 	_plb_ui._control_bar_r.pack_start(_plb_ui._volume, Gtk::PackOptions::PACK_SHRINK);
 
 	// playlist
 	_ply_ui.init();
+	_ply_ui._ply_menu.accelerate(*this);
+	_ply_ui.register_listener(this);
+
 	_playlist_library_paned.add1(_ply_ui._container);
 
-	_ply_ui._ply_view.signal_row_activated().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_play));
-
-	auto item = Gtk::manage(new Gtk::MenuItem("_Play", true));
-	item->signal_activate().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_popup_play));
-	_ply_ui._ply_menu.append(*item);
-
-	item = Gtk::manage(new Gtk::MenuItem("_Remove", true));
-	item->signal_activate().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_popup_remove));
-	_ply_ui._ply_menu.append(*item);
-	_ply_ui._ply_menu.accelerate(*this);
-	_ply_ui._ply_menu.show_all();
-
 	// playlist controls
-	_ply_ui._up.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_up_button));
-	_ply_ui._down.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_down_button));
-	_ply_ui._clear_all.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_clear_all_button));
+	_ply_ui._up.signal_clicked().connect(sigc::mem_fun(*this, &grplay_window::on_playlist_up_button));
+	_ply_ui._down.signal_clicked().connect(sigc::mem_fun(*this, &grplay_window::on_playlist_down_button));
+	_ply_ui._clear_all.signal_clicked().connect(sigc::mem_fun(*this, &grplay_window::on_playlist_clear_all_button));
 
 	// library
 	_playlist_library_paned.add2(_lib_ui._container);
 
 	_lib_ui._search.set_placeholder_text("<Enter search terms there>");
-	_lib_ui._search.signal_changed().connect(sigc::mem_fun(*this, &rplay_window::on_search));
+	_lib_ui._search.signal_changed().connect(sigc::mem_fun(*this, &grplay_window::on_search));
 
 	_lib_ui._scroll.add(_lib_ui._media_list_view);
 	_lib_ui._scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
@@ -226,7 +221,7 @@ rplay_window::rplay_window(string const & host, unsigned short port)
 	_lib_ui._library_control_bar.pack_start(_lib_ui._playlist_add_button, Gtk::PackOptions::PACK_SHRINK);
 	_lib_ui._library_control_bar.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
 	_lib_ui._playlist_add_button.set_image_from_icon_name("list-add");
-	_lib_ui._playlist_add_button.signal_clicked().connect(sigc::mem_fun(*this, &rplay_window::on_playlist_add_button));
+	_lib_ui._playlist_add_button.signal_clicked().connect(sigc::mem_fun(*this, &grplay_window::on_playlist_add_button));
 
 	_lib_ui._container.pack_start(_lib_ui._scroll, Gtk::PackOptions::PACK_EXPAND_WIDGET);
 	_lib_ui._container.pack_start(_lib_ui._search, Gtk::PackOptions::PACK_SHRINK);
@@ -334,7 +329,7 @@ string format_media(string const & media)
 	}
 }
 
-void rplay_window::update_ui()
+void grplay_window::update_ui()
 {
 	lock_guard<mutex> lock{_player_data_locker};  // TODO: do not lock whole function
 
@@ -411,6 +406,8 @@ void rplay_window::update_ui()
 		_highlight_media_in_playlist = false;
 	}
 
+	_ply_ui.shuffle(_shuffle);
+
 	// media
 	_plb_ui._player_media.set_text(format_media(_media));
 
@@ -450,7 +447,7 @@ void rplay_window::update_ui()
 	}
 }
 
-void rplay_window::repack_ui()
+void grplay_window::repack_ui()
 {
 	if (_filtered)
 	{
@@ -468,7 +465,7 @@ void rplay_window::repack_ui()
 	show_all();
 }
 
-bool rplay_window::on_seek(Gtk::ScrollType scroll, double value)
+bool grplay_window::on_seek(Gtk::ScrollType scroll, double value)
 {
 	lock_guard<mutex> lock{_player_data_locker};
 
@@ -481,12 +478,12 @@ bool rplay_window::on_seek(Gtk::ScrollType scroll, double value)
 	return true;
 }
 
-void rplay_window::on_volume_change()
+void grplay_window::on_volume_change()
 {
 	_play.volume((int)_plb_ui._volume_adj->get_value());
 }
 
-void rplay_window::on_prev_button()
+void grplay_window::on_prev_button()
 {
 	lock_guard<mutex> locker{_player_data_locker};
 	if (_playlist_idx > 0)
@@ -495,7 +492,7 @@ void rplay_window::on_prev_button()
 		_play.play(_playlist_id, 0);
 }
 
-void rplay_window::on_play_button()
+void grplay_window::on_play_button()
 {
 	lock_guard<mutex> locker{_player_data_locker};
 	if (_playback_state == playback_state_e::invalid)
@@ -504,19 +501,19 @@ void rplay_window::on_play_button()
 		_play.pause();
 }
 
-void rplay_window::on_stop_button()
+void grplay_window::on_stop_button()
 {
 	_play.stop();
 }
 
-void rplay_window::on_next_button()
+void grplay_window::on_next_button()
 {
 	lock_guard<mutex> locker{_player_data_locker};
 	if (_playlist_idx+1 < _playlist.size())
 		_play.play(_playlist_id, _playlist_idx+1);
 }
 
-void rplay_window::on_playlist_up_button()
+void grplay_window::on_playlist_up_button()
 {
 	lock_guard<mutex> locker{_player_data_locker};
 
@@ -526,7 +523,7 @@ void rplay_window::on_playlist_up_button()
 		_play.playlist_move_item(_playlist_id, idx, idx-1);
 }
 
-void rplay_window::on_playlist_down_button()
+void grplay_window::on_playlist_down_button()
 {
 	lock_guard<mutex> locker{_player_data_locker};
 
@@ -536,7 +533,7 @@ void rplay_window::on_playlist_down_button()
 		_play.playlist_move_item(_playlist_id, idx, idx+1);
 }
 
-void rplay_window::on_playlist_clear_all_button()
+void grplay_window::on_playlist_clear_all_button()
 {
 	lock_guard<mutex> locker{_player_data_locker};
 
@@ -547,7 +544,7 @@ void rplay_window::on_playlist_clear_all_button()
 	_play.playlist_remove(_playlist_id, items);
 }
 
-void rplay_window::on_playlist_add_button()
+void grplay_window::on_playlist_add_button()
 {
 	if (!_filtered)  // from media library
 	{
@@ -575,34 +572,30 @@ void rplay_window::on_playlist_add_button()
 	}
 }
 
-void rplay_window::on_playlist_play(Gtk::TreeModel::Path const & path, Gtk::TreeViewColumn * column)
-{
-	lock_guard<mutex> lock{_player_data_locker};
-	int idx = _ply_ui.selected();
-	_play.play(_playlist_id, (size_t)idx);
-}
-
-void rplay_window::on_playlist_popup_play()
+void grplay_window::on_playlist_play_item(size_t idx)
 {
 	lock_guard<mutex> locker{_player_data_locker};
-	int idx = _ply_ui.selected();
-	_play.play(_playlist_id, (size_t)idx);
+	_play.play(_playlist_id, idx);
 }
 
-void rplay_window::on_playlist_popup_remove()
+void grplay_window::on_playlist_remove_item(size_t idx)
 {
 	lock_guard<mutex> locker{_player_data_locker};
-	int idx = _ply_ui.selected();
-	_play.playlist_remove(_playlist_id, vector<size_t>{(size_t)idx});
+	_play.playlist_remove(_playlist_id, vector<size_t>{idx});
 }
 
-void rplay_window::on_search()
+void grplay_window::on_playlist_shuffle(bool shuffle)
+{
+	_play.playlist_shuffle(shuffle);
+}
+
+void grplay_window::on_search()
 {
 	ustring filter = _lib_ui._search.get_text();
 	filter_media_library(filter);
 }
 
-void rplay_window::filter_media_library(string const & filter)
+void grplay_window::filter_media_library(string const & filter)
 {
 	lock_guard<mutex> lock{_player_data_locker};
 
@@ -637,7 +630,7 @@ void rplay_window::filter_media_library(string const & filter)
 	}
 }
 
-string rplay_window::get_media(int sel_idx) const
+string grplay_window::get_media(int sel_idx) const
 {
 	size_t media_idx = (size_t)sel_idx;
 	if (_filtered)
@@ -651,8 +644,8 @@ string rplay_window::get_media(int sel_idx) const
 	return _library[media_idx];
 }
 
-void rplay_window::on_play_progress(string const & media, long position, long duration,
-	size_t playlist_idx, playback_state_e playback_state)
+void grplay_window::on_play_progress(string const & media, long position, long duration,
+	size_t playlist_idx, playback_state_e playback_state, playlist_mode_e playlist_mode)
 {
 	lock_guard<mutex> lock{_player_data_locker};
 	bool new_media = _media != media;
@@ -663,12 +656,13 @@ void rplay_window::on_play_progress(string const & media, long position, long du
 	_playback_state = playback_state;
 	_last_progress_update = std::chrono::high_resolution_clock::now();
 	_seek_position_lock = false;
+	_shuffle = playlist_mode & playlist_mode_e::playlist_mode_shuffle;
 
 	if (new_media)
 		_highlight_media_in_playlist = true;
 }
 
-void rplay_window::on_playlist_change(size_t playlist_id, vector<string> const & items)
+void grplay_window::on_playlist_change(size_t playlist_id, vector<string> const & items)
 {
 	lock_guard<mutex> lock{_player_data_locker};
 	_playlist_id = playlist_id;
@@ -723,20 +717,20 @@ void weakly_directory_first_sort(vector<string> & files)
 }
 
 
-void rplay_window::on_list_media(vector<string> const & items)
+void grplay_window::on_list_media(vector<string> const & items)
 {
 	lock_guard<mutex> lock{_player_data_locker};
 	_library = items;
 	weakly_directory_first_sort(_library);
 }
 
-void rplay_window::on_volume(int val)
+void grplay_window::on_volume(int val)
 {
 	lock_guard<mutex> lock{_player_data_locker};
 	_serv_volume = val;
 }
 
-void rplay_window::on_stop()
+void grplay_window::on_stop()
 {
 	_playback_stoped = true;
 	_highlight_media_in_playlist = true;
@@ -756,7 +750,7 @@ int main(int argc, char * argv[])
 	auto app = Gtk::Application::create("org.gtkmm.example", Gio::APPLICATION_NON_UNIQUE);
 	assert(app);
 
-	rplay_window w{host, port};
+	grplay_window w{host, port};
 
 	return app->run(w, 0, nullptr);
 }

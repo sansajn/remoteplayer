@@ -24,6 +24,7 @@ bude poskytovať nasledujúce funkcie:
 	* playlist_add, pridáva skladbu do playlistu
 	* playlist_remove, odobera skladbu s playlistu
 	* playlist_move, zmena pozície skladby v playliste
+	* playlist_shuffle, zapne/vypne shuffle mód
 	* alive, server posiela klientom kazdu 1s (niečo ako ping)
 	* seek, ktorá posunie aktualnu skladnu na požadovanú pozíciu
 	* volume, posiela server pri zmene hlasitosti
@@ -117,7 +118,8 @@ počas prehrávania skladby.
 		"position":P,            // long
 		"duration":D,            // long
 		"playlist_idx":N,        // size_t
-		"playback_state":S       // int (playing=1,paused=2)
+		"playback_state":S,      // int (playing=1,paused=2)
+		"mode":M                 // int (shuffle=1)
 	}
 
 kde P je aktuálna pozícia v nano-sekundách a D je dĺžka skladby v
@@ -125,7 +127,7 @@ nano-sekundách a N je pozícia/index aktuálnej skladby v playliste. Platí, ž
 play_progress sa odkazuje na už existujúci playlist, ak klient ešte nemá k
 dispocícii playlist, potom musí pole playlist_idx ignorovať. S predstavuje
 prehrávací stav, ktorý je buď v stave 'playing' (1), alebo v stave 'paused'
-(2).
+(2) a pole mode, ktoré je zoznamom módou playlistu ako napr. shuffle.
 
 Ak klient obdrží play_progress v ktorej media je prázdny reťazec, potom
 remoteplayer signalizuje stop (pozri popis stop príkazu).
@@ -232,6 +234,16 @@ Príkaz umožnuje zmenu pozície skladby v playliste a je definovaný ako
 
 kde PID (size_t) je identifikátor playlistu, N index skladby a M je nový index
 skladby.
+
+
+playlist_shuffle [notify]:
+
+Príkaz zapne/vypne shuffle mód a je definovaný takto
+
+	{"cmd":"playlist_shuffle", "shuffle":S}
+
+kde S je hodnota typu bool, true ak ma byť shuffle mód zapnutý, false inak.
+
 
 
 client_ready [notify]:

@@ -32,6 +32,7 @@ void rplay_client::on_news(std::string const & news)
 		long duration = json.get<long>("duration", 0L);
 		size_t playlist_idx = json.get<size_t>("playlist_idx", 0);
 		int playback_state = json.get<int>("playback_state", 0);
+		int mode = json.get<int>("mode", 0);
 
 		assert(playback_state > 0);
 
@@ -42,7 +43,7 @@ void rplay_client::on_news(std::string const & news)
 		{
 			playback_state_e state = playback_state == 1 ? playback_state_e::playing : playback_state_e::paused;
 			for (auto * l : listeners())
-				l->on_play_progress(media, position, duration, playlist_idx, state);
+				l->on_play_progress(media, position, duration, playlist_idx, state, (playlist_mode_e)mode);
 		}
 		else
 			for (auto * l : listeners())
@@ -280,6 +281,17 @@ void rplay_client::playlist_move_item(size_t playlist_id, size_t from_idx, size_
 	notify(to_string(req));
 
 	LOG(trace) << "RPLAY << playlist_move(from=" << from_idx << ", to=" << to_idx << ")";
+}
+
+void rplay_client::playlist_shuffle(bool shuffle)
+{
+	jtree req;
+	req.put("cmd", "playlist_shuffle");
+	req.put<bool>("shuffle", shuffle);
+
+	notify(to_string(req));
+
+	LOG(trace) << "RPLAY << playlist_shuffle(" << shuffle << ")";
 }
 
 void rplay_client::ask_identify()

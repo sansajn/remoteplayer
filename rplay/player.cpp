@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <functional>
+#include "rplib/log.hpp"
 #include "fs.hpp"
 #include "player.hpp"
 
@@ -100,6 +101,16 @@ bool player::move(size_t playlist_id, size_t from_idx, size_t to_idx)
 	return true;
 }
 
+void player::shuffle(bool state)
+{
+	_items.shuffle(state);
+}
+
+bool player::shuffle() const
+{
+	return _items.shuffle();
+}
+
 playlist const & player::media_playlist() const
 {
 	return _items;
@@ -137,6 +148,7 @@ void player::loop()
 			if (!_items.try_next(media))
 			{
 				_play_flag = false;
+				LOG(debug) << "playback resumed";
 				continue;  // nothing new in playlist
 			}
 
@@ -145,8 +157,10 @@ void player::loop()
 			_p.join();
 		}
 		else
-			std::this_thread::sleep_for(std::chrono::milliseconds{200});
+			std::this_thread::sleep_for(std::chrono::milliseconds{100});
 	}
+
+	LOG(trace) << "player::loop() done";
 }
 
 void player::item_done_cb()

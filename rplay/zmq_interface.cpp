@@ -126,9 +126,12 @@ void zmq_interface::send_play_progress()
 	int playback_state = _play->paused() ? 2 : 1;
 	msg.put<int>("playback_state", playback_state);
 
+	int modes = _play->shuffle() ? 1 : 0;
+	msg.put<int>("mode", modes);
+
 	LOG(trace) << "RPLAYC << play_progress(media=" << _media << ", position="
 		<< _position << ", duration=" << _duration << ", playlist_idx=" << _playlist_idx
-		<< ", playback_state=" << playback_state << ")";
+		<< ", playback_state=" << playback_state << ", mode=" << modes << ")";
 
 	publish(to_string(msg));
 }
@@ -363,6 +366,12 @@ void zmq_interface::on_notify(string const & s)
 
 		if (!_play->move(pid, from_idx, to_idx))
 			LOG(warning) << "playlist outdated";
+	}
+	else if (cmd == "playlist_shuffle")
+	{
+		bool shuffle = json.get<bool>("shuffle", false);
+		_play->shuffle(shuffle);
+		LOG(trace) << "RPLAYC >> playlist_shuffle(" << shuffle << ")";
 	}
 	else if (cmd == "client_ready")
 	{

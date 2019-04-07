@@ -4,33 +4,21 @@
 #include <vector>
 #include <zmqu/clone_client.hpp>
 #include "fs.hpp"
+#include "rplib/observer.hpp"
 
-enum class playback_state_e{invalid, playing, paused};
+enum class playback_state_e {invalid, playing, paused};
+
+enum playlist_mode_e {playlist_mode_shuffle = 0x1};
 
 struct player_client_listener
 {
 	virtual void on_play_progress(std::string const & media, long position, long duration,
-		size_t playlist_idx, playback_state_e playback_state) {}
+		size_t playlist_idx, playback_state_e playback_state, playlist_mode_e playlist_mode) {}
 	virtual void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) {}
 	virtual void on_list_media(std::vector<std::string> const & items) {}
 	virtual void on_volume(int val) {}
 	virtual void on_stop() {}
 };
-
-// TODO: implement notify function
-template <typename Listener>
-class observable_with
-{
-public:
-	void register_listener(Listener * l);  // TODO: find something better then register
-	void forget_listener(Listener * l);
-	std::vector<Listener *> & listeners();
-	std::vector<Listener *> const & listeners() const;
-
-private:
-	std::vector<Listener *> _listeners;
-};
-
 
 class rplay_client
 	: public zmqu::clone_client
@@ -51,6 +39,7 @@ public:
 	void playlist_add(std::vector<fs::path> const & media);
 	void playlist_remove(size_t playlist_id, std::vector<size_t> const & items);
 	void playlist_move_item(size_t playlist_id, size_t from_idx, size_t to_idx);
+	void playlist_shuffle(bool shuffle);
 	void ask_identify();
 	void ask_list_media();
 

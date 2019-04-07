@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <stdexcept>
+#include <cassert>
+#include "rplib/random.hpp"
 #include "playlist.hpp"
 
 using std::string;
@@ -11,23 +13,26 @@ using std::unique_lock;
 
 
 playlist::playlist()
-	: _item_idx{0}
+	: _item_idx{npos}
 {}
 
 string playlist::wait_next()
 {
 	unique_lock<mutex> lock{_items_locker};
-	_new_item_cond.wait(lock, [this]{return _items.size() > _item_idx;});
-	return _items[_item_idx++];
+	size_t idx = next_item_idx();
+	assert(idx <= _items.size());
+	_new_item_cond.wait(lock, [this, idx]{return _items.size() > idx;});
+	return _items[idx];
 }
 
 bool playlist::try_next(std::string & item)
 {
 	lock_guard<mutex> lock{_items_locker};
-	if (_item_idx >= _items.size())
+	size_t idx = next_item_idx();
+	if (idx >= _items.size())
 		return false;
 
-	item = _items[_item_idx++];
+	item = _items[idx];
 	return true;
 }
 
@@ -46,6 +51,8 @@ void playlist::add(string const & item)
 {
 	lock_guard<mutex> lock{_items_locker};
 	_items.push_back(item);
+	if (_item_idx == npos)
+		_item_idx = 0;
 	_new_item_cond.notify_one();
 }
 
@@ -53,18 +60,24 @@ void playlist::remove(size_t idx)
 {
 	lock_guard<mutex> lock{_items_locker};
 	if (idx >= _items.size())
-		return;  // out_of_range, nothing to remove
+		throw std::out_of_range{"playlist index out of range"};
 
 	_items.erase(_items.begin() + (int)idx);
 
 	if (idx < _item_idx)
 		_item_idx -= 1;
+
+	if (_items.empty())
+		_item_idx = npos;
 }
 
 void playlist::remove(vector<size_t> const & indices)
 {
 	vector<size_t> sorted = indices;
 	std::sort(sorted.begin(), sorted.end(), std::greater<size_t>{});
+
+	if (sorted.front() < (size_t)0 || sorted.back() > _items.size())
+		throw std::out_of_range{"playlist index out of range"};
 
 	lock_guard<mutex> lock{_items_locker};
 
@@ -74,6 +87,9 @@ void playlist::remove(vector<size_t> const & indices)
 			_item_idx -= 1;
 		_items.erase(_items.begin() + (int)idx);
 	}
+
+	if (_items.empty())
+		_item_idx = npos;
 }
 
 void playlist::move(size_t from_idx, size_t to_idx)
@@ -119,10 +135,10 @@ vector<string> playlist::items() const
 size_t playlist::current_item_idx() const
 {
 	lock_guard<mutex> lock{_items_locker};
-	if (_item_idx > 0)
-		return _item_idx-1;
+	if (_item_idx < _items.size())
+		return _item_idx;
 	else
-		throw std::out_of_range{"invalid playlist item index"};
+		return npos;
 }
 
 string playlist::item(size_t idx) const
@@ -137,4 +153,42 @@ void playlist::repeat()
 	_item_idx = 0;
 	if (!_items.empty())
 		_new_item_cond.notify_one();
+}
+
+void playlist::shuffle(bool state)
+{
+	lock_guard<mutex> lock{_items_locker};
+	_shuffle = state;
+}
+
+bool playlist::shuffle() const
+{
+	lock_guard<mutex> lock{_items_locker};
+	return _shuffle;
+}
+
+size_t playlist::next_item_idx()
+{
+	if (_shuffle)
+	{
+		if (!_items.empty())
+		{
+			_item_idx = rand_int() % _items.size();
+			return _item_idx;
+		}
+		else
+			return 0;
+	}
+	else
+	{
+		if (!_items.empty())
+		{
+			if (_item_idx < _items.size())
+				return _item_idx++;
+			else
+				return _items.size();
+		}
+		else
+			return 0;
+	}
 }

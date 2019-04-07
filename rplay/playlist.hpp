@@ -7,6 +7,8 @@
 class playlist  //!< thread safe playlist implementation
 {
 public:
+	static size_t const npos = static_cast<size_t>(-1);
+
 	playlist();
 	std::string wait_next(); /*const*/
 	bool try_next(std::string & item);
@@ -21,10 +23,15 @@ public:
 	size_t current_item_idx() const;
 	std::string item(size_t idx) const;
 	void repeat();
+	void shuffle(bool state);
+	bool shuffle() const;
 
 private:
+	size_t next_item_idx();
+
 	std::vector<std::string> _items;
-	size_t _item_idx;  //!< current item index
+	size_t _item_idx;  //!< current item index or npos
+	bool _shuffle;
 	mutable std::mutex _items_locker;
 	std::condition_variable _new_item_cond;
 };

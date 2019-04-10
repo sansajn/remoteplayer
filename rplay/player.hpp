@@ -34,7 +34,7 @@ public:
 	void join();
 
 	// signals
-	event<std::string, size_t> play_signal;  //!< (media, playlist_idx)
+	event<std::string, size_t> play_signal;  //!< (media, media_idx)
 	event<int64_t, int64_t> position_change_signal;  //!< (position, duration) in ns
 	event<size_t, std::vector<std::string>> playlist_change_signal;  //!< (id, playlist_items)
 

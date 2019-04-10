@@ -17,6 +17,7 @@ player::player()
 	: _playlist_id{1}
 	, _play_flag{false}
 	, _pause_flag{false}
+	, _quit_flag{false}
 {}
 
 void player::start()
@@ -152,7 +153,8 @@ void player::loop()
 				continue;  // nothing new in playlist
 			}
 
-			play_signal.call(media, _items.current_item_idx());
+			assert(_items.current_item_idx() > 0);  // one item ahead
+			play_signal.call(media, _items.current_item_idx() - 1);
 			_p.play(media, bind(&player::item_done_cb, this), bind(&player::item_progress_cb, this, _1, _2));
 			_p.join();
 		}

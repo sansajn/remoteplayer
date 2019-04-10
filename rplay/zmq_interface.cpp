@@ -51,7 +51,7 @@ zmq_interface::zmq_interface(unsigned short port, library * lib, player * play)
 	, _lib{lib}
 	, _play{play}
 	, _position_change_count{0}
-	, _playlist_idx{0}
+	, _media_idx{0}
 	, _position{0}
 	, _duration{0}
 	, _playlist_id{0}
@@ -105,23 +105,23 @@ void zmq_interface::join()
 	_th.join();
 }
 
-void zmq_interface::on_play(std::string media, size_t playlist_idx)
+void zmq_interface::on_play(std::string media, size_t media_idx)
 {
 	_position_change_count = 0;
 
 	lock_guard<mutex> lock{_media_info_locker};
 	_media = media;
-	_playlist_idx = playlist_idx;
+	_media_idx = media_idx;
 }
 
 void zmq_interface::send_play_progress()
 {
 	jtree msg;
 	msg.put("cmd", "play_progress");
-	msg.put("media", _media);
-	msg.put<long>("position", (long)_position);
-	msg.put<long>("duration", (long)_duration);
-	msg.put<size_t>("playlist_idx", _playlist_idx);
+	msg.put<long>("position", static_cast<long>(_position));
+	msg.put<long>("duration", static_cast<long>(_duration));
+	msg.put<size_t>("playlist_id", _playlist_id);
+	msg.put<size_t>("media_idx", _media_idx);
 
 	int playback_state = _play->paused() ? 2 : 1;
 	msg.put<int>("playback_state", playback_state);
@@ -129,9 +129,10 @@ void zmq_interface::send_play_progress()
 	int modes = _play->shuffle() ? 1 : 0;
 	msg.put<int>("mode", modes);
 
-	LOG(trace) << "RPLAYC << play_progress(media=" << _media << ", position="
-		<< _position << ", duration=" << _duration << ", playlist_idx=" << _playlist_idx
-		<< ", playback_state=" << playback_state << ", mode=" << modes << ")";
+	LOG(trace) << "RPLAYC << play_progress(position=" << _position
+		<< ", duration=" << _duration << ", playlist_id=" << _playlist_id
+		<< ", media_idx=" << _media_idx << ", playback_state="
+		<< playback_state << ", mode=" << modes << ")";
 
 	publish(to_string(msg));
 }
@@ -305,7 +306,7 @@ void zmq_interface::on_notify(string const & s)
 	{
 		int value = json.get<int>("value", -1);
 
-		LOG(trace) << "RPLAY >> set_volume(value=" << value << ")\n";
+		LOG(trace) << "RPLAY >> set_volume(value=" << value << ")";
 
 		if (value >= 0 && value <= 100)
 		{

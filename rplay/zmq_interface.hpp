@@ -15,7 +15,7 @@ public:
 	using hires_clock = std::chrono::high_resolution_clock;
 
 	zmq_interface(unsigned short port, library * lib, player * play);
-	~zmq_interface();
+	~zmq_interface() override;
 	void run();  // TODO: rename to start
 	void stop();
 	void join();
@@ -27,7 +27,7 @@ private:
 	void send_volume();  // don't need to lock
 
 	//! \note called from player thread
-	void on_play(std::string media, size_t playlist_idx);
+	void on_play(std::string media, size_t media_idx);
 	void on_position_change(int64_t position, int64_t duration);
 	void on_playlist_change(size_t playlist_id, std::vector<std::string> items);
 
@@ -48,7 +48,7 @@ private:
 
 	// current media info
 	std::string _media;
-	size_t _playlist_idx;
+	size_t _media_idx;
 	int64_t _position;
 	int64_t _duration;
 	size_t _playlist_id;

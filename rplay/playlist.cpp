@@ -135,7 +135,7 @@ vector<string> playlist::items() const
 size_t playlist::current_item_idx() const
 {
 	lock_guard<mutex> lock{_items_locker};
-	if (_item_idx < _items.size())
+	if (_item_idx <= _items.size())
 		return _item_idx;
 	else
 		return npos;

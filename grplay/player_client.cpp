@@ -27,23 +27,25 @@ void rplay_client::on_news(std::string const & news)
 
 	if (cmd == "play_progress")
 	{
-		string media = json.get("media", string{});
 		long position = json.get<long>("position", 0L);
 		long duration = json.get<long>("duration", 0L);
-		size_t playlist_idx = json.get<size_t>("playlist_idx", 0);
+		size_t playlist_id = json.get<size_t>("playlist_id", 0);
+		size_t media_idx = json.get<size_t>("media_idx", 0);
 		int playback_state = json.get<int>("playback_state", 0);
 		int mode = json.get<int>("mode", 0);
 
 		assert(playback_state > 0);
 
-		LOG(trace) << "RPLAY >> play_progress(media='" << media << "', posiiton=" << position
-			<< ", duration=" << duration << ", playlist_idx=" << playlist_idx << ")";
+		LOG(trace) << "RPLAY >> play_progress(position=" << position
+			<< ", duration=" << duration << ", playlist_id=" << playlist_id
+			<< ", media_idx=" << media_idx << ", playback_state=" << playback_state
+			<< ", mode=" << mode << ")";
 
-		if (!media.empty())
+		if (playlist_id > 0)
 		{
-			playback_state_e state = playback_state == 1 ? playback_state_e::playing : playback_state_e::paused;
+			playback_state_e state = (playback_state_e)playback_state;
 			for (auto * l : listeners())
-				l->on_play_progress(media, position, duration, playlist_idx, state, (playlist_mode_e)mode);
+				l->on_play_progress(position, duration, playlist_id, media_idx, state, (playlist_mode_e)mode);
 		}
 		else
 			for (auto * l : listeners())

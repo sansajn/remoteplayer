@@ -71,11 +71,11 @@ private:
 	void on_volume_change();
 	void repack_ui();
 	void filter_media_library(string const & filter);
-	std::string get_media(int sel_idx) const;  //!< \note it will take a lock for
+	string get_media(int sel_idx) const;  //!< \note it will take a lock for
 
 	// player_client events, note: called from player_client's thread
-	void on_play_progress(string const & media, long position, long duration, size_t playlist_idx,
-		playback_state_e playback_state, playlist_mode_e playlist_mode) override;
+	void on_play_progress(long position, long duration, size_t playlist_id,
+		size_t media_idx, playback_state_e playback_state, playlist_mode_e playlist_mode) override;
 	void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) override;
 	void on_list_media(std::vector<std::string> const & items) override;
 	void on_volume(int val) override;
@@ -94,7 +94,7 @@ private:
 
 	// position, duration, media
 	string _media;
-	size_t _playlist_idx;
+	size_t _media_idx;
 	playback_state_e _playback_state;
 	long _position;
 	long _duration;
@@ -127,7 +127,7 @@ int grplay_window::update_cb(gpointer user_data)
 
 grplay_window::grplay_window(string const & host, unsigned short port)
 	: _filtered{false}
-	, _playlist_idx{0}
+	, _media_idx{(size_t)-1}
 	, _playback_state{playback_state_e::invalid}
 	, _position{0}
 	, _duration{0}
@@ -357,11 +357,11 @@ void grplay_window::update_ui()
 		for (string const & media : _playlist)
 			_ply_ui.add(media);
 
-		if (_ply_ui._ply_view.size() > _playlist_idx
+		if (_ply_ui._ply_view.size() > _media_idx
 			&& (_playback_state == playback_state_e::playing
 				|| _playback_state == playback_state_e::paused))
 		{
-			_ply_ui.highlight(_playlist_idx, _playback_state);
+			_ply_ui.highlight(_media_idx, _playback_state);
 		}
 
 		_last_used_playlist_id = _playlist_id;
@@ -378,8 +378,8 @@ void grplay_window::update_ui()
 		else
 			_plb_ui._play_button.set_image_from_icon_name("media-playback-start");
 
-		if (_ply_ui._ply_view.size() > _playlist_idx)
-			_ply_ui.highlight(_playlist_idx, _playback_state);
+		if (_ply_ui._ply_view.size() > _media_idx)
+			_ply_ui.highlight(_media_idx, _playback_state);
 
 		prev_state = _playback_state;
 	}
@@ -395,13 +395,13 @@ void grplay_window::update_ui()
 	if (_highlight_media_in_playlist)
 	{
 		Gtk::TreeModel::Children playlist_items = _ply_ui._ply_view.get_model()->children();
-		if (playlist_items.size() > _playlist_idx)
+		if (playlist_items.size() > _media_idx)
 		{
 			auto it = playlist_items.begin();
-			advance(it, _playlist_idx);
+			advance(it, _media_idx);
 			_ply_ui._ply_view.set_cursor(Gtk::TreeModel::Path{it});  // TODO: better way to set cursor ?
 
-			_ply_ui.highlight(_playlist_idx, _playback_state);
+			_ply_ui.highlight(_media_idx, _playback_state);
 		}
 		_highlight_media_in_playlist = false;
 	}
@@ -486,8 +486,8 @@ void grplay_window::on_volume_change()
 void grplay_window::on_prev_button()
 {
 	lock_guard<mutex> locker{_player_data_locker};
-	if (_playlist_idx > 0)
-		_play.play(_playlist_id, _playlist_idx-1);
+	if (_media_idx > 0)
+		_play.play(_playlist_id, _media_idx-1);
 	else
 		_play.play(_playlist_id, 0);
 }
@@ -509,8 +509,8 @@ void grplay_window::on_stop_button()
 void grplay_window::on_next_button()
 {
 	lock_guard<mutex> locker{_player_data_locker};
-	if (_playlist_idx+1 < _playlist.size())
-		_play.play(_playlist_id, _playlist_idx+1);
+	if (_media_idx+1 < _playlist.size())
+		_play.play(_playlist_id, _media_idx+1);
 }
 
 void grplay_window::on_playlist_up_button()
@@ -644,22 +644,27 @@ string grplay_window::get_media(int sel_idx) const
 	return _library[media_idx];
 }
 
-void grplay_window::on_play_progress(string const & media, long position, long duration,
-	size_t playlist_idx, playback_state_e playback_state, playlist_mode_e playlist_mode)
+void grplay_window::on_play_progress(long position, long duration, size_t playlist_id,
+	size_t media_idx, playback_state_e playback_state, playlist_mode_e playlist_mode)
 {
 	lock_guard<mutex> lock{_player_data_locker};
-	bool new_media = _media != media;
-	_media = media;
 	_position = position;
 	_duration = duration;
-	_playlist_idx = playlist_idx;
 	_playback_state = playback_state;
 	_last_progress_update = std::chrono::high_resolution_clock::now();
 	_seek_position_lock = false;
 	_shuffle = playlist_mode & playlist_mode_e::playlist_mode_shuffle;
 
-	if (new_media)
-		_highlight_media_in_playlist = true;
+	bool new_media = _media_idx != media_idx;
+	_media_idx = media_idx;
+
+	if (_playlist_id == playlist_id)
+	{
+		_media = _playlist[_media_idx];
+
+		if (new_media)
+			_highlight_media_in_playlist = true;
+	}
 }
 
 void grplay_window::on_playlist_change(size_t playlist_id, vector<string> const & items)

@@ -6,14 +6,14 @@
 #include "fs.hpp"
 #include "rplib/observer.hpp"
 
-enum class playback_state_e {invalid, playing, paused};
+enum class playback_state_e {invalid, playing, paused, stopped};
 
 enum playlist_mode_e {playlist_mode_shuffle = 0x1};
 
 struct player_client_listener
 {
-	virtual void on_play_progress(std::string const & media, long position, long duration,
-		size_t playlist_idx, playback_state_e playback_state, playlist_mode_e playlist_mode) {}
+	virtual void on_play_progress(long position, long duration,	size_t playlist_id,
+		size_t media_idx, playback_state_e playback_state, playlist_mode_e playlist_mode) {}
 	virtual void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) {}
 	virtual void on_list_media(std::vector<std::string> const & items) {}
 	virtual void on_volume(int val) {}

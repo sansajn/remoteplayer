@@ -20,7 +20,7 @@ public:
 	void clear();
 	size_t size() const;
 	std::vector<std::string> items() const;
-	size_t current_item_idx() const;
+	size_t current_item_idx() const;  //!< returns one item ahead
 	std::string item(size_t idx) const;
 	void repeat();
 	void shuffle(bool state);

@@ -8,12 +8,18 @@
 
 enum class playback_state_e {invalid, playing, paused, stopped};
 
-enum playlist_mode_e {playlist_mode_shuffle = 0x1};
+enum playlist_mode_e
+{
+	playlist_mode_shuffle = 0x1,
+	playlist_mode_bed_time = 0x2
+};
 
 struct player_client_listener
 {
+	//! \param playlist_mode_list list of \c playlist_mode_e or-ed values
 	virtual void on_play_progress(long position, long duration,	size_t playlist_id,
-		size_t media_idx, playback_state_e playback_state, playlist_mode_e playlist_mode) {}
+		size_t media_idx, playback_state_e playback_state, int playlist_mode_list) {}
+
 	virtual void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) {}
 	virtual void on_list_media(std::vector<std::string> const & items) {}
 	virtual void on_volume(int val) {}
@@ -39,7 +45,8 @@ public:
 	void playlist_add(std::vector<fs::path> const & media);
 	void playlist_remove(size_t playlist_id, std::vector<size_t> const & items);
 	void playlist_move_item(size_t playlist_id, size_t from_idx, size_t to_idx);
-	void playlist_shuffle(bool shuffle);
+	void playlist_shuffle(bool shuffle) const;
+	void bed_time(bool value) const;
 	void ask_identify();
 	void ask_list_media();
 
@@ -60,29 +67,3 @@ private:
 
 	bool _connected_flag, _connected[3];
 };
-
-
-template <typename Listener>
-void observable_with<Listener>::register_listener(Listener * l)
-{
-	if (find(_listeners.begin(), _listeners.end(), l) == _listeners.end())
-		_listeners.push_back(l);
-}
-
-template <typename Listener>
-void observable_with<Listener>::forget_listener(Listener * l)
-{
-	remove(_listeners.begin(), _listeners.end(), l);
-}
-
-template <typename Listener>
-std::vector<Listener *> & observable_with<Listener>::listeners()
-{
-	return _listeners;
-}
-
-template <typename Listener>
-std::vector<Listener *> const & observable_with<Listener>::listeners() const
-{
-	return _listeners;
-}

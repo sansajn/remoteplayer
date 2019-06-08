@@ -9,7 +9,7 @@ playlist_ui::playlist_ui()
 void playlist_ui::init()
 {
 	_container.pack_start(_ply_scroll, Gtk::PackOptions::PACK_SHRINK);
-	_container.pack_start(_controls, Gtk::PackOptions::PACK_SHRINK);
+	_container.pack_start(_control_bar, Gtk::PackOptions::PACK_SHRINK);
 
 	// item list
 	_ply_scroll.set_size_request(-1, 150);
@@ -33,7 +33,7 @@ void playlist_ui::init()
 	_ply_menu.show_all();
 
 	// controls
-	_controls.pack_start(_left, Gtk::PackOptions::PACK_SHRINK);
+	_control_bar.pack_start(_left, Gtk::PackOptions::PACK_SHRINK);
 	_left.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
 	_left.pack_start(_up, Gtk::PackOptions::PACK_SHRINK);
 	_left.pack_start(_down, Gtk::PackOptions::PACK_SHRINK);
@@ -43,11 +43,11 @@ void playlist_ui::init()
 	_down.set_image_from_icon_name("go-down");
 	_clear_all.set_image_from_icon_name("edit-delete");
 
-	_controls.pack_start(_right, Gtk::PackOptions::PACK_SHRINK);
+	_control_bar.pack_end(_right, Gtk::PackOptions::PACK_SHRINK);
 	_right.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
 	_right.pack_start(_shuffle, Gtk::PackOptions::PACK_SHRINK);
 	_shuffle.set_label("shuffle");
-	_shuffle.signal_clicked().connect(sigc::mem_fun(*this, &playlist_ui::on_shuffle_clicked));
+	_shuffle_clicked = _shuffle.signal_clicked().connect(sigc::mem_fun(*this, &playlist_ui::on_shuffle_clicked));
 }
 
 void playlist_ui::add(std::string const & item)
@@ -82,8 +82,9 @@ int playlist_ui::selected()
 
 void playlist_ui::shuffle(bool state)
 {
-	if (state != _shuffle.get_active())
-		_shuffle.set_active(state);
+	_shuffle_clicked.block();
+	_shuffle.set_active(state);
+	_shuffle_clicked.unblock();
 }
 
 void playlist_ui::on_item_clicked(Gtk::TreeModel::Path const & path, Gtk::TreeViewColumn * column)

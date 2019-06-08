@@ -45,7 +45,7 @@ void rplay_client::on_news(std::string const & news)
 		{
 			playback_state_e state = (playback_state_e)playback_state;
 			for (auto * l : listeners())
-				l->on_play_progress(position, duration, playlist_id, media_idx, state, (playlist_mode_e)mode);
+				l->on_play_progress(position, duration, playlist_id, media_idx, state, mode);
 		}
 		else
 			for (auto * l : listeners())
@@ -285,7 +285,7 @@ void rplay_client::playlist_move_item(size_t playlist_id, size_t from_idx, size_
 	LOG(trace) << "RPLAY << playlist_move(from=" << from_idx << ", to=" << to_idx << ")";
 }
 
-void rplay_client::playlist_shuffle(bool shuffle)
+void rplay_client::playlist_shuffle(bool shuffle) const
 {
 	jtree req;
 	req.put("cmd", "playlist_shuffle");
@@ -296,10 +296,22 @@ void rplay_client::playlist_shuffle(bool shuffle)
 	LOG(trace) << "RPLAY << playlist_shuffle(" << shuffle << ")";
 }
 
+void rplay_client::bed_time(bool value) const
+{
+	jtree req;
+	req.put("cmd", "bed_time");
+	req.put<bool>("value", value);
+
+	notify(to_string(req));
+
+	LOG(trace) << "RPLAY << bed_time(" << value << ")";
+}
+
 void rplay_client::ask_identify()
 {
 	jtree req;
 	req.put("cmd", "identify");
+
 	ask(to_string(req));
 
 	LOG(trace) << "RPLAY << identify";
@@ -309,6 +321,7 @@ void rplay_client::ask_list_media()
 {
 	jtree req;
 	req.put("cmd", "list_media");
+
 	ask(to_string(req));
 
 	LOG(trace) << "RPLAY << list_media";

@@ -112,6 +112,16 @@ bool player::shuffle() const
 	return _items.shuffle();
 }
 
+void player::bed_time(bool state)
+{
+	_bed_time = state;
+}
+
+bool player::bed_time() const
+{
+	return _bed_time;
+}
+
 playlist const & player::media_playlist() const
 {
 	return _items;
@@ -157,6 +167,9 @@ void player::loop()
 			play_signal.call(media, _items.current_item_idx() - 1);
 			_p.play(media, bind(&player::item_done_cb, this), bind(&player::item_progress_cb, this, _1, _2));
 			_p.join();
+
+			if (_bed_time)
+				_play_flag = false;
 		}
 		else
 			std::this_thread::sleep_for(std::chrono::milliseconds{100});

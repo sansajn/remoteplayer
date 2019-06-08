@@ -30,6 +30,7 @@ bude poskytovať nasledujúce funkcie:
 	* volume, posiela server pri zmene hlasitosti
 	* set_volume, zmena hlasitosti
 	* client_ready, signal serveru, ze je klient pripraveny prijímať správy
+	* bed_time, zapne/vypne bed time mód
 
 Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
 obsahu.
@@ -119,15 +120,15 @@ prehrávania skladby. Správa je definovaná ako
 		"playlist_id":N,         // size_t
 		"media_idx":N,           // size_t
 		"playback_state":S,      // int (playing=1,paused=2,stopped=3)
-		"mode":M                 // int (shuffle=1)
+		"mode":M                 // int (shuffle=1,bed_time=2)
 	}
 
 kde position je aktuálna pozícia v nano-sekundách, duration je dĺžka skladby v
 nano-sekundách, playlist_id je identifikátor playlistu a media_idx je index
 aktuálnej skladby v playliste playlist_id. Pole playback_state predstavuje
 prehrávací stav, ktorý je buď v stave 'playing' (1), 'paused' (2), alebo v
-stave stopped (3) a pole mode, ktoré je zoznamom módou playlistu (zatiaľ iba
-shuffle (1)).
+stave stopped (3) a pole mode, ktoré je zoznamom módou playlistu (kombinácie
+módou 'shuffle' (1) a 'bed_time' (2)).
 
 Ak klient obdrží play_progress v ktorej media je prázdny reťazec, potom
 remoteplayer signalizuje stop (pozri popis stop príkazu).
@@ -244,6 +245,14 @@ Príkaz zapne/vypne shuffle mód a je definovaný takto
 
 kde S je hodnota typu bool, true ak ma byť shuffle mód zapnutý, false inak.
 
+
+bed_time [notify]:
+
+Príkaz zapne/vypne bed time mód (zastavenie prehrávania po skončení aktuálnej skladby) a je definovaný takto
+
+	{"cmd":"bed_time", "value":V}
+
+kde V je hodnota typu bool, true ak ma byť bed time mód zapnutý, false inak.
 
 
 client_ready [notify]:

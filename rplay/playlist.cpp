@@ -14,6 +14,7 @@ using std::unique_lock;
 
 playlist::playlist()
 	: _item_idx{npos}
+	, _shuffle{false}
 {}
 
 string playlist::wait_next()
@@ -51,8 +52,8 @@ void playlist::add(string const & item)
 {
 	lock_guard<mutex> lock{_items_locker};
 	_items.push_back(item);
-	if (_item_idx == npos)
-		_item_idx = 0;
+//	if (_item_idx == npos)
+//		_item_idx = 0;
 	_new_item_cond.notify_one();
 }
 
@@ -150,9 +151,13 @@ string playlist::item(size_t idx) const
 void playlist::repeat()
 {
 	lock_guard<mutex> lock{_items_locker};
-	_item_idx = 0;
 	if (!_items.empty())
+	{
+		_item_idx = 0;
 		_new_item_cond.notify_one();
+	}
+	else
+		_item_idx = npos;
 }
 
 void playlist::shuffle(bool state)

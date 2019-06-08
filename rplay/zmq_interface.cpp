@@ -126,7 +126,7 @@ void zmq_interface::send_play_progress()
 	int playback_state = _play->paused() ? 2 : 1;
 	msg.put<int>("playback_state", playback_state);
 
-	int modes = _play->shuffle() ? 1 : 0;
+	int modes = (_play->bed_time() << 1)|_play->shuffle();
 	msg.put<int>("mode", modes);
 
 	LOG(trace) << "RPLAYC << play_progress(position=" << _position
@@ -298,7 +298,7 @@ void zmq_interface::on_notify(string const & s)
 		int pos = json.get<int>("position", -1);
 		string media = json.get<string>("media", "");
 
-		LOG(trace) << "RPLAY >> seek(pos=" << pos << ", '" << media << "')";
+		LOG(trace) << "RPLAYC >> seek(pos=" << pos << ", '" << media << "')";
 
 		_play->seek(int64_t{pos} * 1000000000);
 	}
@@ -306,7 +306,7 @@ void zmq_interface::on_notify(string const & s)
 	{
 		int value = json.get<int>("value", -1);
 
-		LOG(trace) << "RPLAY >> set_volume(value=" << value << ")";
+		LOG(trace) << "RPLAYC >> set_volume(value=" << value << ")";
 
 		if (value >= 0 && value <= 100)
 		{
@@ -322,7 +322,7 @@ void zmq_interface::on_notify(string const & s)
 		for (jtree::value_type & obj : json.get_child("items"))
 			media.push_back(obj.second.data());
 
-		LOG(trace) << "RPLAY >> playlist_add(media='" << media.size() << " items')";
+		LOG(trace) << "RPLAYC >> playlist_add(media='" << media.size() << " items')";
 
 		if (!media.empty())
 			_play->add(media);
@@ -335,7 +335,7 @@ void zmq_interface::on_notify(string const & s)
 		for (jtree::value_type & obj : json.get_child("items"))
 			items.push_back(obj.second.get_value<size_t>());
 
-		LOG(trace) << "RPLAY >> playlist_remove(playlist=" << pid << ", items='" << items.size() << " items')";
+		LOG(trace) << "RPLAYC >> playlist_remove(playlist=" << pid << ", items='" << items.size() << " items')";
 
 		if (pid == 0 || items.empty())
 		{
@@ -373,6 +373,9 @@ void zmq_interface::on_notify(string const & s)
 		bool shuffle = json.get<bool>("shuffle", false);
 		_play->shuffle(shuffle);
 		LOG(trace) << "RPLAYC >> playlist_shuffle(" << shuffle << ")";
+
+		lock_guard<mutex> lock{_media_info_locker};
+		send_play_progress();
 	}
 	else if (cmd == "client_ready")
 	{
@@ -388,7 +391,16 @@ void zmq_interface::on_notify(string const & s)
 				send_play_progress();
 		}
 
-		LOG(trace) << "RPLAY >> client_ready";
+		LOG(trace) << "RPLAYC >> client_ready";
+	}
+	else if (cmd == "bed_time")
+	{
+		bool value = json.get<bool>("value");
+		_play->bed_time(value);
+		LOG(trace) << "RPLAYC >> bed_time(" << value << ")";
+
+		lock_guard<mutex> lock{_media_info_locker};
+		send_play_progress();
 	}
 	else
 		LOG(warning) << "unknown command (" << s << ")";

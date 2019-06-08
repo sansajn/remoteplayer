@@ -52,6 +52,7 @@ class grplay_window
 	: public Gtk::Window
 	, public player_client_listener
 	, public playlist_event_listener
+	, public library_event_listener
 {
 public:
 	grplay_window(string const & host, unsigned short port);
@@ -75,7 +76,7 @@ private:
 
 	// player_client events, note: called from player_client's thread
 	void on_play_progress(long position, long duration, size_t playlist_id,
-		size_t media_idx, playback_state_e playback_state, playlist_mode_e playlist_mode) override;
+		size_t media_idx, playback_state_e playback_state, int playlist_mode_list) override;
 	void on_playlist_change(size_t playlist_id, std::vector<std::string> const & items) override;
 	void on_list_media(std::vector<std::string> const & items) override;
 	void on_volume(int val) override;
@@ -85,6 +86,9 @@ private:
 	void on_playlist_play_item(size_t idx) override;
 	void on_playlist_remove_item(size_t idx) override;
 	void on_playlist_shuffle(bool shuffle) override;
+
+	// library events
+	void on_library_bed_time(bool bed_time) override;
 
 	static int update_cb(gpointer user_data);
 
@@ -103,7 +107,7 @@ private:
 	std::vector<std::string> _playlist;
 	size_t _playlist_id;
 	bool _seek_position_lock;
-	bool _shuffle;
+	bool _shuffle, _bed_time;
 	int _serv_volume;
 	mutable std::mutex _player_data_locker;
 
@@ -133,12 +137,15 @@ grplay_window::grplay_window(string const & host, unsigned short port)
 	, _duration{0}
 	, _playlist_id{0}
 	, _seek_position_lock{false}
+	, _shuffle{false}
+	, _bed_time{false}
 	, _serv_volume{0}
 	, _last_used_playlist_id{0}
 	, _playback_stoped{false}
 	, _highlight_media_in_playlist{false}
 {
 	_play.register_listener(this);
+	_lib_ui.register_listener(this);
 
 	LOG(info) << "connecting to server ...";
 	_play.connect(host, port);
@@ -205,27 +212,11 @@ grplay_window::grplay_window(string const & host, unsigned short port)
 	_ply_ui._clear_all.signal_clicked().connect(sigc::mem_fun(*this, &grplay_window::on_playlist_clear_all_button));
 
 	// library
+	_lib_ui.init();
 	_playlist_library_paned.add2(_lib_ui._container);
 
-	_lib_ui._search.set_placeholder_text("<Enter search terms there>");
 	_lib_ui._search.signal_changed().connect(sigc::mem_fun(*this, &grplay_window::on_search));
-
-	_lib_ui._scroll.add(_lib_ui._media_list_view);
-	_lib_ui._scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
-
-	_lib_ui._filtered_scroll.add(_lib_ui._filtered_media_list_view);
-	_lib_ui._filtered_scroll.set_policy(Gtk::PolicyType::POLICY_AUTOMATIC, Gtk::PolicyType::POLICY_AUTOMATIC);
-
-	_lib_ui._filtered_media_list_view.set_column_title(0, "Filtered Media:");
-
-	_lib_ui._library_control_bar.pack_start(_lib_ui._playlist_add_button, Gtk::PackOptions::PACK_SHRINK);
-	_lib_ui._library_control_bar.set_layout(Gtk::ButtonBoxStyle::BUTTONBOX_START);
-	_lib_ui._playlist_add_button.set_image_from_icon_name("list-add");
 	_lib_ui._playlist_add_button.signal_clicked().connect(sigc::mem_fun(*this, &grplay_window::on_playlist_add_button));
-
-	_lib_ui._container.pack_start(_lib_ui._scroll, Gtk::PackOptions::PACK_EXPAND_WIDGET);
-	_lib_ui._container.pack_start(_lib_ui._search, Gtk::PackOptions::PACK_SHRINK);
-	_lib_ui._container.pack_start(_lib_ui._library_control_bar, Gtk::PackOptions::PACK_SHRINK);
 
 	RefPtr<Gtk::TreeSelection> selection = _lib_ui._media_list_view.get_selection();
 	assert(selection);
@@ -349,6 +340,9 @@ void grplay_window::update_ui()
 
 		_lib_ui._media_list_view.expand_smart();
 	}
+
+	if (_lib_ui.bed_time() != _bed_time)
+		_lib_ui.bed_time(_bed_time);
 
 	// playlist
 	if (_playlist_id != _last_used_playlist_id)
@@ -589,6 +583,11 @@ void grplay_window::on_playlist_shuffle(bool shuffle)
 	_play.playlist_shuffle(shuffle);
 }
 
+void grplay_window::on_library_bed_time(bool bed_time)
+{
+	_play.bed_time(bed_time);
+}
+
 void grplay_window::on_search()
 {
 	ustring filter = _lib_ui._search.get_text();
@@ -645,7 +644,7 @@ string grplay_window::get_media(int sel_idx) const
 }
 
 void grplay_window::on_play_progress(long position, long duration, size_t playlist_id,
-	size_t media_idx, playback_state_e playback_state, playlist_mode_e playlist_mode)
+	size_t media_idx, playback_state_e playback_state, int playlist_mode_list)
 {
 	lock_guard<mutex> lock{_player_data_locker};
 	_position = position;
@@ -653,7 +652,8 @@ void grplay_window::on_play_progress(long position, long duration, size_t playli
 	_playback_state = playback_state;
 	_last_progress_update = std::chrono::high_resolution_clock::now();
 	_seek_position_lock = false;
-	_shuffle = playlist_mode & playlist_mode_e::playlist_mode_shuffle;
+	_shuffle = playlist_mode_list & playlist_mode_e::playlist_mode_shuffle;
+	_bed_time = playlist_mode_list & playlist_mode_e::playlist_mode_bed_time;
 
 	bool new_media = _media_idx != media_idx;
 	_media_idx = media_idx;

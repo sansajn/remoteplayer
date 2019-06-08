@@ -30,7 +30,7 @@ public:
 	Gtk::Menu _ply_menu;
 
 	// controls
-	Gtk::Box _controls;
+	Gtk::Box _control_bar;
 	Gtk::ButtonBox _left;
 	Gtk::Button _up, _down, _clear_all;
 
@@ -39,7 +39,7 @@ public:
 	void add(std::string const & item);
 	void highlight(size_t idx, playback_state_e s);
 	int selected();
-	void shuffle(bool state = true);
+	void shuffle(bool state);
 
 private:
 	void on_item_clicked(Gtk::TreeModel::Path const & path, Gtk::TreeViewColumn * column);
@@ -51,4 +51,5 @@ private:
 	// controls
 	Gtk::ButtonBox _right;
 	Gtk::CheckButton _shuffle;
+	sigc::connection _shuffle_clicked;
 };

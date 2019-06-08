@@ -27,6 +27,8 @@ public:
 	bool move(size_t playlist_id, size_t from_idx, size_t to_idx);
 	void shuffle(bool state);
 	bool shuffle() const;
+	void bed_time(bool state);
+	bool bed_time() const;
 	playlist const & media_playlist() const;
 	bool is_latest_playlist(size_t playlist_id);  // TODO: wrong design we need atomic play with index and playlist_id
 	void clear_media_playlist();
@@ -49,5 +51,6 @@ private:
 	playlist _items;  // list of media URIs
 	size_t _playlist_id;  // unique playlist identifier
 	std::atomic_bool _play_flag, _pause_flag, _quit_flag;
+	std::atomic_bool _bed_time;
 	std::thread _th;
 };

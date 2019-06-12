@@ -130,7 +130,12 @@ void play(string const & uri, function<void (int64_t, int64_t)> const & progress
 
 			int64_t dur = -1;
 			if (!gst_element_query_duration(playbin, GST_FORMAT_TIME, &dur))
-				assert(0 && "unable to query playbin duration");
+			{
+				if (pos > 2 * GST_SECOND)
+					throw std::logic_error{"playbin duration not available"};
+
+				continue;  // duration not available, try next time
+			}
 
 			invoke(progress_cb, pos, dur);
 

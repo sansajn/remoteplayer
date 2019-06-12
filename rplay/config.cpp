@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <boost/lexical_cast.hpp>
 #include "rplib/log.hpp"
 #include "config.hpp"
@@ -17,9 +18,13 @@ config::config()
 config::config(int argc, char * argv[])
 	: config{}
 {
+	fs::path conf_path{fs::path{getenv("HOME")} / DEFAULT_CONFIG_FILE_NAME};
+	if (!fs::exists(conf_path))
+		conf_path = DEFAULT_CONFIG_FILE_NAME;
+
 	jtree root;
 	try {
-		root = read_json_file(DEFAULT_CONFIG_FILE_NAME);
+		root = read_json_file(conf_path.string());
 	}
 	catch (std::exception const & e) {
 		LOG(warning) << e.what();

@@ -31,5 +31,5 @@ public:
 private:
 	std::thread _th;
 	std::atomic_bool _cancel, _pause;
-	std::atomic_int64_t _seek_pos_in_ns;
+	std::atomic<int64_t> _seek_pos_in_ns;
 };

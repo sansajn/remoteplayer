@@ -5,7 +5,7 @@
 
 using std::function;
 using std::atomic_bool;
-using std::atomic_int64_t;
+using std::atomic;
 using std::string;
 
 
@@ -20,13 +20,13 @@ void invoke(function<void (Args ...)> const & f, Args ... args)
 
 //! stateless cancellable play implementation with progress and done (EOS) callback
 void play(string const & uri, function<void (int64_t, int64_t)> const & progress_cb,
-	function<void ()> const & done_cb, atomic_int64_t & seek_pos_in_ns, atomic_bool & cancel,
+	function<void ()> const & done_cb, atomic<int64_t> & seek_pos_in_ns, atomic_bool & cancel,
 	atomic_bool & pause);
 
 }  // Detail
 
 using play_func_t = void (*)(string const &, function<void (int64_t, int64_t)> const &,
-	function<void ()> const &, atomic_int64_t &, atomic_bool &, atomic_bool &);
+	function<void ()> const &, atomic<int64_t> &, atomic_bool &, atomic_bool &);
 
 
 gst_audio_player::gst_audio_player()
@@ -83,7 +83,7 @@ void gst_audio_player::join()
 namespace Detail {
 
 void play(string const & uri, function<void (int64_t, int64_t)> const & progress_cb,
-	function<void ()> const & done_cb, atomic_int64_t & seek_pos_in_ns, atomic_bool & cancel,
+	function<void ()> const & done_cb, atomic<int64_t> & seek_pos_in_ns, atomic_bool & cancel,
 	atomic_bool & pause)
 {
 	bool paused = false;

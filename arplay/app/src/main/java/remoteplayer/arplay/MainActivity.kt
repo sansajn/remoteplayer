@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity(), RemotePlayerListener {
 
 		playlist_items.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
 			askPlay(position)
+//			Toast.makeText(this@MainActivity, "item $position selected", Toast.LENGTH_LONG).show()
 		}
 
 		timeline.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -105,7 +106,7 @@ class MainActivity : AppCompatActivity(), RemotePlayerListener {
 	}
 
 	fun onPlaybackStop() {
-		play_pause.setImageResource(android.R.drawable.ic_media_play)
+		play_pause.setImageResource(R.drawable.ic_play)
 		play_pause.setOnClickListener {
 /*
 			if (_isPlaying && _isPaused)
@@ -120,7 +121,7 @@ class MainActivity : AppCompatActivity(), RemotePlayerListener {
 	}
 
 	fun onPlaybackPlay() {
-		play_pause.setImageResource(android.R.drawable.ic_media_pause)
+		play_pause.setImageResource(R.drawable.ic_stop)
 		play_pause.setOnClickListener {
 //			askPause()
 			askStop()

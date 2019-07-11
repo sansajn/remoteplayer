@@ -51,6 +51,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:background="?android:attr/selectableItemBackground"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@id/play_pause"
         app:layout_constraintHorizontal_chainStyle="spread_inside"
         app:layout_constraintLeft_toLeftOf="@id/time"
@@ -62,6 +63,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:background="?android:attr/selectableItemBackground"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@id/play_pause"
         app:layout_constraintRight_toRightOf="@id/length"
         app:layout_constraintTop_toTopOf="@id/play_pause"
@@ -72,6 +74,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:background="?android:attr/selectableItemBackground"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@id/play_pause"
         app:layout_constraintLeft_toRightOf="@id/shuffle"
         app:layout_constraintRight_toLeftOf="@id/play_pause"
@@ -86,13 +89,14 @@
         app:layout_constraintBottom_toTopOf="@id/time"
         app:layout_constraintLeft_toRightOf="@id/previous"
         app:layout_constraintRight_toLeftOf="@id/next"
-        app:srcCompat="@android:drawable/ic_media_play" />
+        app:srcCompat="@drawable/ic_play" />
 
     <ImageButton
         android:id="@+id/next"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:background="?android:attr/selectableItemBackground"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@id/play_pause"
         app:layout_constraintLeft_toRightOf="@id/play_pause"
         app:layout_constraintRight_toLeftOf="@id/repeat"

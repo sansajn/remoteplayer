@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">arplay</string>
     <string name="action_settings">Settings</string>
-    <string name="textview">TextView</string>
-    <string name="prevButtonText"><![CDATA[|<]]></string>
+    <string name="vertical_ellipsis">&#8942;</string>
 </resources>

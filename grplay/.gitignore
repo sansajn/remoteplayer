@@ -4,4 +4,6 @@
 /grplay.config
 /grplay.creator*
 /grplay.files
+/grplay.cflags
+/grplay.cxxflags
 /test/treeview

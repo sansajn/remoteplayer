@@ -26,7 +26,7 @@ bude poskytovať nasledujúce funkcie:
 	* playlist_move, zmena pozície skladby v playliste
 	* playlist_shuffle, zapne/vypne shuffle mód
 	* alive, server posiela klientom kazdu 1s (niečo ako ping)
-	* seek, ktorá posunie aktualnu skladnu na požadovanú pozíciu
+	* seek, ktorá posunie aktualnu skladbu na požadovanú pozíciu
 	* volume, posiela server pri zmene hlasitosti
 	* set_volume, zmena hlasitosti
 	* client_ready, signal serveru, ze je klient pripraveny prijímať správy
@@ -82,7 +82,11 @@ play [notify]:
 
 Príkaz umožnuje clientovy prehrať skladbu z playlistu v tvare
 
-	{"cmd":"play", "playlist":PID, "idx":N}
+	{
+		"cmd":"play", 
+		"playlist":PID,  // size_t
+		"idx":N          // size_t
+	}
 
 kde PID je cele kladne číslo (size_t) reprezentujúce playlist a N (size_t) je
 index skladby v playliste.
@@ -130,6 +134,8 @@ prehrávací stav, ktorý je buď v stave 'playing' (1), 'paused' (2), alebo v
 stave stopped (3) a pole mode, ktoré je zoznamom módou playlistu (kombinácie
 módou 'shuffle' (1) a 'bed_time' (2)).
 
+note: position a duration zvyknem v klientovy nazývať time a length, porozmýšlaj o zmene na servery.
+
 Ak klient obdrží play_progress v ktorej media je prázdny reťazec, potom
 remoteplayer signalizuje stop (pozri popis stop príkazu).
 
@@ -153,12 +159,11 @@ definovaná takto:
 
 	{
 		'cmd':'playlist_content',
-		'id':N,
+		'id':N,                          // size_t
 		'items':['item1', 'item2', ...]
 	}
 
-kde N, identyfikátor playlistu je celé kladné číslo a items obsahuje pole
-reťazcou, kde jednotlive reťazece popisuje položky pleylistu.
+kde N, identyfikátor playlistu je celé kladné číslo a items obsahuje pole reťazcou, kde jednotlive reťazece popisujú položky playlistu (v aktuálnej implementácii sa jedná o názvy súborou).
 
 
 alive [news]:
@@ -185,7 +190,7 @@ klient posielá správu na zmenu pozície aktuálnej skladby v tvare
 		"media":"/path/to/file"
 	}
 
-kde POS_IN_SEC (int) je nová pozícia skladby.
+kde POS_IN_SEC (int) je nová pozícia skladby a media je identifikátor skladby (ak sa identifikátor nezhoduje s identifikátorom aktuálne prehrávanej skladby, správa sa ignoruje).
 
 
 volume [news]:
@@ -257,12 +262,9 @@ kde V je hodnota typu bool, true ak ma byť bed time mód zapnutý, false inak.
 
 client_ready [notify]:
 
-Umožnuje klientom signalizovať, že sú od serveru pripravený príjimať správy, po
-obdržaní dotazu client_ready server pošle správy playlist_content a
-play_progress.
+Umožnuje klientom signalizovať, že sú od serveru pripravený príjimať správy, po obdržaní client_ready server pošle správy playlist_content a play_progress v prípade, že niečo prehráva.
 
-
-
+	{"cmd":"client_ready"}
 
 
 V prípade neznámeho dotazu odpovie server správou

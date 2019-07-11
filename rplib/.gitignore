@@ -4,3 +4,5 @@
 /rplib.creator.user
 /rplib.includes
 /rplib.files
+/rplib.cflags
+/rplib.cxxflags

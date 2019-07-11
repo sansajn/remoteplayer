@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@android:color/background_light"
+        android:elevation="5dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:layout_margin="5dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/current_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Boris Brejcha @ Tommorowland 2018"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/current_artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Boris Brejcha"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </android.support.constraint.ConstraintLayout>
+
+    <ListView
+        android:id="@+id/playlist_items"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/play_pause"
+        app:layout_constraintTop_toBottomOf="@id/header" />
+
+    <ImageButton
+        android:id="@+id/shuffle"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?android:attr/selectableItemBackground"
+        app:layout_constraintBottom_toBottomOf="@id/play_pause"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
+        app:layout_constraintLeft_toLeftOf="@id/time"
+        app:layout_constraintTop_toTopOf="@id/play_pause"
+        app:srcCompat="@android:drawable/ic_menu_help" />
+
+    <ImageButton
+        android:id="@+id/repeat"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?android:attr/selectableItemBackground"
+        app:layout_constraintBottom_toBottomOf="@id/play_pause"
+        app:layout_constraintRight_toRightOf="@id/length"
+        app:layout_constraintTop_toTopOf="@id/play_pause"
+        app:srcCompat="@android:drawable/ic_menu_help" />
+
+    <ImageButton
+        android:id="@+id/previous"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?android:attr/selectableItemBackground"
+        app:layout_constraintBottom_toBottomOf="@id/play_pause"
+        app:layout_constraintLeft_toRightOf="@id/shuffle"
+        app:layout_constraintRight_toLeftOf="@id/play_pause"
+        app:layout_constraintTop_toTopOf="@id/play_pause"
+        app:srcCompat="@android:drawable/ic_media_previous" />
+
+    <ImageButton
+        android:id="@+id/play_pause"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:background="?android:attr/selectableItemBackground"
+        app:layout_constraintBottom_toTopOf="@id/time"
+        app:layout_constraintLeft_toRightOf="@id/previous"
+        app:layout_constraintRight_toLeftOf="@id/next"
+        app:srcCompat="@android:drawable/ic_media_play" />
+
+    <ImageButton
+        android:id="@+id/next"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?android:attr/selectableItemBackground"
+        app:layout_constraintBottom_toBottomOf="@id/play_pause"
+        app:layout_constraintLeft_toRightOf="@id/play_pause"
+        app:layout_constraintRight_toLeftOf="@id/repeat"
+        app:layout_constraintTop_toTopOf="@id/play_pause"
+        app:srcCompat="@android:drawable/ic_media_next" />
+
+    <TextView
+        android:id="@+id/time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="0:00"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@id/timeline"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/length"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0:00"
+        app:layout_constraintBottom_toTopOf="@id/timeline"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <SeekBar
+        android:id="@+id/timeline"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</android.support.constraint.ConstraintLayout>

@@ -1,4 +1,4 @@
-package com.remoteplayer.arplay
+package remoteplayer.arplay
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
 	fun useAppContext() {
 		// Context of the app under test.
 		val appContext = InstrumentationRegistry.getTargetContext()
-		assertEquals("com.remoteplayer.arplay", appContext.packageName)
+		assertEquals("remoteplayer.arplay", appContext.packageName)
 	}
 }

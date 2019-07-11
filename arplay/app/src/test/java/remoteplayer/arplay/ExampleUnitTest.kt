@@ -1,4 +1,4 @@
-package com.remoteplayer.arplay
+package remoteplayer.arplay
 
 import org.junit.Test
 

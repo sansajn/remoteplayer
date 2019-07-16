@@ -4,6 +4,8 @@ import android.app.Activity
 import org.json.JSONObject
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
+import remoteplayer.arplay.zmq.ZMQPushTask
+import remoteplayer.arplay.zmq.ZMQSubscriberTask
 import java.util.*
 
 interface RemotePlayerListener {
@@ -39,6 +41,13 @@ class RemotePlayerClient(private val _activity: Activity, private val _delegate:
 
 		_scheduler.schedule(subscriberTask, 0, 100)
 		_scheduler.schedule(pushTask, 0, 100)
+	}
+
+	fun close() {
+		_scheduler.cancel()
+		_ctx.destroySocket(_push)
+		_ctx.destroySocket(_sub)
+		_ctx.destroy()
 	}
 
 	fun clientReady() {

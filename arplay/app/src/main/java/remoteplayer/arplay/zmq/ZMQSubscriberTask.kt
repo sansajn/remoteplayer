@@ -1,9 +1,10 @@
-package remoteplayer.arplay
+package remoteplayer.arplay.zmq
 
 import android.os.AsyncTask
 import org.json.JSONArray
 import org.json.JSONObject
 import org.zeromq.ZMQ
+import remoteplayer.arplay.RemotePlayerListener
 
 class ZMQSubscriberTask(private val _sub: ZMQ.Socket, private val _delegate: RemotePlayerListener) : AsyncTask<Void, Void, Void?>() {
 

@@ -89,7 +89,7 @@
         app:layout_constraintBottom_toTopOf="@id/time"
         app:layout_constraintLeft_toRightOf="@id/previous"
         app:layout_constraintRight_toLeftOf="@id/next"
-        app:srcCompat="@drawable/ic_play" />
+        app:srcCompat="@drawable/ic_baseline_play_arrow_24px" />
 
     <ImageButton
         android:id="@+id/next"
@@ -117,6 +117,7 @@
         android:id="@+id/length"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
         android:text="0:00"
         app:layout_constraintBottom_toTopOf="@id/timeline"
         app:layout_constraintEnd_toEndOf="parent" />

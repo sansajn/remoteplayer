@@ -1,4 +1,4 @@
-package remoteplayer.arplay
+package remoteplayer.arplay.zmq
 
 import android.os.AsyncTask
 import org.zeromq.ZMQ

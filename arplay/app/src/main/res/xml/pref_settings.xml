@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:defaultValue="192.168.0.108"
+        android:hint="Enter IPv4 media server address (192.168.0.1)"
+        android:icon="@drawable/ic_baseline_storage_24px"
+        android:inputType="text"
+        android:key="@string/pref_key_server_address"
+        android:singleLine="true"
+        android:title="Media server address" />
+</PreferenceScreen>

@@ -4,6 +4,15 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
+def getVersionName = { ->
+    def out = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'describe', '--tags'
+        standardOutput = out
+    }
+    return out.toString().trim()
+}
+
 android {
     compileSdkVersion 28
     defaultConfig {
@@ -13,6 +22,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        buildConfigField 'String', 'GitVersion', "\"$getVersionName\""
     }
     buildTypes {
         release {

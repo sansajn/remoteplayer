@@ -34,6 +34,19 @@ Jedinou vecou na vyžiadanie je knižnica, metóda
 	list_media
 
 
+{}
+
+Ako identifikovať song ?
+
+* podľa cesty - tá sa ale môžem meniť (napr. pri presunutí súboru, alebo pri presune celej knižnice)
+
+* podľa hash súčtu - pri zmene ID tagu sa zmení aj hash súboru
+
+to čo potrebujem je skombinovať oba spôsoby
+
+* ak narazím na nový súbor spočítam hash a skontrolujem či sa už náhodou nenachádza v knižnici. Ak áno a súbor neexistuje na danej pozícii, priradím nový súbor k už existujúcemu záznamu v knižnici. Ak hash nenájdem, potom sa jedná o nový song. - tímto spôsobom viem rozpoznať presun a duplicitný song.
+
+
 
 
 

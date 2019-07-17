@@ -7,6 +7,7 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.TextView
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
@@ -27,6 +28,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		val transaction = supportFragmentManager.beginTransaction()
 		transaction.add(R.id.fragment_container, PlayerFragment())
 		transaction.commit()
+
+		val headerView = nav_view.getHeaderView(0)
+		val navHeaderVersion = headerView.findViewById(R.id.navHeaderVersion) as TextView
+		navHeaderVersion.text = BuildConfig.GitVersion
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {

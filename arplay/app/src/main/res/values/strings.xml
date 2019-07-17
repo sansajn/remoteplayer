@@ -5,4 +5,5 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="pref_key_server_address">pref_key_server_address</string>
+    <string name="arplay_name">Remote Player Client for Android</string>
 </resources>

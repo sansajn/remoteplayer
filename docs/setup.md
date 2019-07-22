@@ -1,6 +1,8 @@
 dokument obsahuje návod ako nastaviť server
 
 
+1) Ako sa pripojím k serveru ?
+
 
 použite azariadenie je zotac box (najlacnejší zotac s digitálnym audio výstupom), ďalej inštalovaný systém je kubuntu (v minimálnej inštalácii)
 
@@ -26,3 +28,12 @@ UBUNTU_CODENAME=bionic
 
 systém obsahuje audio knižnucu v ~/Music adresáry, ktorú synchronizujem pomocou programu rsync (v základnom móde), bez bežiacej služby, čo znamená, že sa vždy synchronizuje celá knižnica)
 
+
+
+1) Ako sa pripojím k serveru ?
+
+pomocou ssh príkazom
+
+	ssh media@192.168.0.100
+
+kde 192.168.0.100 je IP adresa serveru.

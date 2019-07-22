@@ -1,9 +1,6 @@
 dokument obsahuje návod ako nastaviť server
 
 
-1) Ako sa pripojím k serveru ?
-
-
 použite zariadenie je zotac box (najlacnejší zotac s digitálnym audio výstupom), ďalej inštalovaný systém je kubuntu (v minimálnej inštalácii)
 
 ```bash
@@ -26,7 +23,7 @@ VERSION_CODENAME=bionic
 UBUNTU_CODENAME=bionic
 ```
 
-systém obsahuje audio knižnucu v ~/Music adresáry, ktorú synchronizujem pomocou programu rsync (v základnom móde), bez bežiacej služby, čo znamená, že sa vždy synchronizuje celá knižnica)
+systém obsahuje audio knižnucu v ~/Music adresáry, ktorú synchronizujem pomocou programu rsync (v základnom móde), bez bežiacej služby, čo znamená, že sa vždy synchronizuje celá knižnica čo je pomalé (>~10min aj v prípade, že pridám len jednu skladbu) 
 
 
 pozor na súštanie rsyncu, použi -a (archiv mod), ktorý zachová metadata
@@ -40,6 +37,7 @@ TODO:
 
 
 
+1) Ako sa pripojím k serveru ?
 
 
 1) Ako sa pripojím k serveru ?

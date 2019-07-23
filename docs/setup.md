@@ -35,6 +35,17 @@ TODO:
  
 
 
+nastavenie rsync v systemd
+
+
+sudo cp /lib/systemd/system/rsync.service /etc/systemd/system
+
+
+
+
+
+
+
 
 
 1) Ako sa pripojím k serveru ?

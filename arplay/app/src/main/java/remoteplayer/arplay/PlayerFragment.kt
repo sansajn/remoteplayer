@@ -25,11 +25,10 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 		val view = inflater.inflate(R.layout.fragment_player, container, false)
 
-//		val emptyPlaylistContent = TextView(requireContext())
-//		emptyPlaylistContent.text = "Hello there ..."
-//		view.playlist_items.emptyView = emptyPlaylistContent
+		view.playlist_items.emptyView = view.empty
 
-		view.playlist_items.adapter = PlaylistAdapter(requireContext(), dummyPlaylistContent())
+		view.playlist_items.adapter = PlaylistAdapter(requireContext(), listOf())
+//		dummyContent()
 
 		view.playlist_items.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
 			askPlay(position)
@@ -191,7 +190,7 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		return null
 	}
 
-	private fun dummyPlaylistContent(): List<PlaylistItem> {
+	private fun dummyContent() {
 		val items = listOf(
 			PlaylistItem("Kollektiv Turmstrasse @ Tomorrowland 2018", "Kollektiv Turmstrasse", "Kollektiv Turmstrasse @ Tomorrowland 2018.opus"),
 			PlaylistItem("Artbat @ Bondinho Pao Acucar for Cercle", "Artbat", "Artbat @ Bondinho Pao Acucar for Cercle.opus"),
@@ -206,7 +205,9 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 			PlaylistItem("Andy Bros @ Diynamic 2018", "Andy Bros", "Andy Bros @ Diynamic 2018.opus"),
 			PlaylistItem("Charlotte de Witte @ Awakenings ADE 2018", "Charlotte de Witte", "Charlotte de Witte @ Awakenings ADE 2018.opus"))
 
-		return items
+		current_title.text = "Boris Brejcha @ Tommorowland 2018"
+		current_artist.text = "Boris Brejcha"
+		playlist_items.adapter = PlaylistAdapter(requireContext(), items)
 	}
 
 	// utils

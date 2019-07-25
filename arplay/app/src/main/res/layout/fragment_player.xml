@@ -27,24 +27,36 @@
                 android:id="@+id/current_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Boris Brejcha @ Tommorowland 2018"
+                android:text="waiting for remote player server"
                 android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/current_artist"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Boris Brejcha"
+                android:text="connecting ..."
                 android:textSize="12sp" />
         </LinearLayout>
     </android.support.constraint.ConstraintLayout>
 
-    <ListView
-        android:id="@+id/playlist_items"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@id/play_pause"
-        app:layout_constraintTop_toBottomOf="@id/header" />
+        app:layout_constraintTop_toBottomOf="@id/header">
+
+        <ListView
+            android:id="@+id/playlist_items"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <ViewStub
+            android:id="@+id/empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout="@layout/playlist_empty" />
+    </FrameLayout>
 
     <ImageButton
         android:id="@+id/shuffle"

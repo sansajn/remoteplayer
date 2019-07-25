@@ -10,6 +10,7 @@ import remoteplayer.arplay.zmq.ZMQSubscriberTask
 import java.util.*
 
 interface RemotePlayerListener {
+
 	fun playProgress(position: Long, duration: Long, playlistId: Long, mediaIdx: Long, playbackState: Int, mode: Int)
 	fun playlistContent(id: Long, items: List<String>)
 }
@@ -110,6 +111,7 @@ class RemotePlayerClient(private val _activity: Activity) {
 	}
 
 	private fun handlePlayProgress(json: JSONObject) {
+
 		val position = json.getLong("position")
 		val duration = json.getLong("duration")
 		val playlistId = json.getLong("playlist_id")

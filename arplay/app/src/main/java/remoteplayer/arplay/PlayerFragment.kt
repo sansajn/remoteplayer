@@ -18,6 +18,10 @@ import java.util.*
 
 class PlayerFragment : Fragment(), RemotePlayerListener {
 
+	fun setup(remotePlayerClient: RemotePlayerClient) {
+		_rplayClient = remotePlayerClient
+	}
+
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 		val view = inflater.inflate(R.layout.fragment_player, container, false)
 
@@ -30,15 +34,6 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		view.playlist_items.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
 			askPlay(position)
 		}
-
-		val sharedPref = PreferenceManager.getDefaultSharedPreferences(requireActivity())
-		val mediaServerAddress = sharedPref.getString(getString(R.string.pref_key_server_address), "")
-
-		_rplayClient = RemotePlayerClient(requireActivity())
-		_rplayClient.registerListener(this)
-		_rplayClient.connect("tcp://$mediaServerAddress", 23333)
-		_rplayClient.clientReady()
-		Toast.makeText(requireContext(), "connecting to tcp://$mediaServerAddress:23333", Toast.LENGTH_LONG)
 
 		view.timeline.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
 			override fun onStopTrackingTouch(seekBar: SeekBar?) {
@@ -75,6 +70,9 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 			}
 		}
 
+		_rplayClient.registerListener(this)
+		_rplayClient.clientReady()
+
 		_scheduler.schedule(checkPlaybackStoppedTask, 100, 500)
 
 		return view
@@ -84,7 +82,6 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		super.onDestroyView()
 		_scheduler.cancel()
 		_rplayClient.removeListener(this)
-		_rplayClient.close()
 	}
 
 	override fun playlistContent(id: Long, items: List<String>) {

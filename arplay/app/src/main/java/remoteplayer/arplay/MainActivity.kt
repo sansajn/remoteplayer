@@ -27,9 +27,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 		nav_view.setNavigationItemSelectedListener(this)
 
-		val transaction = supportFragmentManager.beginTransaction()
-		transaction.add(R.id.fragment_container, createPlayerFragment())
-		transaction.commit()
+		loadPlayerUI()
 
 		val headerView = nav_view.getHeaderView(0)
 		val navHeaderVersion = headerView.findViewById(R.id.navHeaderVersion) as TextView
@@ -46,29 +44,38 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
-		return when (item.itemId) {
-			R.id.action_settings -> true
-			else -> super.onOptionsItemSelected(item)
+		when (item.itemId) {
+			R.id.action_settings -> {
+				loadSettingsUI()
+				return true
+			}
+
+			else -> return super.onOptionsItemSelected(item)
 		}
 	}
 
 	override fun onNavigationItemSelected(item: MenuItem): Boolean {
-		val transaction = supportFragmentManager.beginTransaction()
 
 		// Handle navigation view item clicks here.
 		when (item.itemId) {
-			R.id.nav_player -> {
-				transaction.replace(R.id.fragment_container, createPlayerFragment())
-			}
-			R.id.nav_settings -> {
-				transaction.replace(R.id.fragment_container, SettingsFragment())
-			}
+			R.id.nav_player -> loadPlayerUI()
+			R.id.nav_settings -> loadSettingsUI()
 		}
-
-		transaction.commit()
 
 		drawer_layout.closeDrawer(GravityCompat.START)
 		return true
+	}
+
+	private fun loadPlayerUI() {
+		supportFragmentManager.beginTransaction()
+			.replace(R.id.fragment_container, createPlayerFragment())
+			.commit()
+	}
+
+	private fun loadSettingsUI() {
+		supportFragmentManager.beginTransaction()
+			.replace(R.id.fragment_container, SettingsFragment())
+			.commit()
 	}
 
 	private fun createPlayerFragment(): PlayerFragment {

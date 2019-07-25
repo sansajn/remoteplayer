@@ -7,5 +7,5 @@
         android:inputType="text"
         android:key="@string/pref_key_server_address"
         android:singleLine="true"
-        android:title="Media server address" />
+        android:title="remote player server address" />
 </PreferenceScreen>

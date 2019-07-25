@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.fragment_player.*
 import kotlinx.android.synthetic.main.fragment_player.view.*
@@ -20,21 +21,11 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 		val view = inflater.inflate(R.layout.fragment_player, container, false)
 
-		val items = listOf(
-			PlaylistItem("Kollektiv Turmstrasse @ Tomorrowland 2018", "Kollektiv Turmstrasse", "Kollektiv Turmstrasse @ Tomorrowland 2018.opus"),
-			PlaylistItem("Artbat @ Bondinho Pao Acucar for Cercle", "Artbat", "Artbat @ Bondinho Pao Acucar for Cercle.opus"),
-			PlaylistItem("Adam Bayer @ Ultra 2019", "Adam Bayer", "Adam Bayer @ Ultra 2019.opus"),
-			PlaylistItem("Jeremy Olander @ Cedergrenska Tornet for Cercle", "Jeremy Olander", "Jeremy Olander @ Cedergrenska Tornet for Cercle.opus"),
-			PlaylistItem("Boris Brejcha @ Tommorowland 2018", "Boris Brejcha", "Boris Brejcha @ Tommorowland 2018.opus"),
-			PlaylistItem("Monika Kruse @ Montparnasse Tower Observation Deck for Cercle", "Monika Kruse", "Monika Kruse @ Montparnasse Tower Observation Deck for Cercle.opus"),
-			PlaylistItem("Tale Of Us @ Paris Charles de Gaulle Airport for Cercle", "Tale Of Us", "Tale Of Us @ Paris Charles de Gaulle Airport for Cercle.opus"),
-			PlaylistItem("ANNA @ Rave On Snow 2017", "ANNA", "ANNA @ Rave On Snow 2017.opus"),
-			PlaylistItem("Adriatique @ Diynamic 2018", "Adriatique", "Adriatique @ Diynamic 2018.opus"),
-			PlaylistItem("Amelie Lens @ LaPlage de Glazart for Cercle", "Amelie Lens", "Amelie Lens @ LaPlage de Glazart for Cercle.opus"),
-			PlaylistItem("Andy Bros @ Diynamic 2018", "Andy Bros", "Andy Bros @ Diynamic 2018.opus"),
-			PlaylistItem("Charlotte de Witte @ Awakenings ADE 2018", "Charlotte de Witte", "Charlotte de Witte @ Awakenings ADE 2018.opus"))
+//		val emptyPlaylistContent = TextView(requireContext())
+//		emptyPlaylistContent.text = "Hello there ..."
+//		view.playlist_items.emptyView = emptyPlaylistContent
 
-		view.playlist_items.adapter = PlaylistAdapter(requireContext(), items)
+		view.playlist_items.adapter = PlaylistAdapter(requireContext(), dummyPlaylistContent())
 
 		view.playlist_items.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
 			askPlay(position)
@@ -43,15 +34,14 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		val sharedPref = PreferenceManager.getDefaultSharedPreferences(requireActivity())
 		val mediaServerAddress = sharedPref.getString(getString(R.string.pref_key_server_address), "")
 
-		_rplayClient = RemotePlayerClient(requireActivity(), this)
+		_rplayClient = RemotePlayerClient(requireActivity())
+		_rplayClient.registerListener(this)
 		_rplayClient.connect("tcp://$mediaServerAddress", 23333)
 		_rplayClient.clientReady()
 		Toast.makeText(requireContext(), "connecting to tcp://$mediaServerAddress:23333", Toast.LENGTH_LONG)
 
 		view.timeline.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-
 			override fun onStopTrackingTouch(seekBar: SeekBar?) {
-
 				if (seekBar != null) {
 					val media = currentMedia()
 					if (media.isNotEmpty()) {
@@ -93,6 +83,7 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 	override fun onDestroyView() {
 		super.onDestroyView()
 		_scheduler.cancel()
+		_rplayClient.removeListener(this)
 		_rplayClient.close()
 	}
 
@@ -134,7 +125,7 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 	}
 
 	// events
-	fun onPlaybackStop() {
+	private fun onPlaybackStop() {
 		play_pause.setImageResource(R.drawable.ic_baseline_play_arrow_24px)
 		play_pause.setOnClickListener {
 			askPlay(_mediaIdx)
@@ -142,7 +133,7 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		}
 	}
 
-	fun onPlaybackPlay() {
+	private fun onPlaybackPlay() {
 		play_pause.setImageResource(R.drawable.ic_baseline_stop_24px)
 		play_pause.setOnClickListener {
 			askStop()
@@ -151,24 +142,24 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		}
 	}
 
-	fun askPlay(itemIdx: Int) {
+	private fun askPlay(itemIdx: Int) {
 		if (_playlistId != 0L)
 			_rplayClient.play(itemIdx, _playlistId)
 	}
 
-	fun askStop() {
+	private fun askStop() {
 		_rplayClient.stop()
 	}
 
 	// helpers
-	fun currentMedia(): String {
+	private fun currentMedia(): String {
 		if (_mediaIdx == -1 || _playlistItems.isEmpty())
 			return ""
 		else
 			return _playlistItems[_mediaIdx].id
 	}
 
-	fun toPlaylistItem(item: String): PlaylistItem {
+	private fun toPlaylistItem(item: String): PlaylistItem {
 		val p = File(item)
 
 		val fileName = p.nameWithoutExtension
@@ -189,7 +180,7 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		return PlaylistItem(title, artist, item)
 	}
 
-	fun findMatch(fileName: String) : MatchResult? {
+	private fun findMatch(fileName: String) : MatchResult? {
 		var match: MatchResult?
 
 		match = CERCLE_PATTERN.matchEntire(fileName)
@@ -203,8 +194,26 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		return null
 	}
 
+	private fun dummyPlaylistContent(): List<PlaylistItem> {
+		val items = listOf(
+			PlaylistItem("Kollektiv Turmstrasse @ Tomorrowland 2018", "Kollektiv Turmstrasse", "Kollektiv Turmstrasse @ Tomorrowland 2018.opus"),
+			PlaylistItem("Artbat @ Bondinho Pao Acucar for Cercle", "Artbat", "Artbat @ Bondinho Pao Acucar for Cercle.opus"),
+			PlaylistItem("Adam Bayer @ Ultra 2019", "Adam Bayer", "Adam Bayer @ Ultra 2019.opus"),
+			PlaylistItem("Jeremy Olander @ Cedergrenska Tornet for Cercle", "Jeremy Olander", "Jeremy Olander @ Cedergrenska Tornet for Cercle.opus"),
+			PlaylistItem("Boris Brejcha @ Tommorowland 2018", "Boris Brejcha", "Boris Brejcha @ Tommorowland 2018.opus"),
+			PlaylistItem("Monika Kruse @ Montparnasse Tower Observation Deck for Cercle", "Monika Kruse", "Monika Kruse @ Montparnasse Tower Observation Deck for Cercle.opus"),
+			PlaylistItem("Tale Of Us @ Paris Charles de Gaulle Airport for Cercle", "Tale Of Us", "Tale Of Us @ Paris Charles de Gaulle Airport for Cercle.opus"),
+			PlaylistItem("ANNA @ Rave On Snow 2017", "ANNA", "ANNA @ Rave On Snow 2017.opus"),
+			PlaylistItem("Adriatique @ Diynamic 2018", "Adriatique", "Adriatique @ Diynamic 2018.opus"),
+			PlaylistItem("Amelie Lens @ LaPlage de Glazart for Cercle", "Amelie Lens", "Amelie Lens @ LaPlage de Glazart for Cercle.opus"),
+			PlaylistItem("Andy Bros @ Diynamic 2018", "Andy Bros", "Andy Bros @ Diynamic 2018.opus"),
+			PlaylistItem("Charlotte de Witte @ Awakenings ADE 2018", "Charlotte de Witte", "Charlotte de Witte @ Awakenings ADE 2018.opus"))
+
+		return items
+	}
+
 	// utils
-	fun formatDuration(seconds: Long): String {
+	private fun formatDuration(seconds: Long): String {
 		return DateUtils.formatElapsedTime(seconds)
 	}
 

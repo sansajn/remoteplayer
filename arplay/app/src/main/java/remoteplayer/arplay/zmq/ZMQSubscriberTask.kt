@@ -1,57 +1,30 @@
 package remoteplayer.arplay.zmq
 
 import android.os.AsyncTask
-import org.json.JSONArray
-import org.json.JSONObject
 import org.zeromq.ZMQ
-import remoteplayer.arplay.RemotePlayerListener
 
-class ZMQSubscriberTask(private val _sub: ZMQ.Socket, private val _delegate: RemotePlayerListener) : AsyncTask<Void, Void, Void?>() {
+class ZMQSubscriberTask(private val delegate: (String) -> Unit) : AsyncTask<Any, Void, MutableList<String>>() {
 
-	override fun doInBackground(vararg params: Void?): Void? {
-		val d = _sub.recvStr(ZMQ.NOBLOCK)
-		if (d != null)
-			_commands.add(d)
-		return null
-	}
+	override fun doInBackground(vararg params: Any): MutableList<String> {
+		val sub = params[0] as ZMQ.Socket
+		val commands = mutableListOf<String>()
 
-	override fun onPostExecute(result: Void?) {
-		super.onPostExecute(result)
-
-		for (cmd in _commands) {
-			val json = JSONObject(cmd)
-			when  (json.getString("cmd")) {
-				"play_progress" -> handlePlayProgress(json)
-				"playlist_content" -> handlePlaylistContent(json)
-			}
+		while (true) {
+			val d = sub.recvStr(ZMQ.NOBLOCK)
+			if (d != null)
+				commands.add(d)
+			else
+				break
 		}
 
-		_commands.clear()  // flush commands
+		return commands
 	}
 
-	private fun handlePlaylistContent(json: JSONObject) {
-		val id = json.getLong("id")
-		val items = toList(json.getJSONArray("items"))
-		_delegate.playlistContent(id, items)
-	}
+	override fun onPostExecute(commands: MutableList<String>) {
+		super.onPostExecute(commands)
 
-	private fun handlePlayProgress(json: JSONObject) {
-		val position = json.getLong("position")
-		val duration = json.getLong("duration")
-		val playlistId = json.getLong("playlist_id")
-		val mediaIdx = json.getLong("media_idx")
-		val playbackState = json.getInt("playback_state")
-		val mode = json.getInt("mode")
-		_delegate.playProgress(position, duration, playlistId, mediaIdx, playbackState, mode)
+		if (commands.isNotEmpty())
+			for (cmd in commands)
+				delegate(cmd)
 	}
-
-	private fun toList(arr: JSONArray): MutableList<String> {
-		val result = mutableListOf<String>()
-		for (i in 0..arr.length()-1) {
-			result.add(arr.getString(i))
-		}
-		return result
-	}
-
-	private var _commands = mutableListOf<String>()
 }

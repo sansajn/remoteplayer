@@ -1,6 +1,7 @@
 package remoteplayer.arplay
 
 import android.app.Activity
+import org.json.JSONArray
 import org.json.JSONObject
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -13,13 +14,13 @@ interface RemotePlayerListener {
 	fun playlistContent(id: Long, items: List<String>)
 }
 
-class RemotePlayerClient(private val _activity: Activity, private val _delegate: RemotePlayerListener) {
+class RemotePlayerClient(private val _activity: Activity) {
 
 	fun connect(address: String, port: Int) {
 
 		val subscriberTask = object : TimerTask() {
 			override fun run() {
-				_activity.runOnUiThread { ZMQSubscriberTask(_sub, _delegate).execute(null) }
+				_activity.runOnUiThread { ZMQSubscriberTask(this@RemotePlayerClient::processCommand).execute(_sub) }
 			}
 		}
 
@@ -84,9 +85,53 @@ class RemotePlayerClient(private val _activity: Activity, private val _delegate:
 		_pushQueue.add(json.toString())
 	}
 
+	fun registerListener(listener: RemotePlayerListener) {
+		_listeners.put(listener, listener)
+	}
+
+	fun removeListener(listener: RemotePlayerListener) {
+		_listeners.remove(listener)
+	}
+
+	private fun processCommand(cmd: String) {
+		val json = JSONObject(cmd)
+		when  (json.getString("cmd")) {
+			"play_progress" -> handlePlayProgress(json)
+			"playlist_content" -> handlePlaylistContent(json)
+		}
+	}
+
+	private fun handlePlaylistContent(json: JSONObject) {
+		val id = json.getLong("id")
+		val items = toList(json.getJSONArray("items"))
+
+		for (l in _listeners.values)
+			l.playlistContent(id, items)
+	}
+
+	private fun handlePlayProgress(json: JSONObject) {
+		val position = json.getLong("position")
+		val duration = json.getLong("duration")
+		val playlistId = json.getLong("playlist_id")
+		val mediaIdx = json.getLong("media_idx")
+		val playbackState = json.getInt("playback_state")
+		val mode = json.getInt("mode")
+
+		for (l in _listeners.values)
+			l.playProgress(position, duration, playlistId, mediaIdx, playbackState, mode)
+	}
+
+	private fun toList(arr: JSONArray): MutableList<String> {
+		val result = mutableListOf<String>()
+		for (i in 0 until arr.length())
+			result.add(arr.getString(i))
+		return result
+	}
+
 	private val _ctx = ZContext()
 	private val _sub = _ctx.createSocket(ZMQ.SUB)
 	private val _push = _ctx.createSocket(ZMQ.PUSH)
-	private val _pushQueue = mutableListOf<String>()
+	private val _pushQueue = mutableListOf<String>()  // ZMQ push socket queue
 	private val _scheduler = Timer()
+	private val _listeners = mutableMapOf<RemotePlayerListener, RemotePlayerListener>()
 }

@@ -28,7 +28,7 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		view.playlist_items.emptyView = view.empty
 
 		view.playlist_items.adapter = PlaylistAdapter(requireContext(), listOf())
-//		dummyContent()
+//		dummyContent(view)
 
 		view.playlist_items.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
 			askPlay(position)
@@ -190,7 +190,7 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		return null
 	}
 
-	private fun dummyContent() {
+	private fun dummyContent(view: View) {
 		val items = listOf(
 			PlaylistItem("Kollektiv Turmstrasse @ Tomorrowland 2018", "Kollektiv Turmstrasse", "Kollektiv Turmstrasse @ Tomorrowland 2018.opus"),
 			PlaylistItem("Artbat @ Bondinho Pao Acucar for Cercle", "Artbat", "Artbat @ Bondinho Pao Acucar for Cercle.opus"),
@@ -205,9 +205,16 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 			PlaylistItem("Andy Bros @ Diynamic 2018", "Andy Bros", "Andy Bros @ Diynamic 2018.opus"),
 			PlaylistItem("Charlotte de Witte @ Awakenings ADE 2018", "Charlotte de Witte", "Charlotte de Witte @ Awakenings ADE 2018.opus"))
 
-		current_title.text = "Boris Brejcha @ Tommorowland 2018"
-		current_artist.text = "Boris Brejcha"
-		playlist_items.adapter = PlaylistAdapter(requireContext(), items)
+		view.current_title.text = "Boris Brejcha @ Tommorowland 2018"
+		view.current_artist.text = "Boris Brejcha"
+
+		val position = (32*69 + 46) * 1000000000L
+		val duration = (59*60 + 25) * 1000000000L
+		view.time.text = formatDuration(position / 1000000000L)
+		view.length.text = formatDuration(duration / 1000000000L)
+		view.timeline.progress = (position.toDouble() / duration.toDouble() * 100.0).toInt()
+
+		view.playlist_items.adapter = PlaylistAdapter(requireContext(), items)
 	}
 
 	// utils

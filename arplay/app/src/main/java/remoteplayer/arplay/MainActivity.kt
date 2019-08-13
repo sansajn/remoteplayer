@@ -1,5 +1,6 @@
 package remoteplayer.arplay
 
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
@@ -25,9 +26,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		drawer_layout.addDrawerListener(toggle)
 		toggle.syncState()
 
-		nav_view.setNavigationItemSelectedListener(this)
+		nav_view.setNavigationItemSelectedListener(this)  // TODO: rename nav_view to something meaningful
 
-		loadPlayerUI()
+		val viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+		viewModel.updateLibraryContent(Dummy.libraryContent())
+
+//		loadPlayerUI()
+		loadLibraryUI()
+
 
 		val headerView = nav_view.getHeaderView(0)
 		val navHeaderVersion = headerView.findViewById(R.id.navHeaderVersion) as TextView
@@ -59,6 +65,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		// Handle navigation view item clicks here.
 		when (item.itemId) {
 			R.id.nav_player -> loadPlayerUI()
+			R.id.nav_library -> loadLibraryUI()
 			R.id.nav_settings -> loadSettingsUI()
 		}
 
@@ -69,6 +76,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 	private fun loadPlayerUI() {
 		supportFragmentManager.beginTransaction()
 			.replace(R.id.fragment_container, createPlayerFragment())
+			.commit()
+	}
+
+	private fun loadLibraryUI() {
+		supportFragmentManager.beginTransaction()
+			.replace(R.id.fragment_container, LibraryFragment())
 			.commit()
 	}
 

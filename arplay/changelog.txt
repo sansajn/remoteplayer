@@ -1,0 +1,5 @@
+remoteplayer.arplay (v0.4.0)
+
+	* live @ title/artist matcher
+
+-- Adam Hlavatovic <adam.hlavatovic [at] protonmail.ch>

@@ -2,21 +2,19 @@ package remoteplayer.arplay
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v7.preference.PreferenceManager
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.SeekBar
-import android.widget.TextView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.fragment_player.*
 import kotlinx.android.synthetic.main.fragment_player.view.*
 import java.io.File
 import java.util.*
 
-class PlayerFragment : Fragment(), RemotePlayerListener {
+class PlayerFragment : Fragment(), PlaybackListener {
 
 	fun setup(remotePlayerClient: RemotePlayerClient) {
 		_rplayClient = remotePlayerClient
@@ -187,23 +185,14 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		if (match != null)
 			return match
 
+		match = LIVE_AT_PATTERN.matchEntire(fileName)
+		if (match != null)
+			return match
+
 		return null
 	}
 
 	private fun dummyContent(view: View) {
-		val items = listOf(
-			PlaylistItem("Kollektiv Turmstrasse @ Tomorrowland 2018", "Kollektiv Turmstrasse", "Kollektiv Turmstrasse @ Tomorrowland 2018.opus"),
-			PlaylistItem("Artbat @ Bondinho Pao Acucar for Cercle", "Artbat", "Artbat @ Bondinho Pao Acucar for Cercle.opus"),
-			PlaylistItem("Adam Bayer @ Ultra 2019", "Adam Bayer", "Adam Bayer @ Ultra 2019.opus"),
-			PlaylistItem("Jeremy Olander @ Cedergrenska Tornet for Cercle", "Jeremy Olander", "Jeremy Olander @ Cedergrenska Tornet for Cercle.opus"),
-			PlaylistItem("Boris Brejcha @ Tommorowland 2018", "Boris Brejcha", "Boris Brejcha @ Tommorowland 2018.opus"),
-			PlaylistItem("Monika Kruse @ Montparnasse Tower Observation Deck for Cercle", "Monika Kruse", "Monika Kruse @ Montparnasse Tower Observation Deck for Cercle.opus"),
-			PlaylistItem("Tale Of Us @ Paris Charles de Gaulle Airport for Cercle", "Tale Of Us", "Tale Of Us @ Paris Charles de Gaulle Airport for Cercle.opus"),
-			PlaylistItem("ANNA @ Rave On Snow 2017", "ANNA", "ANNA @ Rave On Snow 2017.opus"),
-			PlaylistItem("Adriatique @ Diynamic 2018", "Adriatique", "Adriatique @ Diynamic 2018.opus"),
-			PlaylistItem("Amelie Lens @ LaPlage de Glazart for Cercle", "Amelie Lens", "Amelie Lens @ LaPlage de Glazart for Cercle.opus"),
-			PlaylistItem("Andy Bros @ Diynamic 2018", "Andy Bros", "Andy Bros @ Diynamic 2018.opus"),
-			PlaylistItem("Charlotte de Witte @ Awakenings ADE 2018", "Charlotte de Witte", "Charlotte de Witte @ Awakenings ADE 2018.opus"))
 
 		view.current_title.text = "Boris Brejcha @ Tommorowland 2018"
 		view.current_artist.text = "Boris Brejcha"
@@ -214,7 +203,7 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 		view.length.text = formatDuration(duration / 1000000000L)
 		view.timeline.progress = (position.toDouble() / duration.toDouble() * 100.0).toInt()
 
-		view.playlist_items.adapter = PlaylistAdapter(requireContext(), items)
+		view.playlist_items.adapter = PlaylistAdapter(requireContext(), Dummy.playlistContent())
 	}
 
 	// utils
@@ -237,5 +226,6 @@ class PlayerFragment : Fragment(), RemotePlayerListener {
 
 	private val CERCLE_PATTERN = Regex("(.*?) @ (.*) (?:for|on) Cercle-(.{11})")
 	private val BE_AT_TV_PATTERN = Regex("BE-AT.TV: (.*?) [@-] (.*) \\(BE-AT.TV\\)-(.{11})")
+	private val LIVE_AT_PATTERN = Regex("(.*?) - Live @ (.*)-(\\S{11})")
 	private val YOUTUBE_PATTERN = Regex("(.+)-\\S{11}")
 }

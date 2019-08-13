@@ -5,49 +5,45 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
+import remoteplayer.arplay.zmq.ZMQDealerRecvTask
+import remoteplayer.arplay.zmq.ZMQDealerSendTask
 import remoteplayer.arplay.zmq.ZMQPushTask
 import remoteplayer.arplay.zmq.ZMQSubscriberTask
 import java.util.*
 
-interface RemotePlayerListener {
+interface PlaybackListener {
 
 	fun playProgress(position: Long, duration: Long, playlistId: Long, mediaIdx: Long, playbackState: Int, mode: Int)
 	fun playlistContent(id: Long, items: List<String>)
 }
 
+interface LibraryListener {
+
+	fun mediaLibrary(items: List<String>)
+}
+
+
 class RemotePlayerClient(private val _activity: Activity) {
 
 	fun connect(address: String, port: Int) {
 
-		val subscriberTask = object : TimerTask() {
-			override fun run() {
-				_activity.runOnUiThread { ZMQSubscriberTask(this@RemotePlayerClient::processCommand).execute(_sub) }
-			}
-		}
-
-		val pushTask = object : TimerTask() {
-			override fun run() {
-				if (_pushQueue.isNotEmpty()) {
-					_activity.runOnUiThread {
-						ZMQPushTask(_push, _pushQueue.toList()).execute()
-						_pushQueue.clear()
-					}
-				}
-			}
-		}
-
 		_sub.subscribe(ZMQ.SUBSCRIPTION_ALL)
 		_sub.connect("$address:$port")
 
+		_dealer.connect("$address:${port+1}")
+
 		_push.connect("$address:${port+2}")
 
-		_scheduler.schedule(subscriberTask, 0, 100)
-		_scheduler.schedule(pushTask, 0, 100)
+		_scheduler.schedule(createSubscriberTask(), 0, 100)
+		_scheduler.schedule(createDealerSendTask(), 0, 100)
+		_scheduler.schedule(createDealerRecvTask(), 0, 100)
+		_scheduler.schedule(createPushTask(), 0, 100)
 	}
 
 	fun close() {
 		_scheduler.cancel()
 		_ctx.destroySocket(_push)
+		_ctx.destroySocket(_dealer)
 		_ctx.destroySocket(_sub)
 		_ctx.destroy()
 	}
@@ -86,12 +82,20 @@ class RemotePlayerClient(private val _activity: Activity) {
 		_pushQueue.add(json.toString())
 	}
 
-	fun registerListener(listener: RemotePlayerListener) {
-		_listeners.put(listener, listener)
+	fun registerListener(listener: PlaybackListener) {
+		_playbackListeners.put(listener, listener)
 	}
 
-	fun removeListener(listener: RemotePlayerListener) {
-		_listeners.remove(listener)
+	fun registerListener(listener: LibraryListener) {
+		_libraryListeners.put(listener, listener)
+	}
+
+	fun removeListener(listener: PlaybackListener) {
+		_playbackListeners.remove(listener)
+	}
+
+	fun removeListener(listener: LibraryListener) {
+		_libraryListeners.remove(listener)
 	}
 
 	private fun processCommand(cmd: String) {
@@ -102,11 +106,18 @@ class RemotePlayerClient(private val _activity: Activity) {
 		}
 	}
 
+	private fun processReplay(cmd: String) {
+		val json = JSONObject(cmd)
+		when (json.getString("cmd")) {
+			"media_library" -> handleMediaLibrary(json)
+		}
+	}
+
 	private fun handlePlaylistContent(json: JSONObject) {
 		val id = json.getLong("id")
 		val items = toList(json.getJSONArray("items"))
 
-		for (l in _listeners.values)
+		for (l in _playbackListeners.values)
 			l.playlistContent(id, items)
 	}
 
@@ -119,8 +130,14 @@ class RemotePlayerClient(private val _activity: Activity) {
 		val playbackState = json.getInt("playback_state")
 		val mode = json.getInt("mode")
 
-		for (l in _listeners.values)
+		for (l in _playbackListeners.values)
 			l.playProgress(position, duration, playlistId, mediaIdx, playbackState, mode)
+	}
+
+	private fun handleMediaLibrary(json: JSONObject) {
+		val items = toList(json.getJSONArray("items"))
+		for (l in _libraryListeners.values)
+			l.mediaLibrary(items)
 	}
 
 	private fun toList(arr: JSONArray): MutableList<String> {
@@ -130,10 +147,55 @@ class RemotePlayerClient(private val _activity: Activity) {
 		return result
 	}
 
+	private fun createSubscriberTask(): TimerTask {
+		return object : TimerTask() {
+			override fun run() {
+				_activity.runOnUiThread { ZMQSubscriberTask(this@RemotePlayerClient::processCommand).execute(_sub) }
+			}
+		}
+	}
+
+	private fun createPushTask(): TimerTask {
+		return object : TimerTask() {
+			override fun run() {
+				if (_pushQueue.isNotEmpty()) {
+					_activity.runOnUiThread {
+						ZMQPushTask(_push, _pushQueue.toList()).execute()
+						_pushQueue.clear()
+					}
+				}
+			}
+		}
+	}
+
+	private fun createDealerSendTask(): TimerTask {
+		return object : TimerTask() {
+			override fun run() {
+				if (_dealerQueue.isNotEmpty()) {
+					_activity.runOnUiThread {
+						ZMQDealerSendTask().execute(_dealer, _dealerQueue.toList())
+						_dealerQueue.clear()
+					}
+				}
+			}
+		}
+	}
+
+	private fun createDealerRecvTask(): TimerTask {
+		return object : TimerTask() {
+			override fun run() {
+				_activity.runOnUiThread { ZMQDealerRecvTask(this@RemotePlayerClient::processReplay).execute(_dealer) }
+			}
+		}
+	}
+
 	private val _ctx = ZContext()
 	private val _sub = _ctx.createSocket(ZMQ.SUB)
+	private val _dealer = _ctx.createSocket(ZMQ.DEALER)
 	private val _push = _ctx.createSocket(ZMQ.PUSH)
 	private val _pushQueue = mutableListOf<String>()  // ZMQ push socket queue
+	private val _dealerQueue = mutableListOf<String>()  // ZMQ dealer (questions) queue
 	private val _scheduler = Timer()
-	private val _listeners = mutableMapOf<RemotePlayerListener, RemotePlayerListener>()
+	private val _playbackListeners = mutableMapOf<PlaybackListener, PlaybackListener>()
+	private val _libraryListeners = mutableMapOf<LibraryListener, LibraryListener>()
 }

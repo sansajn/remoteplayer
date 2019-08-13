@@ -1,6 +1,7 @@
 package remoteplayer.arplay
 
-import android.app.Activity
+import android.os.Handler
+import android.os.Looper
 import org.json.JSONArray
 import org.json.JSONObject
 import org.zeromq.ZContext
@@ -23,7 +24,7 @@ interface LibraryListener {
 }
 
 
-class RemotePlayerClient(private val _activity: Activity) {
+class RemotePlayerClient {
 
 	fun connect(address: String, port: Int) {
 
@@ -79,6 +80,13 @@ class RemotePlayerClient(private val _activity: Activity) {
 	fun stop() {
 		val json = JSONObject()
 		json.put("cmd", "stop")
+		_pushQueue.add(json.toString())
+	}
+
+	fun playlistAdd(items: List<String>) {
+		val json = JSONObject()
+		json.put("cmd", "playlist_add")
+		json.put("items", toJSONArray(items))
 		_pushQueue.add(json.toString())
 	}
 
@@ -147,10 +155,18 @@ class RemotePlayerClient(private val _activity: Activity) {
 		return result
 	}
 
+	private fun toJSONArray(items: List<String>): JSONArray {
+		val arr = JSONArray()
+		items.forEach { arr.put(it) }
+		return arr
+	}
+
 	private fun createSubscriberTask(): TimerTask {
 		return object : TimerTask() {
 			override fun run() {
-				_activity.runOnUiThread { ZMQSubscriberTask(this@RemotePlayerClient::processCommand).execute(_sub) }
+				Handler(Looper.getMainLooper()).post {
+					ZMQSubscriberTask(this@RemotePlayerClient::processCommand).execute(_sub)
+				}
 			}
 		}
 	}
@@ -159,7 +175,7 @@ class RemotePlayerClient(private val _activity: Activity) {
 		return object : TimerTask() {
 			override fun run() {
 				if (_pushQueue.isNotEmpty()) {
-					_activity.runOnUiThread {
+					Handler(Looper.getMainLooper()).post {
 						ZMQPushTask(_push, _pushQueue.toList()).execute()
 						_pushQueue.clear()
 					}
@@ -172,7 +188,7 @@ class RemotePlayerClient(private val _activity: Activity) {
 		return object : TimerTask() {
 			override fun run() {
 				if (_dealerQueue.isNotEmpty()) {
-					_activity.runOnUiThread {
+					Handler(Looper.getMainLooper()).post {
 						ZMQDealerSendTask().execute(_dealer, _dealerQueue.toList())
 						_dealerQueue.clear()
 					}
@@ -184,7 +200,9 @@ class RemotePlayerClient(private val _activity: Activity) {
 	private fun createDealerRecvTask(): TimerTask {
 		return object : TimerTask() {
 			override fun run() {
-				_activity.runOnUiThread { ZMQDealerRecvTask(this@RemotePlayerClient::processReplay).execute(_dealer) }
+				Handler(Looper.getMainLooper()).post {
+					ZMQDealerRecvTask(this@RemotePlayerClient::processReplay).execute(_dealer)
+				}
 			}
 		}
 	}

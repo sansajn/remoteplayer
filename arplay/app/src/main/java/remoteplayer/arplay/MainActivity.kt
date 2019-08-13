@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
 			val mediaServerAddress = sharedPref.getString(getString(R.string.pref_key_server_address), "")
 
-			_rplay = RemotePlayerClient(this)
+			_rplay = RemotePlayerClient()
 			_rplay?.connect("tcp://$mediaServerAddress", 23333)
 
 			Toast.makeText(this, "connecting to tcp://$mediaServerAddress:23333", Toast.LENGTH_LONG)

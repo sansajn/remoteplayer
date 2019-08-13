@@ -14,9 +14,5 @@ class MainViewModel : ViewModel() {
 		_library.value = library
 	}
 
-	fun addToPlaylist(items: List<String>) {
-
-	}
-
 	private val _library = MutableLiveData<List<String>>()
 }

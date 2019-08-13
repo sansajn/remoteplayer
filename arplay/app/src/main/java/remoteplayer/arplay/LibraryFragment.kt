@@ -15,14 +15,11 @@ import kotlinx.android.synthetic.main.fragment_library.*
 
 class LibraryFragment : Fragment() {
 
-	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-		return inflater.inflate(R.layout.fragment_library, container, false)
-	}
-
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 
 		val viewModel = ViewModelProviders.of(requireActivity()).get(MainViewModel::class.java)
+		_rplay = viewModel.remotePlayerClient()
 		viewModel.libraryContent().observe(this, Observer { items ->
 			populateLibraryList(items!!)
 		})
@@ -45,7 +42,8 @@ class LibraryFragment : Fragment() {
 
 			if (_pathContent != null) {
 				val item = "$_path/${_pathContent[position]}"
-				Log.d("app", "item '$item' ($position) clicked")
+				_rplay.addToPlaylist(listOf(item))
+
 				Toast.makeText(requireContext(), "item '$item' selected", Toast.LENGTH_LONG).show()
 			}
 			else
@@ -67,6 +65,11 @@ class LibraryFragment : Fragment() {
 		return path
 	}
 
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+		return inflater.inflate(R.layout.fragment_library, container, false)
+	}
+
 	private var _path: String = ""
 	private var _pathContent = listOf<String>()
+	private lateinit var _rplay: RemotePlayerClient
 }

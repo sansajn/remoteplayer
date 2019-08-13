@@ -83,7 +83,13 @@ class RemotePlayerClient {
 		_pushQueue.add(json.toString())
 	}
 
-	fun playlistAdd(items: List<String>) {
+	fun listMedia() {
+		val json = JSONObject()
+		json.put("cmd", "list_media")
+		_dealerQueue.add(json.toString())
+	}
+
+	fun addToPlaylist(items: List<String>) {
 		val json = JSONObject()
 		json.put("cmd", "playlist_add")
 		json.put("items", toJSONArray(items))
@@ -211,8 +217,8 @@ class RemotePlayerClient {
 	private val _sub = _ctx.createSocket(ZMQ.SUB)
 	private val _dealer = _ctx.createSocket(ZMQ.DEALER)
 	private val _push = _ctx.createSocket(ZMQ.PUSH)
-	private val _pushQueue = mutableListOf<String>()  // ZMQ push socket queue
-	private val _dealerQueue = mutableListOf<String>()  // ZMQ dealer (questions) queue
+	private val _pushQueue = mutableListOf<String>()  // ZMQ push socket (notify) queue
+	private val _dealerQueue = mutableListOf<String>()  // ZMQ dealer (question) queue
 	private val _scheduler = Timer()
 	private val _playbackListeners = mutableMapOf<PlaybackListener, PlaybackListener>()
 	private val _libraryListeners = mutableMapOf<LibraryListener, LibraryListener>()

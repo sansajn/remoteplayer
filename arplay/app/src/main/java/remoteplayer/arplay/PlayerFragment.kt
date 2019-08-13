@@ -1,5 +1,6 @@
 package remoteplayer.arplay
 
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.text.format.DateUtils
@@ -16,8 +17,15 @@ import java.util.*
 
 class PlayerFragment : Fragment(), PlaybackListener {
 
-	fun setup(remotePlayerClient: RemotePlayerClient) {
-		_rplayClient = remotePlayerClient
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		super.onViewCreated(view, savedInstanceState)
+
+		val viewModel = ViewModelProviders.of(requireActivity()).get(MainViewModel::class.java)
+		_rplayClient = viewModel.remotePlayerClient()
+		_rplayClient.registerListener(this)
+		_rplayClient.clientReady()
+
+		_scheduler.schedule(createPlaybackStoppedTask(), 100, 500)
 	}
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -49,28 +57,6 @@ class PlayerFragment : Fragment(), PlaybackListener {
 			override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
 			override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 		})
-
-		val checkPlaybackStoppedTask = object : TimerTask() {
-			override fun run() {
-				requireActivity().runOnUiThread {
-					if (_lastPlayProgressStamp == 0L || !_isPlaying)  // wait for play_progress
-						return@runOnUiThread
-
-					val now = System.currentTimeMillis()
-					val isStopped = ((now - _lastPlayProgressStamp) > 15 * 1000)
-
-					if (isStopped) {
-						_isPlaying = false
-						onPlaybackStop()
-					}
-				}
-			}
-		}
-
-		_rplayClient.registerListener(this)
-		_rplayClient.clientReady()
-
-		_scheduler.schedule(checkPlaybackStoppedTask, 100, 500)
 
 		return view
 	}
@@ -143,6 +129,25 @@ class PlayerFragment : Fragment(), PlaybackListener {
 
 	private fun askStop() {
 		_rplayClient.stop()
+	}
+
+	private fun createPlaybackStoppedTask(): TimerTask {
+		return object : TimerTask() {
+			override fun run() {
+				requireActivity().runOnUiThread {
+					if (_lastPlayProgressStamp == 0L || !_isPlaying)  // wait for play_progress
+						return@runOnUiThread
+
+					val now = System.currentTimeMillis()
+					val isStopped = ((now - _lastPlayProgressStamp) > 15 * 1000)
+
+					if (isStopped) {
+						_isPlaying = false
+						onPlaybackStop()
+					}
+				}
+			}
+		}
 	}
 
 	// helpers

@@ -4,14 +4,24 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 
-class MainViewModel : ViewModel() {
+class MainViewModel : ViewModel(), LibraryListener {
+
+	private val _rplay = RemotePlayerClient()
+
+	init {
+		_rplay.registerListener(this)
+	}
+
+	fun remotePlayerClient(): RemotePlayerClient {
+		return _rplay
+	}
 
 	fun libraryContent(): LiveData<List<String>> {
 		return _library
 	}
 
-	fun updateLibraryContent(library: List<String>) {
-		_library.value = library
+	override fun mediaLibrary(items: List<String>) {
+		_library.value = items
 	}
 
 	private val _library = MutableLiveData<List<String>>()

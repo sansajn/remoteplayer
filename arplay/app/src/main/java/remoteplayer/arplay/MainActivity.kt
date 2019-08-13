@@ -28,12 +28,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 		nav_view.setNavigationItemSelectedListener(this)  // TODO: rename nav_view to something meaningful
 
-		val viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
-		viewModel.updateLibraryContent(Dummy.libraryContent())
+		_viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
-//		loadPlayerUI()
-		loadLibraryUI()
+		connectPlayer()
+		askLibraryContent()
 
+		loadPlayerUI()
+//		loadLibraryUI()
 
 		val headerView = nav_view.getHeaderView(0)
 		val navHeaderVersion = headerView.findViewById(R.id.navHeaderVersion) as TextView
@@ -75,7 +76,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 	private fun loadPlayerUI() {
 		supportFragmentManager.beginTransaction()
-			.replace(R.id.fragment_container, createPlayerFragment())
+			.replace(R.id.fragment_container, PlayerFragment())
 			.commit()
 	}
 
@@ -91,22 +92,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			.commit()
 	}
 
-	private fun createPlayerFragment(): PlayerFragment {
+	private fun connectPlayer() {
+		val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+		val mediaServerAddress = sharedPref.getString(getString(R.string.pref_key_server_address), "")
+		_viewModel.remotePlayerClient().connect("tcp://$mediaServerAddress", 23333)
 
-		if (_rplay == null) {
-			val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
-			val mediaServerAddress = sharedPref.getString(getString(R.string.pref_key_server_address), "")
-
-			_rplay = RemotePlayerClient()
-			_rplay?.connect("tcp://$mediaServerAddress", 23333)
-
-			Toast.makeText(this, "connecting to tcp://$mediaServerAddress:23333", Toast.LENGTH_LONG)
-		}
-
-		val frag = PlayerFragment()
-		frag.setup(_rplay!!)
-		return frag
+		Toast.makeText(this, "connecting to tcp://$mediaServerAddress:23333", Toast.LENGTH_LONG).show()
 	}
 
-	private var _rplay: RemotePlayerClient? = null
+	private fun askLibraryContent() {
+		val libraryContent = _viewModel.libraryContent().value
+		if (libraryContent == null)
+			_viewModel.remotePlayerClient().listMedia()
+		else if (libraryContent.isEmpty())
+			_viewModel.remotePlayerClient().listMedia()
+	}
+
+	lateinit var _viewModel: MainViewModel
 }

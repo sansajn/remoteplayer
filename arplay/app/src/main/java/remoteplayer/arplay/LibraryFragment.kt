@@ -27,30 +27,42 @@ class LibraryFragment : Fragment() {
 
 	private fun populateLibraryList(items: List<String>) {
 
-		val root = ViewFSNode("/")
-		items.forEach { root.addPath(it) }
+		_root.clear()
+		items.forEach { _root.addPath(it) }
 
-		_path = findFirstDirectoryWithContent(root)
-
-		val music = root.getPath(_path)
-		if (music != null) {
-			_pathContent = music.list()
-			library_list.adapter = LibraryAdapter(requireContext(), _pathContent)
-		}
+		val path = findFirstDirectoryWithContent(_root)
+		changeLibraryDirectory(path)
 
 		library_list.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
 
 			if (_pathContent != null) {
 				val item = "$_path/${_pathContent[position]}"
-				_rplay.addToPlaylist(listOf(item))
+				if (isDirectory(item))
+					changeLibraryDirectory(item)
+				else
+					_rplay.addToPlaylist(listOf(item))
 
 				Toast.makeText(requireContext(), "item '$item' selected", Toast.LENGTH_LONG).show()
 			}
 			else
 				Toast.makeText(requireContext(), "error: unknown item selected", Toast.LENGTH_LONG).show()
 		}
+	}
 
-		library_path.text = _path
+	private fun isDirectory(path: String): Boolean {
+		return !path.contains('.')
+	}
+
+	private fun changeLibraryDirectory(path: String) {
+		val musicFiles = _root.getPath(path)
+		if (musicFiles != null) {
+			_path = path
+			_pathContent = musicFiles.list()
+			library_list.adapter = LibraryAdapter(requireContext(), _pathContent)
+			library_path.text = _path
+		}
+		else
+			Toast.makeText(requireContext(), "directory $path is empty", Toast.LENGTH_LONG).show()
 	}
 
 	private fun findFirstDirectoryWithContent(fs: ViewFSNode): String {
@@ -72,4 +84,5 @@ class LibraryFragment : Fragment() {
 	private var _path: String = ""
 	private var _pathContent = listOf<String>()
 	private lateinit var _rplay: RemotePlayerClient
+	private var _root = ViewFSNode("/")  // virtual file system
 }

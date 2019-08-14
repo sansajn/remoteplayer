@@ -49,6 +49,10 @@ class ViewFSNode(val label: String) {
 		return _children[i]
 	}
 
+	fun clear() {
+		_children.clear()
+	}
+
 	fun list(): List<String> {
 		val result = mutableListOf<String>()
 		for (node in _children)

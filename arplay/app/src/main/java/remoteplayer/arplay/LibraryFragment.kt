@@ -4,7 +4,8 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.util.Log
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +24,11 @@ class LibraryFragment : Fragment() {
 		viewModel.libraryContent().observe(this, Observer { items ->
 			populateLibraryList(items!!)
 		})
+
+		// pathbar
+		path_bar.layoutManager = LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
+		path_bar.hasFixedSize()
+		path_bar.adapter = PathBarListAdapter(requireContext(), listOf("home", "ja", "Music", "2019"), this::changeLibraryDirectory)
 	}
 
 	private fun populateLibraryList(items: List<String>) {
@@ -59,7 +65,8 @@ class LibraryFragment : Fragment() {
 			_path = path
 			_pathContent = musicFiles.list()
 			library_list.adapter = LibraryAdapter(requireContext(), _pathContent)
-			library_path.text = _path
+			val pathList = _path.split('/')
+			path_bar.adapter = PathBarListAdapter(requireContext(), pathList.subList(1, pathList.size), this::changeLibraryDirectory)
 		}
 		else
 			Toast.makeText(requireContext(), "directory $path is empty", Toast.LENGTH_LONG).show()

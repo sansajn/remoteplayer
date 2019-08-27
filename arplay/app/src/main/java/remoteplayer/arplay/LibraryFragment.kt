@@ -12,6 +12,8 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.fragment_library.*
+import remoteplayer.arplay.library.DirectorySort
+import remoteplayer.arplay.library.isDirectory
 
 
 class LibraryFragment : Fragment() {
@@ -29,6 +31,19 @@ class LibraryFragment : Fragment() {
 		path_bar.layoutManager = LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
 		path_bar.hasFixedSize()
 		path_bar.adapter = PathBarListAdapter(requireContext(), listOf("home", "ja", "Music", "2019"), this::changeLibraryDirectory)
+	}
+
+	private fun changeLibraryDirectory(path: String) {
+		val musicFiles = _root.getPath(path)
+		if (musicFiles != null) {
+			_path = path
+			_pathContent = musicFiles.list().sortedWith(DirectorySort)
+			library_list.adapter = LibraryAdapter(requireContext(), _pathContent)
+			val pathList = _path.split('/')
+			path_bar.adapter = PathBarListAdapter(requireContext(), pathList.subList(1, pathList.size), this::changeLibraryDirectory)
+		}
+		else
+			Toast.makeText(requireContext(), "directory $path is empty", Toast.LENGTH_LONG).show()
 	}
 
 	private fun populateLibraryList(items: List<String>) {
@@ -53,23 +68,6 @@ class LibraryFragment : Fragment() {
 			else
 				Toast.makeText(requireContext(), "error: unknown item selected", Toast.LENGTH_LONG).show()
 		}
-	}
-
-	private fun isDirectory(path: String): Boolean {
-		return !path.contains('.')
-	}
-
-	private fun changeLibraryDirectory(path: String) {
-		val musicFiles = _root.getPath(path)
-		if (musicFiles != null) {
-			_path = path
-			_pathContent = musicFiles.list()
-			library_list.adapter = LibraryAdapter(requireContext(), _pathContent)
-			val pathList = _path.split('/')
-			path_bar.adapter = PathBarListAdapter(requireContext(), pathList.subList(1, pathList.size), this::changeLibraryDirectory)
-		}
-		else
-			Toast.makeText(requireContext(), "directory $path is empty", Toast.LENGTH_LONG).show()
 	}
 
 	private fun findFirstDirectoryWithContent(fs: ViewFSNode): String {

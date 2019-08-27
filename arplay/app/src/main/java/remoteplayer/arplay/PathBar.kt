@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import kotlinx.android.synthetic.main.pathbar_item.view.*
 
+
 class PathBarListAdapter(var c: Context, var list: List<String>, val changedDirectoryHadler: (String) -> Unit)
 	: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 

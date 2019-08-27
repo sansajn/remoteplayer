@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
+import remoteplayer.arplay.library.isDirectory
 
 class LibraryAdapter(val context: Context, val items: List<String>) : BaseAdapter() {
 
@@ -23,14 +24,14 @@ class LibraryAdapter(val context: Context, val items: List<String>) : BaseAdapte
 			view.tag = holder
 		}
 
-		val item = items[position]
+		val item = at(position)
 		holder.title.text = item
 
 		return view
 	}
 
 	override fun getItem(position: Int): Any {
-		return items[position]
+		return at(position)
 	}
 
 	override fun getItemId(position: Int): Long {
@@ -39,6 +40,13 @@ class LibraryAdapter(val context: Context, val items: List<String>) : BaseAdapte
 
 	override fun getCount(): Int {
 		return items.size
+	}
+
+	private fun at(position: Int): String {
+		return if (isDirectory(items[position]))
+			"/" + items[position]
+		else
+			items[position]
 	}
 
 	private class ViewHolder {  // reduces number of findViewById calls

@@ -18,6 +18,7 @@ player::player()
 	, _play_flag{false}
 	, _pause_flag{false}
 	, _quit_flag{false}
+	, _bed_time{false}
 {}
 
 void player::start()
@@ -28,7 +29,11 @@ void player::start()
 void player::play(size_t idx)
 {
 	_p.stop();
-	_items.set_current_item(idx);
+	if (_items.shuffle())
+		_items.try_next();
+	else
+		_items.set_current_item(idx);
+
 	play();
 }
 
@@ -155,16 +160,27 @@ void player::loop()
 	{
 		if (_play_flag)
 		{
-			string media;
-			if (!_items.try_next(media))
+//			string media;
+//			if (!_items.try_next(media))
+//			{
+//				_play_flag = false;
+//				LOG(debug) << "playback resumed";
+//				continue;  // nothing new in playlist
+//			}
+
+			size_t idx = _items.current_item_idx();
+			if (idx == playlist::npos)
 			{
 				_play_flag = false;
 				LOG(debug) << "playback resumed";
 				continue;  // nothing new in playlist
 			}
 
-			assert(_items.current_item_idx() > 0);  // one item ahead
-			play_signal.call(media, _items.current_item_idx() - 1);
+			string media = _items.item(idx);
+
+//			assert(_items.current_item_idx() > 0);  // one item ahead
+			LOG(debug) << _items.current_item_idx();
+			play_signal.call(media, _items.current_item_idx());
 			_p.play(media, bind(&player::item_done_cb, this), bind(&player::item_progress_cb, this, _1, _2));
 			_p.join();
 
@@ -179,7 +195,9 @@ void player::loop()
 }
 
 void player::item_done_cb()
-{}
+{
+	_items.try_next();
+}
 
 void player::item_progress_cb(int64_t position, int64_t duration)
 {

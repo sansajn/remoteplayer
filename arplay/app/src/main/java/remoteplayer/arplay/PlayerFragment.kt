@@ -40,6 +40,7 @@ class PlayerFragment : Fragment(), PlaybackListener {
 			askPlay(position)
 		}
 
+		view.shuffle.setOnClickListener { askShuffle() }
 		view.previous.setOnClickListener { askPrevious() }
 		view.next.setOnClickListener { askNext() }
 
@@ -108,6 +109,8 @@ class PlayerFragment : Fragment(), PlaybackListener {
 			onPlaybackStop()
 		}
 
+		_shuffled = (mode == 1)
+
 		_lastPlayProgressStamp = System.currentTimeMillis()
 	}
 
@@ -155,6 +158,11 @@ class PlayerFragment : Fragment(), PlaybackListener {
 				idx = _playlistItems.size-1
 			_rplayClient.play(idx, _playlistId)
 		}
+	}
+
+	private fun askShuffle() {
+		_shuffled = !_shuffled
+		_rplayClient.shuffle(_shuffled)
 	}
 
 	private fun createPlaybackStoppedTask(): TimerTask {
@@ -249,6 +257,7 @@ class PlayerFragment : Fragment(), PlaybackListener {
 	private var _duration = 0L  // in ns
 	private var _lastPlayProgressStamp = 0L  // in ms
 	private var _isPlaying = false
+	private var _shuffled = false
 
 	private val _scheduler = Timer()
 

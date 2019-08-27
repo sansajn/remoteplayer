@@ -68,7 +68,7 @@
         app:layout_constraintHorizontal_chainStyle="spread_inside"
         app:layout_constraintLeft_toLeftOf="@id/time"
         app:layout_constraintTop_toTopOf="@id/play_pause"
-        app:srcCompat="@android:drawable/ic_menu_help" />
+        app:srcCompat="@drawable/ic_baseline_shuffle_24px" />
 
     <ImageButton
         android:id="@+id/repeat"

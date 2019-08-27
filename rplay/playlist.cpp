@@ -5,6 +5,7 @@
 #include "playlist.hpp"
 
 using std::string;
+using std::to_string;
 using std::vector;
 using std::find;
 using std::mutex;
@@ -17,30 +18,20 @@ playlist::playlist()
 	, _shuffle{false}
 {}
 
-string playlist::wait_next()
-{
-	unique_lock<mutex> lock{_items_locker};
-	size_t idx = next_item_idx();
-	assert(idx <= _items.size());
-	_new_item_cond.wait(lock, [this, idx]{return _items.size() > idx;});
-	return _items[idx];
-}
-
-bool playlist::try_next(std::string & item)
+bool playlist::try_next()
 {
 	lock_guard<mutex> lock{_items_locker};
 	size_t idx = next_item_idx();
-	if (idx >= _items.size())
+	if (idx >= npos)
 		return false;
 
-	item = _items[idx];
 	return true;
 }
 
 void playlist::set_current_item(size_t idx)
 {
 	if (idx >= _items.size())
-		throw std::out_of_range{"playlist index out of range"};
+		throw std::out_of_range{"playlist index (" + to_string(idx) + ") out of range"};
 
 	lock_guard<mutex> lock{_items_locker};
 	_item_idx = idx;
@@ -52,8 +43,6 @@ void playlist::add(string const & item)
 {
 	lock_guard<mutex> lock{_items_locker};
 	_items.push_back(item);
-//	if (_item_idx == npos)
-//		_item_idx = 0;
 	_new_item_cond.notify_one();
 }
 
@@ -61,7 +50,7 @@ void playlist::remove(size_t idx)
 {
 	lock_guard<mutex> lock{_items_locker};
 	if (idx >= _items.size())
-		throw std::out_of_range{"playlist index out of range"};
+		throw std::out_of_range{"playlist index (" + to_string(idx) + ") out of range"};
 
 	_items.erase(_items.begin() + (int)idx);
 
@@ -182,18 +171,30 @@ size_t playlist::next_item_idx()
 			return _item_idx;
 		}
 		else
+		{
+			assert(0);
 			return 0;
+		}
 	}
 	else
 	{
 		if (!_items.empty())
 		{
-			if (_item_idx < _items.size())
-				return _item_idx++;
+			if (_item_idx != npos)
+			{
+				_item_idx += 1;
+				if (_item_idx >= _items.size())
+					_item_idx = npos;
+			}
 			else
-				return _items.size();
+				_item_idx = 0;
+
+			return _item_idx;
 		}
 		else
+		{
+			assert(0);
 			return 0;
+		}
 	}
 }

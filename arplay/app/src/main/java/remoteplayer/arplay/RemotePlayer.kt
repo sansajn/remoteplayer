@@ -83,6 +83,13 @@ class RemotePlayerClient {
 		_pushQueue.add(json.toString())
 	}
 
+	fun shuffle(value: Boolean) {
+		val json = JSONObject()
+		json.put("cmd", "playlist_shuffle")
+		json.put("shuffle", value)
+		_pushQueue.add(json.toString())
+	}
+
 	fun listMedia() {
 		val json = JSONObject()
 		json.put("cmd", "list_media")

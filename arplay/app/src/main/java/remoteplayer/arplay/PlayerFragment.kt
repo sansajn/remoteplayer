@@ -40,6 +40,9 @@ class PlayerFragment : Fragment(), PlaybackListener {
 			askPlay(position)
 		}
 
+		view.previous.setOnClickListener { askPrevious() }
+		view.next.setOnClickListener { askNext() }
+
 		view.timeline.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
 			override fun onStopTrackingTouch(seekBar: SeekBar?) {
 				if (seekBar != null) {
@@ -136,6 +139,22 @@ class PlayerFragment : Fragment(), PlaybackListener {
 
 	private fun askPauseResume() {
 		_rplayClient.pause()
+	}
+
+	private fun askNext() {
+		if (_playlistId != 0L) {
+			val idx = (_mediaIdx+1) % _playlistItems.size
+			_rplayClient.play(idx, _playlistId)
+		}
+	}
+
+	private fun askPrevious() {
+		if (_playlistId != 0L) {
+			var idx = _mediaIdx-1
+			if (idx < 0)
+				idx = _playlistItems.size-1
+			_rplayClient.play(idx, _playlistId)
+		}
 	}
 
 	private fun createPlaybackStoppedTask(): TimerTask {

@@ -1,4 +1,4 @@
-package remoteplayer.arplay
+package remoteplayer.arplay.library
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -12,8 +12,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.fragment_library.*
-import remoteplayer.arplay.library.DirectorySort
-import remoteplayer.arplay.library.isDirectory
+import remoteplayer.arplay.*
 
 
 class LibraryFragment : Fragment() {
@@ -30,7 +29,11 @@ class LibraryFragment : Fragment() {
 		// pathbar
 		path_bar.layoutManager = LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
 		path_bar.hasFixedSize()
-		path_bar.adapter = PathBarListAdapter(requireContext(), listOf("home", "ja", "Music", "2019"), this::changeLibraryDirectory)
+		path_bar.adapter = PathBarListAdapter(
+			requireContext(),
+			listOf("home", "ja", "Music", "2019"),
+			this::changeLibraryDirectory
+		)
 	}
 
 	private fun changeLibraryDirectory(path: String) {
@@ -38,9 +41,14 @@ class LibraryFragment : Fragment() {
 		if (musicFiles != null) {
 			_path = path
 			_pathContent = musicFiles.list().sortedWith(DirectorySort)
-			library_list.adapter = LibraryAdapter(requireContext(), _pathContent)
+			library_list.adapter =
+				LibraryListAdapter(requireContext(), _pathContent)
 			val pathList = _path.split('/')
-			path_bar.adapter = PathBarListAdapter(requireContext(), pathList.subList(1, pathList.size), this::changeLibraryDirectory)
+			path_bar.adapter = PathBarListAdapter(
+				requireContext(),
+				pathList.subList(1, pathList.size),
+				this::changeLibraryDirectory
+			)
 		}
 		else
 			Toast.makeText(requireContext(), "directory $path is empty", Toast.LENGTH_LONG).show()

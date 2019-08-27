@@ -1,4 +1,4 @@
-package remoteplayer.arplay
+package remoteplayer.arplay.library
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -6,9 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
-import remoteplayer.arplay.library.isDirectory
+import remoteplayer.arplay.R
 
-class LibraryAdapter(val context: Context, val items: List<String>) : BaseAdapter() {
+class LibraryListAdapter(val context: Context, val items: List<String>) : BaseAdapter() {
 
 	override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
 		val view: View

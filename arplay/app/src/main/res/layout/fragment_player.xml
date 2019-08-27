@@ -86,12 +86,11 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:background="?android:attr/selectableItemBackground"
-        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@id/play_pause"
         app:layout_constraintLeft_toRightOf="@id/shuffle"
         app:layout_constraintRight_toLeftOf="@id/play_pause"
         app:layout_constraintTop_toTopOf="@id/play_pause"
-        app:srcCompat="@android:drawable/ic_media_previous" />
+        app:srcCompat="@drawable/ic_baseline_skip_previous_24px" />
 
     <ImageButton
         android:id="@+id/play_pause"
@@ -108,12 +107,11 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:background="?android:attr/selectableItemBackground"
-        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@id/play_pause"
         app:layout_constraintLeft_toRightOf="@id/play_pause"
         app:layout_constraintRight_toLeftOf="@id/repeat"
         app:layout_constraintTop_toTopOf="@id/play_pause"
-        app:srcCompat="@android:drawable/ic_media_next" />
+        app:srcCompat="@drawable/ic_baseline_skip_next_24px" />
 
     <TextView
         android:id="@+id/time"

@@ -96,9 +96,13 @@ class PlayerFragment : Fragment(), PlaybackListener {
 			_mediaIdx = mediaIdx.toInt()
 		}
 
-		if (!_isPlaying) {
+		if (!_isPlaying && playbackState == 1) {  // playing
 			_isPlaying = true
 			onPlaybackPlay()
+		}
+		else if (!_isPlaying && playbackState == 2) {  // paused
+			_isPlaying = true
+			onPlaybackStop()
 		}
 
 		_lastPlayProgressStamp = System.currentTimeMillis()
@@ -108,15 +112,18 @@ class PlayerFragment : Fragment(), PlaybackListener {
 	private fun onPlaybackStop() {
 		play_pause.setImageResource(R.drawable.ic_baseline_play_arrow_24px)
 		play_pause.setOnClickListener {
-			askPlay(_mediaIdx)
+			if (_isPlaying)
+				askPauseResume()
+			else
+				askPlay(_mediaIdx)
 			onPlaybackPlay()
 		}
 	}
 
 	private fun onPlaybackPlay() {
-		play_pause.setImageResource(R.drawable.ic_baseline_stop_24px)
+		play_pause.setImageResource(R.drawable.ic_baseline_pause_24px)
 		play_pause.setOnClickListener {
-			askStop()
+			askPauseResume()
 			_isPlaying = false
 			onPlaybackStop()
 		}
@@ -127,8 +134,8 @@ class PlayerFragment : Fragment(), PlaybackListener {
 			_rplayClient.play(itemIdx, _playlistId)
 	}
 
-	private fun askStop() {
-		_rplayClient.stop()
+	private fun askPauseResume() {
+		_rplayClient.pause()
 	}
 
 	private fun createPlaybackStoppedTask(): TimerTask {
@@ -152,10 +159,10 @@ class PlayerFragment : Fragment(), PlaybackListener {
 
 	// helpers
 	private fun currentMedia(): String {
-		if (_mediaIdx == -1 || _playlistItems.isEmpty())
-			return ""
+		return if (_mediaIdx == -1 || _playlistItems.isEmpty())
+			""
 		else
-			return _playlistItems[_mediaIdx].id
+			_playlistItems[_mediaIdx].id
 	}
 
 	private fun toPlaylistItem(item: String): PlaylistItem {
@@ -180,9 +187,8 @@ class PlayerFragment : Fragment(), PlaybackListener {
 	}
 
 	private fun findMatch(fileName: String) : MatchResult? {
-		var match: MatchResult?
 
-		match = CERCLE_PATTERN.matchEntire(fileName)
+		var match: MatchResult? = CERCLE_PATTERN.matchEntire(fileName)
 		if (match != null)
 			return match
 

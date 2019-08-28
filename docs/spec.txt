@@ -1,11 +1,11 @@
-Špecifikácia remoteplayeru, verzia 0.5 (koncept)
+Špecifikácia remote player protokolu, verzia 0.5
 
 {server}
-Umožnuje klientom prehrávať média z knižnice medií.
+Umožnuje klientom prehrávať média z knižnice medií. Server implementuje nasledujúce moduly
 
-player: jednoduchý blokujúci playbin, ktorý bude prehrávať zo zásobníka
+player: jednoduchý blokujúci playbin (GST), ktorý môže napr. prehrávať zo zásobníka.
 
-library: všetky fajly s adresára
+library: modul dodá všetky fajly s adresára
 
 interface: odošle klientovy zoznam medií, umožní klientovy prehrať medium z
 knižnice a po pripojení pošle klientom playlist_content a ak sa prehráva
@@ -270,3 +270,4 @@ Umožnuje klientom signalizovať, že sú od serveru pripravený príjimať spr�
 V prípade neznámeho dotazu odpovie server správou
 
 	{"cmd":"error", "what":"unknown <CMD> command"}
+

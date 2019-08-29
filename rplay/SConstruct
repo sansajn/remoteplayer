@@ -22,7 +22,8 @@ env = Environment(
 		'boost_thread',
 		'boost_log',
 		'boost_log_setup',
-		'boost_date_time'],
+		'boost_date_time',
+		'boost_program_options'],
 	CPPDEFINES=['BOOST_SPIRIT_THREADSAFE', 'BOOST_LOG_DYN_LINK'],  # json support
 	CPPPATH=['libs/']
 )

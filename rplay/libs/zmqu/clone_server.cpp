@@ -76,7 +76,7 @@ void clone_server::start()
 		length = sizeof(int);
 		_publisher->getsockopt(ZMQ_SNDHWM, &sndhwm, &length);
 
-		std::cerr << "publisher(ZMQ_RCVHWM=" << rcvhwm << ", ZMQ_SNDHWM=" << sndhwm << ") created" << std::endl;
+//		std::cerr << "publisher(ZMQ_RCVHWM=" << rcvhwm << ", ZMQ_SNDHWM=" << sndhwm << ") created" << std::endl;
 	}
 
 	_responder = new zmq::socket_t{*_ctx, ZMQ_ROUTER};

@@ -129,6 +129,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:text="0:00"
+        android:textSize="12sp"
         app:layout_constraintBottom_toTopOf="@id/timeline"
         app:layout_constraintEnd_toEndOf="parent" />
 

@@ -2,11 +2,15 @@
 #    libgstreamer1.0-dev
 #    libzmq3-dev
 #    libasound2-dev
+#    libboost-all-dev
 
 # --release-build option
 AddOption('--release-build', action='store_true', dest='release_build',	help='create optimized binary', default=False)
 
 cxxflags = ['-std=c++14', '-Wall']  # common cxxflags
+
+inotify_path = 'libs/inotify-cpp-0.2.0/src'
+
 
 if GetOption('release_build'):
 	cxxflags.extend(['-O2'])
@@ -25,7 +29,7 @@ env = Environment(
 		'boost_date_time',
 		'boost_program_options'],
 	CPPDEFINES=['BOOST_SPIRIT_THREADSAFE', 'BOOST_LOG_DYN_LINK'],  # json support
-	CPPPATH=['libs/']
+	CPPPATH=['libs/', inotify_path + '/include']
 )
 
 env.ParseConfig('pkg-config --cflags --libs gstreamer-1.0 libzmq alsa')
@@ -98,6 +102,9 @@ env.Append(LINKFLAGS=str(version_obj[0]))
 # static libzmqu library
 zmqu_lib = env.StaticLibrary('zmqu', Glob('libs/zmqu/*.cpp'))
 
+# static inotify-cpp
+inotify_lib = env.StaticLibrary('inotify', Glob(inotify_path + '/*.cpp'))
+
 # static rp library
 rp_lib = env.StaticLibrary('rp', Glob('libs/rplib/*.cpp'))
 
@@ -121,5 +128,6 @@ env.Program('rplay', [
 	'rplay.cpp',
 	common_objs,
 	rp_lib,
-	zmqu_lib
+	zmqu_lib,
+	inotify_lib
 ])

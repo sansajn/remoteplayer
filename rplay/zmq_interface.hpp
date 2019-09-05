@@ -20,8 +20,10 @@ public:
 	void stop();
 	void join();
 
+	void send_library_update() const;
+
 private:
-	void send_play_progress();
+	void send_play_progress() const;
 	void send_playlist_content();
 	void send_server_alive();
 	void send_volume();  // don't need to lock

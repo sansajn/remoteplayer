@@ -114,7 +114,15 @@ void zmq_interface::on_play(std::string media, size_t media_idx)
 	_media_idx = media_idx;
 }
 
-void zmq_interface::send_play_progress()
+void zmq_interface::send_library_update() const
+{
+	jtree msg;
+	msg.put("cmd", "library_update");
+	LOG(trace) << "RPLAYC << library_update";
+	publish(to_string(msg));
+}
+
+void zmq_interface::send_play_progress() const
 {
 	jtree msg;
 	msg.put("cmd", "play_progress");

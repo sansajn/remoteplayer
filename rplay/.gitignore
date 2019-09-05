@@ -1,6 +1,7 @@
 /rplay
 /libzmqu.a
 /librp.a
+/libinotify.a
 /rplay.files
 /rplay.includes
 /rplay.creator*

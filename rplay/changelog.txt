@@ -1,0 +1,6 @@
+rplay (v0.5.0)
+
+	* library_update command support
+	* command line arguments parsing, `rplay --help` for more info
+
+-- Adam Hlavatovic <adam.hlavatovic [at] protonmail.ch>

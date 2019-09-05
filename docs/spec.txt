@@ -31,6 +31,7 @@ bude poskytovať nasledujúce funkcie:
 	* set_volume, zmena hlasitosti
 	* client_ready, signal serveru, ze je klient pripraveny prijímať správy
 	* bed_time, zapne/vypne bed time mód
+	* library_update, posiela server v prípade zmeny v knižnici 
 
 Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
 obsahu.
@@ -258,6 +259,14 @@ Príkaz zapne/vypne bed time mód (zastavenie prehrávania po skončení aktuál
 	{"cmd":"bed_time", "value":V}
 
 kde V je hodnota typu bool, true ak ma byť bed time mód zapnutý, false inak.
+
+
+library_update [news]:
+
+Posiela server klientom v prípade zmeny v knižnici (nový, alebo zmazaný súbor) v tvare
+
+	{"cmd":"library_update"}
+
 
 
 client_ready [notify]:

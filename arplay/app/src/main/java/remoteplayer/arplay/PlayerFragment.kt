@@ -25,6 +25,8 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		_rplayClient.registerListener(this)
 		_rplayClient.clientReady()
 
+		_player = Player(_rplayClient)
+
 		_scheduler.schedule(createPlaybackStoppedTask(), 100, 500)
 	}
 
@@ -37,17 +39,17 @@ class PlayerFragment : Fragment(), PlaybackListener {
 //		dummyContent(view)
 
 		view.playlist_items.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-			askPlay(position)
+			_player.play(position)
 		}
 
-		view.shuffle.setOnClickListener { askShuffle() }
-		view.previous.setOnClickListener { askPrevious() }
-		view.next.setOnClickListener { askNext() }
+		view.shuffle.setOnClickListener { _player.shuffle() }
+		view.previous.setOnClickListener { _player.previous() }
+		view.next.setOnClickListener { _player.next() }
 
 		view.timeline.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
 			override fun onStopTrackingTouch(seekBar: SeekBar?) {
 				if (seekBar != null) {
-					val media = currentMedia()
+					val media = _player.currentMediaStr()
 					if (media.isNotEmpty()) {
 						val seconds = ((seekBar.progress).toDouble() / 100.0 * _duration.toDouble() / 1000000000.0).toInt()
 						_rplayClient.seek(seconds, media)
@@ -72,18 +74,18 @@ class PlayerFragment : Fragment(), PlaybackListener {
 	}
 
 	override fun playlistContent(id: Long, items: List<String>) {
-		_playlistId = id
-
-		_playlistItems.clear()
+		val playlistItems = mutableListOf<PlaylistItem>()
 		for (item in items)
-			_playlistItems.add(toPlaylistItem(item))
+			playlistItems.add(toPlaylistItem(item))
 
-		playlist_items.adapter = PlaylistListAdapter(requireContext(), _playlistItems)
+		_player.updatePlaylist(id, playlistItems)
+
+		playlist_items.adapter = PlaylistListAdapter(requireContext(), _player.playlist())
 	}
 
 	override fun playProgress(position: Long, duration: Long, playlistId: Long, mediaIdx: Long, playbackState: Int, mode: Int) {
 
-		if (playlistId != _playlistId)
+		if (playlistId != _player.playlistId())
 			return  // playlist not match, wait for playlist_content message first
 
 		_position = position
@@ -93,11 +95,11 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		length.text = formatDuration(duration / 1000000000)
 		timeline.progress = (position.toDouble() / duration.toDouble() * 100.0).toInt()
 
-		if (_mediaIdx != mediaIdx.toInt()) {
-			val currentItem = _playlistItems[mediaIdx.toInt()]
-			current_title.text = currentItem.title
-			current_artist.text = currentItem.artist
-			_mediaIdx = mediaIdx.toInt()
+		if (_player.currentMediaIdx() != mediaIdx.toInt()) {
+			_player.updateMediaIdx(mediaIdx.toInt())
+			val currentMedia = _player.currentMedia()
+			current_title.text = currentMedia.title
+			current_artist.text = currentMedia.artist
 		}
 
 		if (!_isPlaying && playbackState == 1) {  // playing
@@ -109,7 +111,7 @@ class PlayerFragment : Fragment(), PlaybackListener {
 			onPlaybackStop()
 		}
 
-		_shuffled = (mode == 1)
+		_player.updateShuffled(mode == 1)
 
 		_lastPlayProgressStamp = System.currentTimeMillis()
 	}
@@ -119,9 +121,9 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		play_pause.setImageResource(R.drawable.ic_baseline_play_arrow_24px)
 		play_pause.setOnClickListener {
 			if (_isPlaying)
-				askPauseResume()
+				_player.pauseResume()
 			else
-				askPlay(_mediaIdx)
+				_player.play()
 			onPlaybackPlay()
 		}
 	}
@@ -135,34 +137,8 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		}
 	}
 
-	private fun askPlay(itemIdx: Int) {
-		if (_playlistId != 0L)
-			_rplayClient.play(itemIdx, _playlistId)
-	}
-
 	private fun askPauseResume() {
 		_rplayClient.pause()
-	}
-
-	private fun askNext() {
-		if (_playlistId != 0L) {
-			val idx = (_mediaIdx+1) % _playlistItems.size
-			_rplayClient.play(idx, _playlistId)
-		}
-	}
-
-	private fun askPrevious() {
-		if (_playlistId != 0L) {
-			var idx = _mediaIdx-1
-			if (idx < 0)
-				idx = _playlistItems.size-1
-			_rplayClient.play(idx, _playlistId)
-		}
-	}
-
-	private fun askShuffle() {
-		_shuffled = !_shuffled
-		_rplayClient.shuffle(_shuffled)
 	}
 
 	private fun createPlaybackStoppedTask(): TimerTask {
@@ -185,13 +161,6 @@ class PlayerFragment : Fragment(), PlaybackListener {
 	}
 
 	// helpers
-	private fun currentMedia(): String {
-		return if (_mediaIdx == -1 || _playlistItems.isEmpty())
-			""
-		else
-			_playlistItems[_mediaIdx].id
-	}
-
 	private fun toPlaylistItem(item: String): PlaylistItem {
 		val p = File(item)
 
@@ -250,18 +219,15 @@ class PlayerFragment : Fragment(), PlaybackListener {
 	}
 
 	// fragment_player items
-	private var _playlistId = 0L
-	private var _playlistItems = mutableListOf<PlaylistItem>()
-	private var _mediaIdx = -1
 	private var _position = 0L  // in ns
 	private var _duration = 0L  // in ns
 	private var _lastPlayProgressStamp = 0L  // in ms
 	private var _isPlaying = false
-	private var _shuffled = false
 
 	private val _scheduler = Timer()
 
 	private lateinit var _rplayClient: RemotePlayerClient
+	private lateinit var _player: Player
 
 	private val CERCLE_PATTERN = Regex("(.*?) @ (.*) (?:for|on) Cercle-(.{11})")
 	private val BE_AT_TV_PATTERN = Regex("BE-AT.TV: (.*?) [@-] (.*) \\(BE-AT.TV\\)-(.{11})")

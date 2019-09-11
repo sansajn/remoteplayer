@@ -63,7 +63,7 @@ class PlaylistListAdapter(val context: Context, val items: List<PlaylistItem>) :
 	}
 }
 
-class PlaylistRecyclerAdapter(var c: Context, var list: List<PlaylistItem>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class PlaylistRecyclerAdapter(var c: Context, private val _player: Player) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
 	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
 		var v = LayoutInflater.from(c).inflate(R.layout.simple_playlist_item, parent, false)
@@ -71,11 +71,11 @@ class PlaylistRecyclerAdapter(var c: Context, var list: List<PlaylistItem>) : Re
 	}
 
 	override fun getItemCount(): Int {
-		return list.size
+		return _player.playlist().size
 	}
 
 	override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-		(holder as Item).bindData(list[position])
+		(holder as Item).bindData(_player.playlist()[position])
 	}
 
 	class Item(itemView: View) : RecyclerView.ViewHolder(itemView) {

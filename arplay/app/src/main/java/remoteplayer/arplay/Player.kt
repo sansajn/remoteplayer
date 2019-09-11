@@ -2,7 +2,12 @@ package remoteplayer.arplay
 
 import android.util.Log
 
-class Player(private val _rplay: RemotePlayerClient) {
+class Player {
+
+	constructor(rplay: RemotePlayerClient) {
+		_rplay = rplay
+		_rplay.clientReady()
+	}
 
 	fun play(mediaIdx: Int) {
 		if (_playlistId != 0L)
@@ -37,6 +42,11 @@ class Player(private val _rplay: RemotePlayerClient) {
 		}
 		else
 			Log.d("player", "invalid playlist ID")
+	}
+
+	fun seek(seconds: Int) {
+		if (_mediaIdx == -1 || _playlistItems.isEmpty())
+			_rplay.seek(seconds, currentMediaStr())
 	}
 
 	fun shuffle() {
@@ -85,6 +95,7 @@ class Player(private val _rplay: RemotePlayerClient) {
 		_shuffled = shuffled
 	}
 
+	private val _rplay: RemotePlayerClient
 	private var _shuffled = false
 	private var _mediaIdx = -1  // -1 nothing selected
 	private var _playlistId = 0L  // 0 invalid playlist ID

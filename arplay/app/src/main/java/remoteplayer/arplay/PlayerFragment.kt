@@ -23,7 +23,6 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		val viewModel = ViewModelProviders.of(requireActivity()).get(MainViewModel::class.java)
 		_rplayClient = viewModel.remotePlayerClient()
 		_rplayClient.registerListener(this)
-		_rplayClient.clientReady()
 
 		_player = Player(_rplayClient)
 
@@ -49,14 +48,8 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		view.timeline.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
 			override fun onStopTrackingTouch(seekBar: SeekBar?) {
 				if (seekBar != null) {
-					val media = _player.currentMediaStr()
-					if (media.isNotEmpty()) {
-						val seconds = ((seekBar.progress).toDouble() / 100.0 * _duration.toDouble() / 1000000000.0).toInt()
-						_rplayClient.seek(seconds, media)
-					}
-					else {
-						Toast.makeText(requireActivity(), "unknown played item, seek ignored", Toast.LENGTH_SHORT).show()
-					}
+					val seconds = ((seekBar.progress).toDouble() / 100.0 * _duration.toDouble() / 1000000000.0).toInt()
+					_player.seek(seconds)
 				}
 			}
 
@@ -131,14 +124,10 @@ class PlayerFragment : Fragment(), PlaybackListener {
 	private fun onPlaybackPlay() {
 		play_pause.setImageResource(R.drawable.ic_baseline_pause_24px)
 		play_pause.setOnClickListener {
-			askPauseResume()
+			_player.pauseResume()
 			_isPlaying = false
 			onPlaybackStop()
 		}
-	}
-
-	private fun askPauseResume() {
-		_rplayClient.pause()
 	}
 
 	private fun createPlaybackStoppedTask(): TimerTask {

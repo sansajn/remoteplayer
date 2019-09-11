@@ -67,7 +67,7 @@ class PlaylistRecyclerAdapter(var c: Context, private val _player: Player) : Rec
 
 	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
 		var v = LayoutInflater.from(c).inflate(R.layout.simple_playlist_item, parent, false)
-		return Item(v)
+		return Item(v, _player)
 	}
 
 	override fun getItemCount(): Int {
@@ -75,16 +75,14 @@ class PlaylistRecyclerAdapter(var c: Context, private val _player: Player) : Rec
 	}
 
 	override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-		(holder as Item).bindData(_player.playlist()[position])
+		(holder as Item).bindData(_player.playlist()[position], position)
 	}
 
-	class Item(itemView: View) : RecyclerView.ViewHolder(itemView) {
-		fun bindData(item: PlaylistItem) {
+	class Item(itemView: View, val player: Player) : RecyclerView.ViewHolder(itemView) {
+		fun bindData(item: PlaylistItem, idx: Int) {
 			itemView.title.text = item.title
 			itemView.subtitle.text = item.artist
-			itemView.setOnClickListener {
-				Toast.makeText(itemView.context, "item $item clicked", Toast.LENGTH_LONG).show()
-			}
+			itemView.setOnClickListener { player.play(idx) }
 		}
 	}
 

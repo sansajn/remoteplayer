@@ -33,7 +33,7 @@ class PlayerFragment : Fragment(), PlaybackListener {
 
 		view.playlist_items.emptyView = view.empty
 
-		view.playlist_items.adapter = PlaylistAdapter(requireContext(), listOf())
+		view.playlist_items.adapter = PlaylistListAdapter(requireContext(), listOf())
 //		dummyContent(view)
 
 		view.playlist_items.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
@@ -78,7 +78,7 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		for (item in items)
 			_playlistItems.add(toPlaylistItem(item))
 
-		playlist_items.adapter = PlaylistAdapter(requireContext(), _playlistItems)
+		playlist_items.adapter = PlaylistListAdapter(requireContext(), _playlistItems)
 	}
 
 	override fun playProgress(position: Long, duration: Long, playlistId: Long, mediaIdx: Long, playbackState: Int, mode: Int) {
@@ -241,7 +241,7 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		view.length.text = formatDuration(duration / 1000000000L)
 		view.timeline.progress = (position.toDouble() / duration.toDouble() * 100.0).toInt()
 
-		view.playlist_items.adapter = PlaylistAdapter(requireContext(), Dummy.playlistContent())
+		view.playlist_items.adapter = PlaylistListAdapter(requireContext(), Dummy.playlistContent())
 	}
 
 	// utils

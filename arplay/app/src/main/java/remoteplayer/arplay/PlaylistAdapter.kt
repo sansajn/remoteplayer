@@ -13,7 +13,7 @@ data class PlaylistItem(
 	val id: String  // item path
 )
 
-class PlaylistAdapter(val context: Context, val items: List<PlaylistItem>) : BaseAdapter() {
+class PlaylistListAdapter(val context: Context, val items: List<PlaylistItem>) : BaseAdapter() {
 
 	override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
 		val view: View

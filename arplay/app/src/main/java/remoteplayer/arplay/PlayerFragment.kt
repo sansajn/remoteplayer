@@ -26,20 +26,8 @@ class PlayerFragment : Fragment(), PlaybackListener {
 
 		_player = Player(_rplayClient)
 
-		_scheduler.schedule(createPlaybackStoppedTask(), 100, 500)
-	}
-
-	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-		val view = inflater.inflate(R.layout.fragment_player, container, false)
-
-		view.playlist_items.emptyView = view.empty
-
-		view.playlist_items.adapter = PlaylistListAdapter(requireContext(), listOf())
+		view.playlist_items.adapter = PlaylistRecyclerAdapter(requireContext(), _player)
 //		dummyContent(view)
-
-		view.playlist_items.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-			_player.play(position)
-		}
 
 		view.shuffle.setOnClickListener { _player.shuffle() }
 		view.previous.setOnClickListener { _player.previous() }
@@ -57,7 +45,7 @@ class PlayerFragment : Fragment(), PlaybackListener {
 			override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 		})
 
-		return view
+		_scheduler.schedule(createPlaybackStoppedTask(), 100, 500)
 	}
 
 	override fun onDestroyView() {
@@ -73,7 +61,7 @@ class PlayerFragment : Fragment(), PlaybackListener {
 
 		_player.updatePlaylist(id, playlistItems)
 
-		playlist_items.adapter = PlaylistListAdapter(requireContext(), _player.playlist())
+		playlist_items.adapter = PlaylistRecyclerAdapter(requireContext(), _player)
 	}
 
 	override fun playProgress(position: Long, duration: Long, playlistId: Long, mediaIdx: Long, playbackState: Int, mode: Int) {
@@ -149,6 +137,10 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		}
 	}
 
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+		return inflater.inflate(R.layout.fragment_player, container, false)
+	}
+
 	// helpers
 	private fun toPlaylistItem(item: String): PlaylistItem {
 		val p = File(item)
@@ -188,19 +180,19 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		return null
 	}
 
-	private fun dummyContent(view: View) {
-
-		view.current_title.text = "Boris Brejcha @ Tommorowland 2018"
-		view.current_artist.text = "Boris Brejcha"
-
-		val position = (32*69 + 46) * 1000000000L
-		val duration = (59*60 + 25) * 1000000000L
-		view.time.text = formatDuration(position / 1000000000L)
-		view.length.text = formatDuration(duration / 1000000000L)
-		view.timeline.progress = (position.toDouble() / duration.toDouble() * 100.0).toInt()
-
-		view.playlist_items.adapter = PlaylistListAdapter(requireContext(), Dummy.playlistContent())
-	}
+//	private fun dummyContent(view: View) {
+//
+//		view.current_title.text = "Boris Brejcha @ Tommorowland 2018"
+//		view.current_artist.text = "Boris Brejcha"
+//
+//		val position = (32*69 + 46) * 1000000000L
+//		val duration = (59*60 + 25) * 1000000000L
+//		view.time.text = formatDuration(position / 1000000000L)
+//		view.length.text = formatDuration(duration / 1000000000L)
+//		view.timeline.progress = (position.toDouble() / duration.toDouble() * 100.0).toInt()
+//
+//		view.playlist_items.adapter = PlaylistAdapter(requireContext(), Dummy.playlistContent())
+//	}
 
 	// utils
 	private fun formatDuration(seconds: Long): String {

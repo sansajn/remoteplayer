@@ -45,7 +45,7 @@ class Player {
 	}
 
 	fun seek(seconds: Int) {
-		if (_mediaIdx == -1 || _playlistItems.isEmpty())
+		if (_mediaIdx != -1 && _playlistItems.isNotEmpty())
 			_rplay.seek(seconds, currentMediaStr())
 	}
 

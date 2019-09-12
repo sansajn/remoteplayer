@@ -78,12 +78,11 @@ class PlaylistRecyclerAdapter(var c: Context, private val _player: Player) : Rec
 		(holder as Item).bindData(_player.playlist()[position], position)
 	}
 
-	class Item(itemView: View, val player: Player) : RecyclerView.ViewHolder(itemView) {
+	class Item(itemView: View, private val _player: Player) : RecyclerView.ViewHolder(itemView) {
 		fun bindData(item: PlaylistItem, idx: Int) {
 			itemView.title.text = item.title
 			itemView.subtitle.text = item.artist
-			itemView.setOnClickListener { player.play(idx) }
+			itemView.setOnClickListener { _player.play(idx) }
 		}
 	}
-
 }

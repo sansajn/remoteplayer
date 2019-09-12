@@ -31,8 +31,35 @@ class PlayerFragment : Fragment(), PlaybackListener {
 
 		_player.updatePlaylist(10L, listOf(PlaylistItem("title", "artist", "id")))
 
+		enablePlaylistDragAndDrop(view.playlist_items)
 
-		// drag & drop support
+
+		view.playlist_items.layoutManager = LinearLayoutManager(requireContext())
+		view.playlist_items.hasFixedSize()
+		view.playlist_items.adapter = PlaylistRecyclerAdapter(requireContext(), _player)
+//		dummyContent(view)
+
+		view.shuffle.setOnClickListener { _player.shuffle() }
+		view.previous.setOnClickListener { _player.previous() }
+		view.next.setOnClickListener { _player.next() }
+
+		view.timeline.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+			override fun onStopTrackingTouch(seekBar: SeekBar?) {
+				if (seekBar != null) {
+					val seconds = ((seekBar.progress).toDouble() / 100.0 * _duration.toDouble() / 1000000000.0).toInt()
+					_player.seek(seconds)
+				}
+			}
+
+			override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
+			override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+		})
+
+		_scheduler.schedule(createPlaybackStoppedTask(), 100, 500)
+	}
+
+	private fun enablePlaylistDragAndDrop(playlistView: RecyclerView) {
+
 		val simpleItemTouchCallback = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.START or ItemTouchHelper.END, 0) {
 
 			override fun onMove(recycler: RecyclerView, holder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
@@ -64,31 +91,7 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		}
 
 		_playlistItemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
-		_playlistItemTouchHelper.attachToRecyclerView(view.playlist_items)
-
-
-		view.playlist_items.layoutManager = LinearLayoutManager(requireContext())
-		view.playlist_items.hasFixedSize()
-		view.playlist_items.adapter = PlaylistRecyclerAdapter(requireContext(), _player)
-//		dummyContent(view)
-
-		view.shuffle.setOnClickListener { _player.shuffle() }
-		view.previous.setOnClickListener { _player.previous() }
-		view.next.setOnClickListener { _player.next() }
-
-		view.timeline.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-			override fun onStopTrackingTouch(seekBar: SeekBar?) {
-				if (seekBar != null) {
-					val seconds = ((seekBar.progress).toDouble() / 100.0 * _duration.toDouble() / 1000000000.0).toInt()
-					_player.seek(seconds)
-				}
-			}
-
-			override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {}
-			override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-		})
-
-		_scheduler.schedule(createPlaybackStoppedTask(), 100, 500)
+		_playlistItemTouchHelper.attachToRecyclerView(playlistView)
 	}
 
 	override fun onDestroyView() {

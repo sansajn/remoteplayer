@@ -47,6 +47,8 @@ class Player {
 	fun seek(seconds: Int) {
 		if (_mediaIdx != -1 && _playlistItems.isNotEmpty())
 			_rplay.seek(seconds, currentMediaStr())
+		else
+			Log.d("player", "invalid media index or empty playlist")
 	}
 
 	fun shuffle() {
@@ -60,6 +62,13 @@ class Player {
 
 	fun playlistId(): Long {
 		return _playlistId
+	}
+
+	fun movePlaylistMedia(fromIdx: Int, toIdx: Int) {
+		if (_playlistId != 0L)
+			_rplay.playlistMove(_playlistId, fromIdx, toIdx)
+		else
+			Log.d("player", "invalid playlist ID")
 	}
 
 	fun currentMedia(): PlaylistItem {

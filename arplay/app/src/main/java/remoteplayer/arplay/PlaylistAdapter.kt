@@ -74,6 +74,10 @@ class PlaylistRecyclerAdapter(var c: Context, private val _player: Player) : Rec
 		return _player.playlist().size
 	}
 
+	fun moveItem(from: Int, to: Int) {
+		_player.movePlaylistMedia(from, to)
+	}
+
 	override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
 		(holder as Item).bindData(_player.playlist()[position], position)
 	}

@@ -103,6 +103,15 @@ class RemotePlayerClient {
 		_pushQueue.add(json.toString())
 	}
 
+	fun playlistMove(playlistId: Long, fromIdx: Int, toIdx: Int) {
+		val json = JSONObject()
+		json.put("cmd", "playlist_move")
+		json.put("playlist", playlistId)
+		json.put("from", fromIdx)
+		json.put("to", toIdx)
+		_pushQueue.add(json.toString())
+	}
+
 	fun registerListener(listener: PlaybackListener) {
 		_playbackListeners.put(listener, listener)
 	}

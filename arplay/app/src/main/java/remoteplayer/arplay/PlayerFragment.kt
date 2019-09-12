@@ -4,6 +4,8 @@ import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.helper.ItemTouchHelper
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -28,6 +30,42 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		_player = Player(_rplayClient)
 
 		_player.updatePlaylist(10L, listOf(PlaylistItem("title", "artist", "id")))
+
+
+		// drag & drop support
+		val simpleItemTouchCallback = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.START or ItemTouchHelper.END, 0) {
+
+			override fun onMove(recycler: RecyclerView, holder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
+				_from = holder.adapterPosition
+				_to = target.adapterPosition
+				return true
+			}
+
+			override fun onSwiped(holder: RecyclerView.ViewHolder, direction: Int) {
+				// do nothing ...
+			}
+
+			override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+				super.onSelectedChanged(viewHolder, actionState)
+				if (actionState == ItemTouchHelper.ACTION_STATE_DRAG)
+					viewHolder?.itemView?.alpha = 0.5f
+			}
+
+			override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+				super.clearView(recyclerView, viewHolder)
+				viewHolder?.itemView?.alpha = 1.0f
+				val adapter = recyclerView.adapter as PlaylistRecyclerAdapter
+				adapter.moveItem(_from, _to)
+				adapter.notifyItemMoved(_from, _to)
+			}
+
+			private var _from = 0
+			private var _to = 0
+		}
+
+		_playlistItemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
+		_playlistItemTouchHelper.attachToRecyclerView(view.playlist_items)
+
 
 		view.playlist_items.layoutManager = LinearLayoutManager(requireContext())
 		view.playlist_items.hasFixedSize()
@@ -214,6 +252,7 @@ class PlayerFragment : Fragment(), PlaybackListener {
 
 	private lateinit var _rplayClient: RemotePlayerClient
 	private lateinit var _player: Player
+	private lateinit var _playlistItemTouchHelper: ItemTouchHelper
 
 	private val CERCLE_PATTERN = Regex("(.*?) @ (.*) (?:for|on) Cercle-(.{11})")
 	private val BE_AT_TV_PATTERN = Regex("BE-AT.TV: (.*?) [@-] (.*) \\(BE-AT.TV\\)-(.{11})")

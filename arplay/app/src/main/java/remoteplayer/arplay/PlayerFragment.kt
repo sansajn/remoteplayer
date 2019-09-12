@@ -3,6 +3,7 @@ package remoteplayer.arplay
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.widget.LinearLayoutManager
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +27,10 @@ class PlayerFragment : Fragment(), PlaybackListener {
 
 		_player = Player(_rplayClient)
 
+		_player.updatePlaylist(10L, listOf(PlaylistItem("title", "artist", "id")))
+
+		view.playlist_items.layoutManager = LinearLayoutManager(requireContext())
+		view.playlist_items.hasFixedSize()
 		view.playlist_items.adapter = PlaylistRecyclerAdapter(requireContext(), _player)
 //		dummyContent(view)
 

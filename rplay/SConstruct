@@ -1,8 +1,8 @@
 # dependencies:
-#    libgstreamer1.0-dev
-#    libzmq3-dev
-#    libasound2-dev
-#    libboost-all-dev
+#    libgstreamer1.0-dev (>= 1.14.5)
+#    libzmq3-dev (>= 4.2.5)
+#    libasound2-dev (>= 1.1.3)
+#    libboost-all-dev (>= 1.65) {filesystem, thread, log, date_time, program_options}
 
 # --release-build option
 AddOption('--release-build', action='store_true', dest='release_build',	help='create optimized binary', default=False)
@@ -65,7 +65,7 @@ std::string software_version()
 	return std::string{"%s"};
 }
 
-""" % ('%s.%s' % git_version_descriptor(), find_rplay_version())
+""" % ('%s.%s' % ('date', 'hash'), '1')  #git_version_descriptor(), find_rplay_version())
 
 	with open(str(target[0]), 'w') as fout:
 		fout.write(src)
@@ -124,10 +124,15 @@ common_objs = env.Object([
 Requires(common_objs, version_obj)
 
 
-env.Program('rplay', [
+rplay = env.Program('rplay', [
 	'rplay.cpp',
 	common_objs,
 	rp_lib,
 	zmqu_lib,
 	inotify_lib
 ])
+
+# install support
+rplay_target_path = '/opt/remoteplayer'
+env.Install(rplay_target_path, rplay)
+env.Alias('install', rplay_target_path)

@@ -1,30 +1,30 @@
 # remoteplayer
 
-> TODO: describe what remoteplayer is and how cen be used ...
+Remote audio player protocol definition (see `docs/spec.txt`) with server implementation as `rplay` and client implementation as `arplay`.
 
 
 ## How to install ?
 
 ### Server part (rplay)
 
-- compile with `$ scons -j11` command
-- run remoteplayer with `$ ./rplay /path/to/media/library` command
+- compile with `scons -j11` command
+- run remoteplayer with `./rplay /path/to/media/library` command
 
-That is it, remoteplayer (rplay) is now listenning on `tcp://*:5557` address.
+That is it, remoteplayer (`rplay`) is now listenning on `tcp://*:5557` address.
 
 
 ### Client part (grplay)
 
 Run grplay (graphics remote player client) with rplay IP address and port number
 
-```
-$ ./grplay 192.168.0.111 3333
+```bash
+./grplay 192.168.0.111 3333
 ```
 
-or run rplayc (console remote player client) with rplay IP address, like
+or run `rplayc` (console remote player client) with rplay IP address, like
 
-```
-$ ./rplayc 192.168.0.111
+```bash
+./rplayc 192.168.0.111
 ```
 
 

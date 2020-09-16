@@ -1,6 +1,9 @@
-Špecifikácia remote player protokolu, verzia 0.5
+# Špecifikácia Remote Player Protokolu, verzia 0.6
 
-{server}
+RPP (**R**emote **P**layer **P**rotocol) je určený pre komunikáciu klentou z audio serverom.
+
+## server
+
 Umožnuje klientom prehrávať média z knižnice medií. Server implementuje nasledujúce moduly
 
 player: jednoduchý blokujúci playbin (GST), ktorý môže napr. prehrávať zo zásobníka.
@@ -8,32 +11,34 @@ player: jednoduchý blokujúci playbin (GST), ktorý môže napr. prehrávať zo
 library: modul dodá všetky fajly s adresára
 
 interface: odošle klientovy zoznam medií, umožní klientovy prehrať medium z
-knižnice a po pripojení pošle klientom playlist_content a ak sa prehráva
-skladba, potom aj play_progress správu.
+knižnice a po pripojení pošle klientom `playlist_content` a ak sa prehráva
+skladba, potom aj `play_progress` správu.
 
 interface bude implementovaný pomocou ZMQ ako clone pattern client/server a
 bude poskytovať nasledujúce funkcie:
 
-	* list_media, ktorá vráti zoznam medií
-	* play, ktorá prehrá skladbu z playlistu
-	* pause, ktorá pozastaví prehrávanie aktuálnej skladby
-	* stop, zastavenie prehrávania
-	* play_progress, update priebehu prehrávania (každých 10s)
-	* identify, vráti informácie o serveru
-	* playlist_content, update obsahu playlistu
-	* playlist_add, pridáva skladbu do playlistu
-	* playlist_remove, odobera skladbu s playlistu
-	* playlist_move, zmena pozície skladby v playliste
-	* playlist_shuffle, zapne/vypne shuffle mód
-	* alive, server posiela klientom kazdu 1s (niečo ako ping)
-	* seek, ktorá posunie aktualnu skladbu na požadovanú pozíciu
-	* volume, posiela server pri zmene hlasitosti
-	* set_volume, zmena hlasitosti
-	* client_ready, signal serveru, ze je klient pripraveny prijímať správy
-	* bed_time, zapne/vypne bed time mód
-	* library_update, posiela server v prípade zmeny v knižnici 
+* `list_media`, ktorá vráti zoznam medií
+* `play`, ktorá prehrá skladbu z playlistu
+* `pause`, ktorá pozastaví prehrávanie aktuálnej skladby
+* `stop`, zastavenie prehrávania
+* `play_progress`, update priebehu prehrávania (každých 10s)
+* `identify`, vráti informácie o serveru
+* `playlist_content`, update obsahu playlistu
+* `playlist_add`, pridáva skladbu do playlistu
+* `playlist_remove`, odobera skladbu s playlistu
+* `playlist_move`, zmena pozície skladby v playliste
+* `playlist_shuffle`, zapne/vypne shuffle mód
+* `alive`, server posiela klientom kazdu 1s (niečo ako ping)
+* `seek`, ktorá posunie aktualnu skladbu na požadovanú pozíciu
+* `volume`, posiela server pri zmene hlasitosti
+* `set_volume`, zmena hlasitosti
+* `client_ready`, signal serveru, ze je klient pripraveny prijímať správy
+* `bed_time`, zapne/vypne bed time mód
+* `library_update`, posiela server v prípade zmeny v knižnici 
+* `download`, posiela klient s požiadavkou o stiahnutie skladby
+* `download_progress`, posiela server s informaciou o stavu stahovania
 
-Správu play_progress môže GUI odchitiť a zobraziť informácie o prehrávanom
+Správu `play_progress` môže GUI odchitiť a zobraziť informácie o prehrávanom
 obsahu.
 
 configuration: umožnuje konfigurovať voľby ako port a media home
@@ -44,7 +49,8 @@ Build bude označený verziou a dostupný bude aj commit number, server bude tie
 zobrazovať aktuálnu prehrávaciu frontu.
 
 
-{klient}
+## klient
+
 Pripojí sa k serveru a požiada o zoznam medií, zobrazí ich a umoží
 užívateľovy výber pomocou GUI. GUI bude obsahovať list-box a regex
 search entry, z listboxu bude možné vybrať skladbu a pomocou tlačítka
@@ -59,20 +65,24 @@ Zo serveru získa obsah prehrávacej fronty a jednotlivé skladby označí
 poradovým číslom (1, 2, ..., N) v zozname skladieb (list-boxe).
 
 
-{interface API}
+### interface API
 
-list_media [ask]:
+`list_media` [ask]:
 
-	{"cmd":"list_media"}
+```js
+{"cmd":"list_media"}
+```
 
 Umožnuje klientovy získať zoznam medií (knižnicu), odpoveď klientovy vypadá
 takto
 
-	{"cmd":"media_library", "items":[
-		"path/to/file1",
-		"path/to/file2",
-		"path/to/file3"
-	]}
+```js
+{"cmd":"media_library", "items":[
+	"path/to/file1",
+	"path/to/file2",
+	"path/to/file3"
+]}
+```
 
 Knižnica sú jediné dáta na ktoré sa musí klient explicitne opýtať a to kvôly
 tomu, že predpokladám tisícky prvkou v knižnici, takže by prípadný oznam mohol
@@ -233,17 +243,16 @@ Následne ako reakcia na zmenu playlistu server vyheneruje správu
 playlist_content.
 
 
-playlist_move [notify]:
+`playlist_move` [notify]:
 
 Príkaz umožnuje zmenu pozície skladby v playliste a je definovaný ako
 
 	{"cmd":"playlist_move", "playlist":PID, "from":N, "to":M}
 
-kde PID (size_t) je identifikátor playlistu, N index skladby a M je nový index
-skladby.
+kde PID (`size_t`) je identifikátor playlistu, `N` index skladby a `M` je nový index skladby.
 
 
-playlist_shuffle [notify]:
+`playlist_shuffle` [notify]:
 
 Príkaz zapne/vypne shuffle mód a je definovaný takto
 
@@ -252,7 +261,7 @@ Príkaz zapne/vypne shuffle mód a je definovaný takto
 kde S je hodnota typu bool, true ak ma byť shuffle mód zapnutý, false inak.
 
 
-bed_time [notify]:
+`bed_time` [notify]:
 
 Príkaz zapne/vypne bed time mód (zastavenie prehrávania po skončení aktuálnej skladby) a je definovaný takto
 
@@ -261,17 +270,16 @@ Príkaz zapne/vypne bed time mód (zastavenie prehrávania po skončení aktuál
 kde V je hodnota typu bool, true ak ma byť bed time mód zapnutý, false inak.
 
 
-library_update [news]:
+`library_update` [news]:
 
 Posiela server klientom v prípade zmeny v knižnici (nový, alebo zmazaný súbor) v tvare
 
 	{"cmd":"library_update"}
 
 
+`client_ready` [notify]:
 
-client_ready [notify]:
-
-Umožnuje klientom signalizovať, že sú od serveru pripravený príjimať správy, po obdržaní client_ready server pošle správy playlist_content a play_progress v prípade, že niečo prehráva.
+Umožnuje klientom signalizovať, že sú od serveru pripravený príjimať správy, po obdržaní `client_ready` server pošle správy `playlist_content` a `play_progress` v prípade, že niečo prehráva.
 
 	{"cmd":"client_ready"}
 
@@ -279,4 +287,32 @@ Umožnuje klientom signalizovať, že sú od serveru pripravený príjimať spr�
 V prípade neznámeho dotazu odpovie server správou
 
 	{"cmd":"error", "what":"unknown <CMD> command"}
+
+
+`download` [notify]:
+
+Požiadavka na stiahnutie skladby z internetu (bude implementované na strane servera pomocou utility `youtube-dl`) v tvare
+
+```js
+{"cmd":"download", "url":URL}
+```
+
+kde *URL* je reťazec (string). Po začatí stahovania server začne posielať správy `download_progress`.
+
+
+
+`download_progress` [news]:
+
+Posiela server po začatí sťahovania s informaciou o stavu stahovania v tvare
+
+```js
+{"cmd":"download_progress", "items":[
+	{"n":"item1", "p":P1}, 
+	{"n":"item2", "p":P2}, 
+	...]}
+```
+
+kde pole `items` je zoznam dvojíc nesúcich názov skladby ako `n` a koľko je zo skladby už stiahnuté ako pole `p`. `Pn` je číslo v rozsahu 0 až 100, kde 100 znamená, že skladba je stiahnutá. 
+
+Dokončenie sťahovania server signalizuje dvojicou `{"n":"item", "p":100}`, nasledujúca správa `download_progress` už dvojicu obsahovať nebude.
 

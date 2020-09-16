@@ -1,6 +1,7 @@
 package remoteplayer.arplay
 
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
@@ -40,6 +41,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		val headerView = nav_view.getHeaderView(0)
 		val navHeaderVersion = headerView.findViewById(R.id.navHeaderVersion) as TextView
 		navHeaderVersion.text = BuildConfig.GitVersion
+
+		// online playback request handling
+		when {
+			intent?.action == Intent.ACTION_SEND -> {
+				if (intent.type.startsWith("text/"))
+					handleSendText(intent)
+			}
+		}
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -107,6 +116,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			_viewModel.remotePlayerClient().listMedia()
 		else if (libraryContent.isEmpty())
 			_viewModel.remotePlayerClient().listMedia()
+	}
+
+	private fun handleSendText(intent: Intent) {
+		intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
+			runOnUiThread {
+				Toast.makeText(this, "url $it received (online playback request feature not yet implemented)", Toast.LENGTH_LONG).show()
+			}
+		}
 	}
 
 	lateinit var _viewModel: MainViewModel

@@ -120,9 +120,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 	private fun handleSendText(intent: Intent) {
 		intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
-			runOnUiThread {
-				Toast.makeText(this, "url $it received (online playback request feature not yet implemented)", Toast.LENGTH_LONG).show()
+			if (it.startsWith("http://") or it.startsWith("https://")) {
+				_viewModel.remotePlayerClient().download(it)
+				Toast.makeText(this, "downloading '$it'", Toast.LENGTH_LONG).show()
 			}
+			else
+				Toast.makeText(this, "received text is not URL, ignored", Toast.LENGTH_LONG).show()
 		}
 	}
 

@@ -103,6 +103,13 @@ class RemotePlayerClient {
 		_pushQueue.add(json.toString())
 	}
 
+	fun download(url: String) {
+		val json = JSONObject()
+		json.put("cmd", "download")
+		json.put("url", url)
+		_pushQueue.add(json.toString())
+	}
+
 	fun registerListener(listener: PlaybackListener) {
 		_playbackListeners.put(listener, listener)
 	}

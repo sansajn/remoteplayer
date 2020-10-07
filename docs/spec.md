@@ -163,7 +163,7 @@ server na dotaz odpovie takto
 	{'cmd':'server_desc', 'version':'0.2.0', 'build':'417a36c'}
 
 
-playlist_content [news]:
+`playlist_content` [news]:
 
 Správou informuje server klientou o zmene obsahu playlistu. Správa je
 definovaná takto:
@@ -177,7 +177,7 @@ definovaná takto:
 kde N, identyfikátor playlistu je celé kladné číslo a items obsahuje pole reťazcou, kde jednotlive reťazece popisujú položky playlistu (v aktuálnej implementácii sa jedná o názvy súborou).
 
 
-alive [news]:
+`alive` [news]:
 
 remoteplayer posiela príkaz v pravidelných intervaloch (každú 1s) v tvare
 
@@ -230,17 +230,17 @@ Umožnuje klientovy pridať skladbu do playlistu, správa je v tvare
 	{"cmd":"playlist_add", "items":["path/to/file1", ...]}
 
 
-playlist_remove [notify]:
+`playlist_remove` [notify]:
 
 Umožnuje odobrať skladbu z playlistu v tvare
 
 	{"cmd":"playlist_remove", "playlist":PID, "items":[i1, i2, ..., iN]}
 
-kde PID (size_t) je identifikátor playlistu a items je zoznam indexou skladieb
+kde PID (`size_t`) je identifikátor playlistu a items je zoznam indexou skladieb
 playlistu, ktoré sa majú odstrániť. 
 
 Následne ako reakcia na zmenu playlistu server vyheneruje správu
-playlist_content.
+`playlist_content`.
 
 
 `playlist_move` [notify]:

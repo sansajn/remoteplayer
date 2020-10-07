@@ -1,9 +1,17 @@
 package remoteplayer.arplay
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.os.Bundle
+import android.os.Handler
 import android.support.v4.app.Fragment
+import android.support.v4.app.NotificationCompat
+import android.support.v4.app.NotificationManagerCompat
 import android.text.format.DateUtils
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,17 +23,93 @@ import kotlinx.android.synthetic.main.fragment_player.view.*
 import java.io.File
 import java.util.*
 
-class PlayerFragment : Fragment(), PlaybackListener {
+data class DownloadItemState(
+	val notificationId: Int,  // id
+	val builder: Notification.Builder,  // notification
+	var progress: Int)
+
+class PlayerFragment : Fragment(), PlaybackListener, DownloadListener {
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 
 		val viewModel = ViewModelProviders.of(requireActivity()).get(MainViewModel::class.java)
 		_rplayClient = viewModel.remotePlayerClient()
-		_rplayClient.registerListener(this)
+		_rplayClient.registerPlaybackListener(this)
+		_rplayClient.registerDownloadListener(this)
 		_rplayClient.clientReady()
 
 		_scheduler.schedule(createPlaybackStoppedTask(), 100, 500)
+
+		_notificationManager = requireActivity().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+		createNotificationChannel(NOTIFICATION_CHANNEL_ID,
+			"Download Progress",
+			"Download progress channel.")
+
+
+		// TODO: test code
+/*
+		val handler = Handler()
+
+		Thread(Runnable {
+			var progress = 0
+
+			Log.d("tag", "notification thread running ...")
+			while (progress <= 100) {
+				progress += 4
+
+				try {
+					Thread.sleep(1000)
+				} catch (e: InterruptedException) {
+					e.printStackTrace()
+				}
+
+				handler.post(Runnable {
+					downloadProgress("Mind Against @ Centro Ceremonial Otomi.opus", progress)
+					downloadProgress("Fideles @ Fortress Royale de Chinon.opus", progress)
+				})
+
+				Log.d("tag", "progress $progress%")
+			}
+		}).start()
+*/
+	}
+
+	override fun downloadProgress(item: String, progress: Int) {
+		var itemState = _downloads.getOrPut(item) {
+			val notification = createDownloadNotification(item)
+			val id = _downloads.count() + 101
+			DownloadItemState(id, notification, progress)
+		}
+
+		if (itemState.progress < progress) {
+			itemState.progress = progress
+			updateDownloadProgress(itemState.notificationId, itemState.builder, itemState.progress)
+		}
+	}
+
+	private fun createNotificationChannel(id: String, name: String, description: String) {
+		val channel = NotificationChannel(id, name, NotificationManager.IMPORTANCE_LOW)
+		channel.description = description
+		_notificationManager?.createNotificationChannel(channel)
+	}
+
+	private fun createDownloadNotification(item: String): Notification.Builder {
+		return Notification.Builder(requireContext(), NOTIFICATION_CHANNEL_ID)
+			.setContentTitle(item)
+			.setSmallIcon(android.R.drawable.ic_dialog_info)
+			.setChannelId(NOTIFICATION_CHANNEL_ID)
+	}
+
+	private fun updateDownloadProgress(notificationID: Int, notification: Notification.Builder, progress: Int) {
+		if (progress < 100) {
+			notification.setContentText("$progress%")
+			notification.setProgress(100, progress, false)
+		} else {
+			notification.setContentText("Download complete.")
+			notification.setProgress(0, 0, false)
+		}
+		_notificationManager?.notify(notificationID, notification.build())
 	}
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -258,6 +342,10 @@ class PlayerFragment : Fragment(), PlaybackListener {
 	private var _lastPlayProgressStamp = 0L  // in ms
 	private var _isPlaying = false
 	private var _shuffled = false
+
+	private var _downloads = mutableMapOf<String, DownloadItemState>()
+	private var _notificationManager: NotificationManager? = null
+	private val NOTIFICATION_CHANNEL_ID = "remoteplayer.arplay.downloads"
 
 	private val _scheduler = Timer()
 

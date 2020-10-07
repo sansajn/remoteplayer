@@ -23,6 +23,11 @@ interface LibraryListener {
 	fun mediaLibrary(items: List<String>)
 }
 
+interface DownloadListener {
+
+	fun downloadProgress(item: String, progress: Int)
+}
+
 
 class RemotePlayerClient {
 
@@ -110,12 +115,16 @@ class RemotePlayerClient {
 		_pushQueue.add(json.toString())
 	}
 
-	fun registerListener(listener: PlaybackListener) {
+	fun registerPlaybackListener(listener: PlaybackListener) {
 		_playbackListeners.put(listener, listener)
 	}
 
-	fun registerListener(listener: LibraryListener) {
+	fun registerLibraryListener(listener: LibraryListener) {
 		_libraryListeners.put(listener, listener)
+	}
+
+	fun registerDownloadListener(listener: DownloadListener) {
+		_downloadListeners.put(listener, listener)
 	}
 
 	fun removeListener(listener: PlaybackListener) {
@@ -131,6 +140,7 @@ class RemotePlayerClient {
 		when  (json.getString("cmd")) {
 			"play_progress" -> handlePlayProgress(json)
 			"playlist_content" -> handlePlaylistContent(json)
+			"download_progress" -> handleDownloadProgress(json)
 		}
 	}
 
@@ -147,6 +157,17 @@ class RemotePlayerClient {
 
 		for (l in _playbackListeners.values)
 			l.playlistContent(id, items)
+	}
+
+	private fun handleDownloadProgress(json: JSONObject) {
+		val items = json.getJSONArray("items")
+		for (i in 0 until items.length()) {
+			val item = items.getJSONObject(i)
+			val name = item.getString("n")
+			val progress = item.getInt("p")
+			for (l in _downloadListeners.values)
+				l.downloadProgress(name, progress)
+		}
 	}
 
 	private fun handlePlayProgress(json: JSONObject) {
@@ -236,4 +257,5 @@ class RemotePlayerClient {
 	private val _scheduler = Timer()
 	private val _playbackListeners = mutableMapOf<PlaybackListener, PlaybackListener>()
 	private val _libraryListeners = mutableMapOf<LibraryListener, LibraryListener>()
+	private val _downloadListeners = mutableMapOf<DownloadListener, DownloadListener>()
 }

@@ -9,7 +9,7 @@ class MainViewModel : ViewModel(), LibraryListener {
 	private val _rplay = RemotePlayerClient()
 
 	init {
-		_rplay.registerListener(this)
+		_rplay.registerLibraryListener(this)
 	}
 
 	fun remotePlayerClient(): RemotePlayerClient {

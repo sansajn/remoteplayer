@@ -46,10 +46,12 @@ void vector_put(jtree & root, string const & key, vector<string> const & v)
 	root.add_child(key, arr);
 }
 
-zmq_interface::zmq_interface(unsigned short port, library * lib, player * play)
+zmq_interface::zmq_interface(unsigned short port, library * lib, player * play,
+	downloader * down)
 	: _port{port}
 	, _lib{lib}
 	, _play{play}
+	, _down{down}
 	, _position_change_count{0}
 	, _media_idx{0}
 	, _position{0}
@@ -66,6 +68,9 @@ zmq_interface::zmq_interface(unsigned short port, library * lib, player * play)
 
 	_event_handler_id.push_back(
 		_play->playlist_change_signal.add(std::bind(&zmq_interface::on_playlist_change, this, std::placeholders::_1, std::placeholders::_2)));
+
+	_event_handler_id.push_back(
+		_down->progress_update_signal.add(std::bind(&zmq_interface::on_download_progress_update, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)));
 }
 
 zmq_interface::~zmq_interface()
@@ -73,6 +78,9 @@ zmq_interface::~zmq_interface()
 	_play->play_signal.remove_id(_event_handler_id[0]);
 	_play->position_change_signal.remove_id(_event_handler_id[1]);
 	_play->playlist_change_signal.remove_id(_event_handler_id[2]);
+	_down->progress_update_signal.remove_id(_event_handler_id[3]);
+
+	LOG(debug) << "zmq interface down";
 }
 
 void zmq_interface::idle()
@@ -102,7 +110,8 @@ void zmq_interface::stop()
 
 void zmq_interface::join()
 {
-	_th.join();
+	if (_th.joinable())
+		_th.join();
 }
 
 void zmq_interface::on_play(std::string media, size_t media_idx)
@@ -218,6 +227,26 @@ void zmq_interface::on_playlist_change(size_t playlist_id, vector<string> items)
 	}
 
 	send_playlist_content();
+}
+
+void zmq_interface::on_download_progress_update(std::string media_id, size_t downloaded_bytes,
+	size_t total_bytes)
+{
+	int const p = int(downloaded_bytes / float(total_bytes) * 100);
+
+	jtree msg;
+	msg.put("cmd", "download_progress");
+
+	// create array of items (with only one item)
+	jtree arr, item;
+	item.put("n", media_id);
+	item.put("p", p);
+	arr.push_back(make_pair("", item));
+	msg.add_child("items", arr);
+
+	publish(to_string(msg));
+
+	LOG(trace) << "RPLAYC << download_progress(" << media_id << ", " << p << ")";
 }
 
 string zmq_interface::on_question(string const & question)
@@ -409,6 +438,11 @@ void zmq_interface::on_notify(string const & s)
 
 		lock_guard<mutex> lock{_media_info_locker};
 		send_play_progress();
+	}
+	else if (cmd == "download")
+	{
+		string url = json.get<string>("url");
+		_down->download(url);
 	}
 	else
 		LOG(warning) << "unknown command (" << s << ")";

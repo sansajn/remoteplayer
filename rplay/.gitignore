@@ -9,3 +9,4 @@
 /rplay.cflags
 /rplay.cxxflags
 /version.cpp
+/*.pyc

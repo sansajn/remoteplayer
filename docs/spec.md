@@ -270,14 +270,16 @@ Príkaz zapne/vypne bed time mód (zastavenie prehrávania po skončení aktuál
 kde V je hodnota typu bool, true ak ma byť bed time mód zapnutý, false inak.
 
 
-`library_update` [news]:
+### `library_update` [news]
 
 Posiela server klientom v prípade zmeny v knižnici (nový, alebo zmazaný súbor) v tvare
 
-	{"cmd":"library_update"}
+```js
+{"cmd":"library_update"}
+```
 
 
-`client_ready` [notify]:
+### `client_ready` [notify]
 
 Umožnuje klientom signalizovať, že sú od serveru pripravený príjimať správy, po obdržaní `client_ready` server pošle správy `playlist_content` a `play_progress` v prípade, že niečo prehráva.
 
@@ -289,7 +291,7 @@ V prípade neznámeho dotazu odpovie server správou
 	{"cmd":"error", "what":"unknown <CMD> command"}
 
 
-`download` [notify]:
+### `download` [notify]
 
 Požiadavka na stiahnutie skladby z internetu (bude implementované na strane servera pomocou utility `youtube-dl`) v tvare
 
@@ -297,11 +299,10 @@ Požiadavka na stiahnutie skladby z internetu (bude implementované na strane se
 {"cmd":"download", "url":URL}
 ```
 
-kde *URL* je reťazec (string). Po začatí stahovania server začne posielať správy `download_progress`.
+kde *URL* je reťazec (string). Po začatí stahovania server začne posielať správy `download_progress`. Výsledok sťahovania sa uloží do adresára `$media_home/downloaded` a server pošle `library_update`.
 
 
-
-`download_progress` [news]:
+### `download_progress` [news]
 
 Posiela server po začatí sťahovania s informaciou o stavu stahovania v tvare
 

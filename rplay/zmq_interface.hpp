@@ -5,6 +5,7 @@
 #include <zmqu/clone_server.hpp>
 #include "library.hpp"
 #include "player.hpp"
+#include "downloader.hpp"
 #include "volume_control.hpp"
 
 /*! zmq based interface implementation */
@@ -14,7 +15,9 @@ class zmq_interface
 public:
 	using hires_clock = std::chrono::high_resolution_clock;
 
-	zmq_interface(unsigned short port, library * lib, player * play);
+	zmq_interface(unsigned short port, library * lib, player * play,
+		downloader * down);
+
 	~zmq_interface() override;
 	void run();  // TODO: rename to start
 	void stop();
@@ -33,6 +36,10 @@ private:
 	void on_position_change(int64_t position, int64_t duration);
 	void on_playlist_change(size_t playlist_id, std::vector<std::string> items);
 
+	//! \note called from downloader thread
+	void on_download_progress_update(std::string media_id, size_t downloaded_bytes,
+		size_t total_bytes);
+
 	void idle() override;
 	std::string on_question(std::string const & question) override;
 	void on_notify(std::string const & s) override;
@@ -41,6 +48,8 @@ private:
 	unsigned short _port;
 	library * _lib;
 	player * _play;
+	downloader * _down;
+
 	volume_control _volume;
 	std::thread _th;
 	hires_clock::time_point _tp;

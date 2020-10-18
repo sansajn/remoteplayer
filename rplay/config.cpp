@@ -13,12 +13,18 @@ using std::to_string;
 using boost::lexical_cast;
 namespace po = boost::program_options;
 
-string const DEFAULT_CONFIG_FILE_NAME = "rplay.conf";
-unsigned short DEFAULT_PORT = 13333;
+string const DEFAULT_CONFIG_FILE_NAME = "rplay.conf",
+	DEFAULT_OUTTMPL = "%(title)s-%(id)s.%(ext)",
+	DEFAULT_DOWNLOAD_DIRECTORY = "downloaded";
+
+constexpr unsigned short DEFAULT_PORT = 13333;
 
 config::config()
-	: media_home{home_dir() + "/Music"}
-	, port{DEFAULT_PORT}
+	: port{DEFAULT_PORT}
+	, media_home{home_dir() + "/Music"}
+	, outtmpl{DEFAULT_OUTTMPL}
+	, download_directory{DEFAULT_DOWNLOAD_DIRECTORY}
+	// TODO: initialize program_name somehow (with full program name path)
 {}
 
 config::config(int argc, char * argv[])
@@ -65,4 +71,11 @@ config::config(int argc, char * argv[])
 		port = root.get<unsigned short>("rplay.port", port);
 
 	log_file = root.get<string>("rplay.log_file", string{});
+
+	outtmpl = root.get<string>("rplay.outtmpl", DEFAULT_OUTTMPL);
+
+	download_directory = root.get<string>("rplay.download_directory", DEFAULT_DOWNLOAD_DIRECTORY);
+
+	assert(argc > 0);
+	program_name = argv[0];
 }

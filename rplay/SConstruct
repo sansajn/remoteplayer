@@ -1,13 +1,16 @@
 # dependencies:
-#    libgstreamer1.0-dev (>= 1.14.5)
-#    libzmq3-dev (>= 4.2.5)
-#    libasound2-dev (>= 1.1.3)
-#    libboost-all-dev (>= 1.65) {filesystem, thread, log, date_time, program_options}
+#	libgstreamer1.0-dev (>= 1.14.5)
+#	libzmq3-dev (>= 4.2.5)
+#	libasound2-dev (>= 1.1.3)
+#	libboost-all-dev (>= 1.65) {filesystem, thread, log, date_time, program_options}
+#	python2-dev (>= 2.7.17)
 
 # --release-build option
 AddOption('--release-build', action='store_true', dest='release_build',	help='create optimized binary', default=False)
 
-cxxflags = ['-std=c++14', '-Wall']  # common cxxflags
+cxxflags = ['-std=c++17', '-Wall',
+	'-Wno-register'  # lots of python2 warnings
+]  # common cxxflags
 
 inotify_path = 'libs/inotify-cpp-0.2.0/src'
 
@@ -32,7 +35,7 @@ env = Environment(
 	CPPPATH=['libs/', inotify_path + '/include']
 )
 
-env.ParseConfig('pkg-config --cflags --libs gstreamer-1.0 libzmq alsa')
+env.ParseConfig('pkg-config --cflags --libs gstreamer-1.0 libzmq alsa python2')
 
 
 def find_rplay_version():
@@ -113,12 +116,14 @@ common_objs = env.Object([
 	'player.cpp',
 	'playlist.cpp',
 	'library.cpp',
+	'downloader.cpp',
 	'config.cpp',
 	'io.cpp',
 	'json.cpp',
 	'fs.cpp',
 	'zmq_interface.cpp',
-	'volume_control.cpp'
+	'volume_control.cpp',
+	'youtube_dl.cpp'
 ]);
 
 Requires(common_objs, version_obj)

@@ -21,6 +21,13 @@ player::player()
 	, _bed_time{false}
 {}
 
+player::~player()
+{
+	quit();
+	join();
+	LOG(debug) << "player down";
+}
+
 void player::start()
 {
 	_th = std::thread{&player::loop, this};
@@ -151,7 +158,8 @@ void player::quit()
 
 void player::join()
 {
-	_th.join();
+	if (_th.joinable())
+		_th.join();
 }
 
 void player::loop()

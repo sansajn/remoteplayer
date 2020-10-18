@@ -14,6 +14,7 @@ class player
 {
 public:
 	player();
+	~player();
 	void start();
 	void play(size_t idx);  //!< play from playlist
 	void play();

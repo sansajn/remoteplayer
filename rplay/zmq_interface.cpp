@@ -240,7 +240,7 @@ void zmq_interface::on_download_progress_update(std::string media_id, size_t dow
 	// create array of items (with only one item)
 	jtree arr, item;
 	item.put("n", media_id);
-	item.put("p", p);
+	item.put<int>("p", p);
 	arr.push_back(make_pair("", item));
 	msg.add_child("items", arr);
 

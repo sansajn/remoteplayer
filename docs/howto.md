@@ -17,8 +17,6 @@ tcpdump -i any port PORT -A
 
 kde `PORT` je číslo portu s `rplay.conf` (pole `rplay.port`), alebo `13333`.
 
-> príkaz nefunguje, zatial neviem prečo
-
 alebo môžem použiť utilitu `rplay_probe.py` (z adreesára `rplay/test`) takto
 
 ```bash

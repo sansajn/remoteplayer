@@ -3,6 +3,8 @@ PC (Player Client) probe utility for exploring ZMQ messages send to PC by PM (Pl
 '''
 import argparse, zmq, time, datetime, random
 
+DEFAULT_PORT = 23333
+
 def main(args):
 	#if len(args.filter) > 0:
 	#	print('filtered commands: %s' % args.filter)
@@ -45,7 +47,7 @@ def main(args):
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Player Client probe options.')
-	parser.add_argument('--port', type=int, default=3333, help='ZMQ channel port number')
+	parser.add_argument('--port', type=int, default=DEFAULT_PORT, help='ZMQ channel port number')
 	#parser.add_argument('--filter', nargs='*', default=[], help='filter out specified commands')
 	args = parser.parse_args()
 	

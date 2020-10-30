@@ -165,6 +165,7 @@ class PlayerFragment : Fragment(), PlaybackListener {
 		_rplayClient.shuffle(_shuffled)
 	}
 
+	// if play_progress not received for 15s, stop playback
 	private fun createPlaybackStoppedTask(): TimerTask {
 		return object : TimerTask() {
 			override fun run() {

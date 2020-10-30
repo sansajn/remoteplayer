@@ -134,16 +134,16 @@ prehrávania skladby. Správa je definovaná ako
 		"duration":D,            // long
 		"playlist_id":N,         // size_t
 		"media_idx":N,           // size_t
-		"playback_state":S,      // int (playing=1,paused=2,stopped=3)
-		"mode":M                 // int (shuffle=1,bed_time=2)
+		"playback_state":S,      // int (playing=1, paused=2, stopped=3)
+		"mode":M                 // int (none=0, shuffle=1, bed_time=2)
 	}
 
-kde position je aktuálna pozícia v nano-sekundách, duration je dĺžka skladby v
-nano-sekundách, playlist_id je identifikátor playlistu a media_idx je index
-aktuálnej skladby v playliste playlist_id. Pole playback_state predstavuje
-prehrávací stav, ktorý je buď v stave 'playing' (1), 'paused' (2), alebo v
-stave stopped (3) a pole mode, ktoré je zoznamom módou playlistu (kombinácie
-módou 'shuffle' (1) a 'bed_time' (2)).
+kde `position` je aktuálna pozícia v nano-sekundách, `duration` je dĺžka skladby v
+nano-sekundách, `playlist_id` je identifikátor playlistu a `media_idx` je index
+aktuálnej skladby v playliste `playlist_id`. Pole `playback_state` predstavuje
+prehrávací stav, ktorý je buď v stave `playing` (1), `paused` (2), alebo v
+stave `stopped` (3) a pole `mode`, ktoré je zoznamom módou playlistu (kombinácie
+módou `shuffle` (1) a `bed_time` (2)).
 
 note: position a duration zvyknem v klientovy nazývať time a length, porozmýšlaj o zmene na servery.
 

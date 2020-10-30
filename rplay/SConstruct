@@ -7,7 +7,7 @@
 # --release-build option
 AddOption('--release-build', action='store_true', dest='release_build',	help='create optimized binary', default=False)
 
-cxxflags = ['-std=c++14', '-Wall']  # common cxxflags
+cxxflags = ['-std=c++17', '-Wall', '-Wno-deprecated-declarations']  # common cxxflags
 
 inotify_path = 'libs/inotify-cpp-0.2.0/src'
 

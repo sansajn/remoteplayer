@@ -36,7 +36,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		askLibraryContent()
 
 		loadPlayerUI()
-//		loadLibraryUI()
 
 		val headerView = nav_view.getHeaderView(0)
 		val navHeaderVersion = headerView.findViewById(R.id.navHeaderVersion) as TextView

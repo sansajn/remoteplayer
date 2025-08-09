@@ -81,6 +81,51 @@ complains.
 
 > TODO: describe ...
 
+The first step is to configure `asound.conf` file, we need to pick proper device. Run 
+
+```console
+$ aplay -l
+**** List of PLAYBACK Hardware Devices ****
+card 0: Generic [HD-Audio Generic], device 3: HDMI 0 [HDMI 0]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 1: Generic_1 [HD-Audio Generic], device 0: ALC269VC Analog [ALC269VC Analog]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+```
+
+where we are looking for a device with *Master* mixer controler. To list device mixer controllers run
+
+```bash
+amixer -c N scontrols
+```
+
+command for eaach device, where N is (0, 1, ..., N), e.g.
+
+```console
+$ amixer -c 1 scontrols
+Simple mixer control 'Master',0
+Simple mixer control 'Headphone',0
+Simple mixer control 'Speaker',0
+Simple mixer control 'PCM',0
+Simple mixer control 'Mic',0
+Simple mixer control 'Mic Boost',0
+Simple mixer control 'Beep',0
+Simple mixer control 'Capture',0
+Simple mixer control 'Auto-Mute Mode',0
+Simple mixer control 'Internal Mic Boost',0
+Simple mixer control 'Loopback Mixing',0
+```
+
+so we want to pick device 1. Now to pick device 1 modify `assound.conf` this way
+
+```console
+$ cat asound.conf 
+defaults.pcm.card 1
+defaults.ctl.card 1
+```
+
+
 ### Manual deployment
 
 - compile with `scons -j11` command

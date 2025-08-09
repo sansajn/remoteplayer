@@ -1,6 +1,6 @@
 # Špecifikácia Remote Player Protokolu, verzia 0.6
 
-RPP (**R**emote **P**layer **P**rotocol) je určený pre komunikáciu klentou z audio serverom.
+RPP (**R**emote **P**layer **P**rotocol) je určený pre komunikáciu klientou z audio serverom.
 
 ## server
 
@@ -89,24 +89,26 @@ tomu, že predpokladám tisícky prvkou v knižnici, takže by prípadný oznam 
 byť veľký aj stovky KB.
 
 
-play [notify]:
+`play` [notify]:
 
 Príkaz umožnuje clientovy prehrať skladbu z playlistu v tvare
 
-	{
-		"cmd":"play", 
-		"playlist":PID,  // size_t
-		"idx":N          // size_t
-	}
+
+```js
+{"cmd":"play", 
+"playlist":PID,  // size_t
+"idx":N}         // size_t
+```
 
 kde PID je cele kladne číslo (size_t) reprezentujúce playlist a N (size_t) je
 index skladby v playliste.
 
+Playlist vytvorim pomocou spravy `playlist_add` po ktorej zo serveru pride sprava `playlist_content`.
 
-pause [notify|news]:
 
-Príkaz unožnuje klientovy pozastaviť prehrávanie aktuálnej skladby, príkaz je v
-tvare
+`pause` [notify|news]:
+
+Príkaz unožnuje klientovy pozastaviť prehrávanie aktuálnej skladby, príkaz je v tvare
 
 	{"cmd":"pause"}
 
@@ -128,6 +130,8 @@ play_progress [news]:
 Správu posiela server v pravidelných intervaloch (momentálne 10s) počas
 prehrávania skladby. Správa je definovaná ako
 
+> TODO: nie je jasne, ci sa play_progress posiela aj v stopped mode
+
 	{
 		"cmd":"play_progress",   // string
 		"position":P,            // long
@@ -138,12 +142,15 @@ prehrávania skladby. Správa je definovaná ako
 		"mode":M                 // int (none=0, shuffle=1, bed_time=2)
 	}
 
-kde `position` je aktuálna pozícia v nano-sekundách, `duration` je dĺžka skladby v
-nano-sekundách, `playlist_id` je identifikátor playlistu a `media_idx` je index
-aktuálnej skladby v playliste `playlist_id`. Pole `playback_state` predstavuje
-prehrávací stav, ktorý je buď v stave `playing` (1), `paused` (2), alebo v
-stave `stopped` (3) a pole `mode`, ktoré je zoznamom módou playlistu (kombinácie
-módou `shuffle` (1) a `bed_time` (2)).
+kde 
+- `position` je aktuálna pozícia v nano-sekundách, 
+- `duration` je dĺžka skladby v nano-sekundách, 
+- `playlist_id` je identifikátor playlistu a 
+- `media_idx` je index aktuálnej skladby v playliste `playlist_id`,
+- `playback_state` predstavuje prehrávací stav, ktorý je buď v stave `playing` (1), `paused` (2), alebo v stave `stopped` (3) a pole 
+- `mode` je zoznamom módou playlistu (kombinácie módou `shuffle` (1) a `bed_time` (2)).
+
+> TODO: nie je jasne co je `playback_state=stopped`
 
 note: position a duration zvyknem v klientovy nazývať time a length, porozmýšlaj o zmene na servery.
 
@@ -163,32 +170,31 @@ server na dotaz odpovie takto
 	{'cmd':'server_desc', 'version':'0.2.0', 'build':'417a36c'}
 
 
-playlist_content [news]:
+`playlist_content` [news]:
 
 Správou informuje server klientou o zmene obsahu playlistu. Správa je
 definovaná takto:
 
-	{
-		'cmd':'playlist_content',
-		'id':N,                          // size_t
-		'items':['item1', 'item2', ...]
-	}
+```js
+{'cmd':'playlist_content',
+'id':N,                           // size_t
+'items':['item1', 'item2', ...]}
+```
 
 kde N, identyfikátor playlistu je celé kladné číslo a items obsahuje pole reťazcou, kde jednotlive reťazece popisujú položky playlistu (v aktuálnej implementácii sa jedná o názvy súborou).
 
 
-alive [news]:
+`alive` [news]:
 
 remoteplayer posiela príkaz v pravidelných intervaloch (každú 1s) v tvare
 
-	{
-		'cmd':'alive',
-		'count':N,
-		'time_stamp':ISO_STRING
-	}
+```js
+{'cmd':'alive',
+'count':N,
+'time_stamp':ISO_STRING}
+```
 
-kde N je čítač a ISO_STRING je časové razítko v tvare YYYYMMDDTHHMMSS.ffffff
-reprezentované reťazcom.
+kde N je čítač a `ISO_STRING` je časové razítko v tvare `YYYYMMDDTHHMMSS.ffffff` reprezentované reťazcom.
 
 
 seek [notify]:
@@ -223,14 +229,18 @@ Príkaz užívateľovi zmenu hlasitosti
 kde N (int) je celé kladné číslo v rozsahu 0 až 100.
 
 
-playlist_add [notify]:
+`playlist_add` [notify]:
 
 Umožnuje klientovy pridať skladbu do playlistu, správa je v tvare
 
-	{"cmd":"playlist_add", "items":["path/to/file1", ...]}
+```json
+{"cmd":"playlist_add", "items":["path/to/file1", ...]}
+```
+
+zoznam skladieb tzv. kniznicu ziskam pomocou spravy `list_media`. Po pridani skladby do playlistu server posle spravu `playlist_content` ako notifikaciu zmeny playlistu.
 
 
-playlist_remove [notify]:
+`playlist_remove` [notify]:
 
 Umožnuje odobrať skladbu z playlistu v tvare
 

@@ -2,6 +2,12 @@
 
 Remote audio player protocol definition (see `docs/spec.txt`) with server side implementation as `rplay` and client side implementation for Android as `arplay`.
 
+**Content**:
+- Build
+- Deploy
+- Configure
+
+
 ## Build
 
 Build development docker image (`Dockerfile.dev`) by
@@ -77,9 +83,7 @@ complains.
 
 ### Server side (rplay)
 
-### Docker image
-
-> TODO: describe ...
+#### Docker image
 
 The first step is to configure `asound.conf` file, we need to pick proper device. Run 
 
@@ -125,8 +129,16 @@ defaults.pcm.card 1
 defaults.ctl.card 1
 ```
 
+To run container execute
 
-### Manual deployment
+```bash
+make run
+```
+
+command. Be aware of `LIBRARY_PATH` docker file variable set to `~/Music` by default which maps to `/music` inside container.
+
+
+#### Manual deployment
 
 - compile with `scons -j11` command
 - run remoteplayer with `./rplay /path/to/media/library` command
@@ -150,11 +162,11 @@ or run `rplayc` (console remote player client) with rplay IP address, like
 ./rplayc 192.168.0.111
 ```
 
-## How to configure ?
+## Configure
 
-### Server part (rplay)
+### Server side (rplay)
 
-Remote Player Server (rplay) can be configured with `rplay.conf` config file stored in remoteplayer directory, see sample
+Remote Player Server (rplay) can be configured by `rplay.conf` config file stored in remoteplayer directory, see sample
 
 ```js
 {
@@ -168,13 +180,17 @@ Remote Player Server (rplay) can be configured with `rplay.conf` config file sto
 
 where
 
-**rplay.media_home**: specify media library directory
+- `rplay.media_home`: specify media library directory (=`~/Music`)
+- `rplay.port`: specify port number where server is listenning (=13333)
+- `rplay.log_file`: redirect logging from standard output into specified file (=stdout)
 
-**rplay.port**: specify ZMQ interface port number
+Port and media-home variables can be configured by command line arguments as `--port` and `--library` options.
 
-**rplay.log_file**: will redirect logging into specified file
+> **tip**: run `rplay --help` for list of options
 
 
 ### rsync
+
+To sync media library `rsnc` can be used ...
 
 > TODO: describe rsync configuration I use ...

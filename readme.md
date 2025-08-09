@@ -1,6 +1,6 @@
 # remoteplayer
 
-Remote audio player protocol definition (see `docs/spec.txt`) with server side implementation as `rplay` and client side implementation for Android as `arplay`.
+Remote audio player protocol definition (see `docs/spec.md`) with server side implementation as `rplay` and client side implementation for Android as `arplay`.
 
 **Content**:
 - Build

@@ -115,7 +115,7 @@ Príkaz unožnuje klientovy pozastaviť prehrávanie aktuálnej skladby, príkaz
 následne server klientom pošle správu play_progress(playback_status=paused).
 
 
-stop [notify]:
+`stop` [notify]:
 
 Príkaz umožnuje klientovy zastaviť prehrávanie, príkaz je definovaný
 ako
@@ -125,22 +125,22 @@ ako
 následne server klientom pošle správu play_progress(media="").
 
 
-play_progress [news]:
+`play_progress` [news]:
 
 Správu posiela server v pravidelných intervaloch (momentálne 10s) počas
 prehrávania skladby. Správa je definovaná ako
 
 > TODO: nie je jasne, ci sa play_progress posiela aj v stopped mode
 
-	{
-		"cmd":"play_progress",   // string
-		"position":P,            // long
-		"duration":D,            // long
-		"playlist_id":N,         // size_t
-		"media_idx":N,           // size_t
-		"playback_state":S,      // int (playing=1, paused=2, stopped=3)
-		"mode":M                 // int (none=0, shuffle=1, bed_time=2)
-	}
+```json
+{"cmd":"play_progress",  // string
+"position":P,            // long
+"duration":D,            // long
+"playlist_id":N,         // size_t
+"media_idx":N,           // size_t
+"playback_state":S,      // int (playing=1, paused=2, stopped=3)
+"mode":M}                // int (none=0, shuffle=1, bed_time=2)
+```
 
 kde 
 - `position` je aktuálna pozícia v nano-sekundách, 
@@ -154,11 +154,11 @@ kde
 
 note: position a duration zvyknem v klientovy nazývať time a length, porozmýšlaj o zmene na servery.
 
-Ak klient obdrží play_progress v ktorej media je prázdny reťazec, potom
+Ak klient obdrží `play_progress` v ktorej media je prázdny reťazec, potom
 remoteplayer signalizuje stop (pozri popis stop príkazu).
 
 
-identify [ask]:
+`identify` [ask]:
 
 Správa/dotaz identify umožnuje klientovi získať informácie o serveru ako napr.
 verziu

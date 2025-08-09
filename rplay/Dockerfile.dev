@@ -7,6 +7,11 @@ RUN apt-get update && apt-get install -y \
 	git \
 	g++ \
 	libgstreamer1.0-dev \
+	gstreamer1.0-plugins-base \
+	gstreamer1.0-plugins-good \
+	gstreamer1.0-plugins-bad \
+	gstreamer1.0-plugins-ugly \
+	gstreamer1.0-libav \
 	libzmq3-dev \
 	libasound2-dev \
 	libboost-all-dev \

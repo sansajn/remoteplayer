@@ -1,0 +1,22 @@
+FROM ubuntu:18.04
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+	libgstreamer1.0-0 \
+	gstreamer1.0-plugins-base \
+	gstreamer1.0-plugins-good \
+	gstreamer1.0-alsa \
+	libasound2 \
+	libasound2-plugins \
+	alsa-utils \
+	libzmq5 \
+	libasound2 \
+	libboost-filesystem1.65.1 \
+	libboost-thread1.65.1 \
+	libboost-log1.65.1 \
+	libboost-date-time1.65.1 \
+	libboost-program-options1.65.1 \
+	&& rm -rf /var/lib/apt/lists/*
+
+# Default to run shell (you’ll override this when running)
+CMD ["/bin/bash"]

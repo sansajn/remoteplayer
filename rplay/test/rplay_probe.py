@@ -3,6 +3,9 @@
 
 '''
 Probe utility for exploring ZMQ messages send to arplay by rplay.
+
+Dependencies:
+	sudo apt-get install python3-zmq libzmq5
 '''
 
 import argparse, zmq, time, datetime, random

@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
 	libzmq3-dev \
 	libasound2-dev \
 	libboost-all-dev \
+	python3-zmq \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Work directory inside container

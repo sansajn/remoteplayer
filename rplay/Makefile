@@ -24,7 +24,7 @@ clean:
 
 run:
 	@if [ -z "$(AUDIO_GID)" ]; then echo "Could not resolve 'audio' group GID on host."; exit 1; fi
-	docker run --rm -it \
+	docker run --rm -it --init \
 		--user $(shell id -u):$(shell id -g) \
 		--device /dev/snd \
 		--group-add $(AUDIO_GID) \
@@ -44,6 +44,16 @@ join:
 	fi; \
 	echo "Opening shell in container $$cid..."; \
 	docker exec --interactive --tty $$cid bash
+
+# Stop a running development container
+stop:
+	@cid=$$(docker ps --filter "ancestor=$(IMAGE_NAME)" --format "{{.ID}}"); \
+	if [ -z "$$cid" ]; then \
+		echo "No running container found for image $(IMAGE_NAME)"; \
+		exit 1; \
+	fi; \
+	echo "Stopping container $$cid..."; \
+	docker stop $$cid
 
 # interactive bash for debugging
 bash:

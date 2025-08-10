@@ -129,9 +129,9 @@ void clone_server::loop()
 {
 	while (!_quit)
 	{
-		int err = zmq_errno();
+		int const err = zmq_errno();
 		if (err > 0 && err != EAGAIN)
-			std::cerr << "zmq: error (" << err << ") detected what: " << zmq_strerror(err) << std::endl;
+			std::cerr << "zmq: error (" << err << "), what: " << zmq_strerror(err) << std::endl;
 
 		handle_monitor_events();
 

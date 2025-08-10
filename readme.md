@@ -79,6 +79,54 @@ complains.
 
 > TODO: this is not a problem for now, because we only need to deploy, now develop.
 
+### Local build
+
+#### Ubuntu 24.04 LTS
+
+under Ubuntu 24.04 LTS for some reason trying to find configuration for `gstreamer-1.0` ends up with
+
+```console
+$ pkg-config --cflags gstreamer-1.0 
+Package libunwind was not found in the pkg-config search path.
+Perhaps you should add the directory containing `libunwind.pc'
+to the PKG_CONFIG_PATH environment variable
+Package 'libunwind', required by 'gstreamer-1.0', not found
+```
+
+complain. The problem it that `libunwind.pc` file is missing in installed libunwind development package (`libunwind-14-dev`).
+
+Run command to check
+
+```bash
+dpkg -L libunwind-14-dev
+```
+
+Therefore we need to create `libunwind.pc` manualy in `/usr/local/lib/pkgconfig` this way
+
+```console
+$ cat /usr/local/lib/pkgconfig/libunwind.pc 
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include/libunwind
+
+Name: libunwind
+Description: The libunwind library
+Version: 14.0
+Cflags: -I${includedir}
+Libs: -L${libdir} -lunwind
+```
+
+We've picked `/usr/local/lib/pkgconfig` because it is one of the directory searched by `pkg-config`. Run
+
+```console
+$ pkg-config --variable pc_path pkg-config
+/usr/local/lib/x86_64-linux-gnu/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
+```
+
+command to list directories under your configuration.
+
+
 ## Deploy
 
 ### Server side (rplay)

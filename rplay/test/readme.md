@@ -16,7 +16,9 @@ for the first time. After that only activation with
 source /opt/venvs/ja/rplay/bin/activate
 ```
 
-comand is needed.
+> **tip**: or use helper script `./activate` instead
+
+command is needed.
 
 - `rplay_probe.py`: python script to brobe rplay communication with client. To run the script join to running development container with
 

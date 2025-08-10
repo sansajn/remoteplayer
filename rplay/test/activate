@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Script to activate virtual python environment to run test scripts.
+
+VENV_PATH = /opt/venvs/ja/rplay
+
+source ${VENV_PATH}/bin/activate

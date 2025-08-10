@@ -20,7 +20,7 @@ bude poskytovať nasledujúce funkcie:
 * `list_media`, ktorá vráti zoznam medií
 * `play`, ktorá prehrá skladbu z playlistu
 * `pause`, ktorá pozastaví prehrávanie aktuálnej skladby
-* `stop`, zastavenie prehrávania
+* `stop`, stop playback
 * `play_progress`, update priebehu prehrávania (každých 10s)
 * `identify`, vráti informácie o serveru
 * `playlist_content`, update obsahu playlistu
@@ -117,12 +117,14 @@ následne server klientom pošle správu play_progress(playback_status=paused).
 
 `stop` [notify]:
 
-Príkaz umožnuje klientovy zastaviť prehrávanie, príkaz je definovaný
+Príkaz umožnuje klientovy zastaviť prehrávanie. Príkaz je definovaný
 ako
 
-	{"cmd":"stop"}
+```json
+{"cmd":"stop"}
+```
 
-následne server klientom pošle správu play_progress(media="").
+následne server klientom pošle správu `play_progress(media="")`.
 
 
 `play_progress` [news]:
@@ -197,7 +199,7 @@ remoteplayer posiela príkaz v pravidelných intervaloch (každú 1s) v tvare
 kde N je čítač a `ISO_STRING` je časové razítko v tvare `YYYYMMDDTHHMMSS.ffffff` reprezentované reťazcom.
 
 
-seek [notify]:
+`seek` [notify]:
 
 klient posielá správu na zmenu pozície aktuálnej skladby v tvare
 
@@ -210,7 +212,7 @@ klient posielá správu na zmenu pozície aktuálnej skladby v tvare
 kde POS_IN_SEC (int) je nová pozícia skladby a media je identifikátor skladby (ak sa identifikátor nezhoduje s identifikátorom aktuálne prehrávanej skladby, správa sa ignoruje).
 
 
-volume [news]:
+`volume` [news]:
 
 posiela server pri zmene hlasitosti v tvare
 
@@ -220,7 +222,7 @@ kde N (int) je celé kladné číslo v rozsahu 0 až 100. Server volume spravu
 posiela aj pri pripojeni klienta k serveru.
 
 
-set_volume [notify]:
+`set_volume` [notify]:
 
 Príkaz užívateľovi zmenu hlasitosti
 

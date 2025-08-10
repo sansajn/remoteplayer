@@ -4,11 +4,14 @@
 '''
 Probe utility for exploring ZMQ messages send to arplay by rplay.
 
+Tested under: Ubuntu 24.04 LTS
+
 Dependencies:
 	sudo apt-get install python3-zmq libzmq5
 '''
 
-import argparse, zmq, time, datetime, random, json
+import argparse, json
+import zmq
 
 DEFAULT_PORT = 23333
 DEFAULT_HOST = 'localhost'
@@ -20,8 +23,11 @@ def request_list_media(req):
 def playlist_add(notifier, items):
 	notifier.send_json({'cmd':'playlist_add', 'items':items})
 
-def play(notfier, playlist_id, item_idx):
-	notfier.send_json({'cmd':'play', 'playlist':playlist_id, 'idx':item_idx})
+def play(notifier, playlist_id, item_idx):
+	notifier.send_json({'cmd':'play', 'playlist':playlist_id, 'idx':item_idx})
+
+def stop(notifier):
+	notifier.send_json({'cmd':'stop'})
 
 def main(args):
 	ctx = zmq.Context()
@@ -83,6 +89,8 @@ def main(args):
 					print(f'rplay (response) >> unknown response (cmd={res["cmd"]})')
 			else:
 				print('rplay (response) >> "%s"' % d)
+
+	stop(notifier)
 
 	print('done!')
 

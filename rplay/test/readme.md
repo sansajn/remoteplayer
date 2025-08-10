@@ -16,7 +16,7 @@ for the first time. After that only activation with
 source /opt/venvs/ja/rplay/bin/activate
 ```
 
-> **tip**: or use helper script `./activate` instead
+> **tip**: or use helper script `source ./activate` instead
 
 command is needed.
 

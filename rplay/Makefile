@@ -12,6 +12,16 @@ DOCKER_RUN_BUILD = docker run --rm \
 
 AUDIO_GID := $(shell getent group audio | cut -d: -f3)
 
+DOCKER_RUN_RUN = docker run --rm -it --init \
+	--user $(shell id -u):$(shell id -g) \
+	--device /dev/snd \
+	--group-add $(AUDIO_GID) \
+	-v "$(PWD)":/build -w /build \
+	-v "$(PWD)/asound.conf":/etc/asound.conf:ro \
+	-v "$(LIBRARY_PATH)":/music:ro \
+	--publish 23333-23335:23333-23335 \
+	-e HOME=/tmp
+
 # creates development docker image
 image:
 	docker build -t $(IMAGE_NAME) -f Dockerfile.dev .
@@ -24,16 +34,7 @@ clean:
 
 run:
 	@if [ -z "$(AUDIO_GID)" ]; then echo "Could not resolve 'audio' group GID on host."; exit 1; fi
-	docker run --rm -it --init \
-		--user $(shell id -u):$(shell id -g) \
-		--device /dev/snd \
-		--group-add $(AUDIO_GID) \
-		-v "$(PWD)":/build -w /build \
-		-v "$(PWD)/asound.conf":/etc/asound.conf:ro \
-		-v "$(LIBRARY_PATH)":/music:ro \
-		--publish 23333:23333 \
-		-e HOME=/tmp \
-		$(IMAGE_NAME) ./rplay --library=/music
+	$(DOCKER_RUN_RUN) $(IMAGE_NAME) ./rplay --library=/music
 
 # Join a running runtime container
 join:
@@ -57,7 +58,7 @@ stop:
 
 # interactive bash for debugging
 bash:
-	$(DOCKER_RUN) bash
+	$(DOCKER_RUN_RUN) $(IMAGE_NAME) bash
 
 
 # creates runtime docker image
@@ -66,27 +67,10 @@ runtime-image:
 
 runtime-run:
 	@if [ -z "$(AUDIO_GID)" ]; then echo "Could not resolve 'audio' group GID on host."; exit 1; fi
-	docker run --rm -it \
-		--user $(shell id -u):$(shell id -g) \
-		--device /dev/snd \
-		--group-add $(AUDIO_GID) \
-		-v "$(PWD)":/build -w /build \
-		-v "$(PWD)/asound.conf":/etc/asound.conf:ro \
-		-v "$(LIBRARY_PATH)":/music:ro \
-		--publish 23333:23333 \
-		-e HOME=/tmp \
-		$(RUNTIME_IMAGE) ./rplay --library=/music
+	$(DOCKER_RUN_RUN) $(RUNTIME_IMAGE) ./rplay --library=/music
 
 # interactive bash for debugging
 runtime-bash:
 	@if [ -z "$(AUDIO_GID)" ]; then echo "Could not resolve 'audio' group GID on host."; exit 1; fi
-	docker run --rm -it \
-		--user $(shell id -u):$(shell id -g) \
-		--device /dev/snd \
-		--group-add $(AUDIO_GID) \
-		-v "$(PWD)":/build -w /build \
-		-v "$(PWD)/asound.conf":/etc/asound.conf:ro \
-		-v "$(LIBRARY_PATH)":/music:ro \
-		--publish 23333:23333 \
-		-e HOME=/tmp \
-		$(RUNTIME_IMAGE) bash
+	$(DOCKER_RUN_RUN) $(RUNTIME_IMAGE) bash
+
